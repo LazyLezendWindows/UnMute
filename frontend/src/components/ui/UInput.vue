@@ -92,7 +92,7 @@ defineEmits<{
   background-color: var(--unmute-input-bg);
   color: var(--unmute-text-primary);
   border: 1px solid var(--unmute-input-border);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2.5px 5px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .u-input::placeholder {
@@ -105,16 +105,16 @@ defineEmits<{
 
 .u-input-normal:focus {
   border-color: var(--unmute-primary);
-  box-shadow: 0 0 0 3px var(--unmute-primary-surface);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3.5px var(--unmute-primary-surface), var(--unmute-glow-primary);
 }
 
 .u-input-error {
   border-color: #f43f5e;
-  background-color: rgba(244, 63, 94, 0.05);
+  background-color: rgba(244, 63, 94, 0.06);
 }
 
 .u-input-error:focus {
-  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3.5px rgba(244, 63, 94, 0.25);
 }
 </style>
 

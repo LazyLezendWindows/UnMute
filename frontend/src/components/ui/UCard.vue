@@ -74,53 +74,53 @@ const paddingClass = computed(() => {
 .u-card-default {
   background-color: var(--unmute-surface);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-md);
+  box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
   color: var(--unmute-text-primary);
 }
 
 .u-card-elevated {
   background-color: var(--unmute-surface-raised);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-lg);
+  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
   color: var(--unmute-text-primary);
 }
 
 .u-card-glass {
   background: var(--unmute-glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-lg);
+  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
   color: var(--unmute-text-primary);
 }
 
 .u-card-interactive {
   background-color: var(--unmute-surface);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-sm);
+  box-shadow: var(--unmute-shadow-sm), var(--unmute-3d-card-rim);
   color: var(--unmute-text-primary);
 }
 
 .u-card-interactive:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px) scale(1.01);
   border-color: var(--unmute-primary);
-  box-shadow: var(--unmute-shadow-lg);
+  box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
 }
 
-/* Subtle 3D perspective tilt on hover */
+/* 3D perspective tilt on hover */
 .u-card-3d {
   background-color: var(--unmute-surface-raised);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-3d);
+  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
   color: var(--unmute-text-primary);
   transform-style: preserve-3d;
-  perspective: 1000px;
+  perspective: 1200px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .u-card-3d:hover {
-    transform: perspective(1000px) translateY(-5px) rotateX(1deg) rotateY(-1deg);
-    box-shadow: var(--unmute-shadow-3d-hover);
+    transform: perspective(1200px) translateY(-6px) rotateX(1.5deg) rotateY(-1.5deg);
+    box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
     border-color: var(--unmute-primary);
   }
 }

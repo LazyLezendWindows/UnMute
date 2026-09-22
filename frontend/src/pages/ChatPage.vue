@@ -1,15 +1,19 @@
 <template>
-  <div class="flex-1 flex flex-col md:flex-row bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl h-[calc(100vh-8.5rem)] md:h-[calc(100vh-10rem)] max-w-4xl mx-auto w-full relative">
+  <div
+    class="flex-1 flex flex-col md:flex-row surface-raised rounded-3xl overflow-hidden h-[calc(100vh-8.5rem)] md:h-[calc(100vh-10rem)] max-w-4xl mx-auto w-full relative border border-white/10"
+    style="box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);"
+  >
     <!-- Conversations Sidebar (Desktop or Mobile when no active conversation) -->
     <div
-      class="w-full md:w-80 border-r border-slate-800 flex flex-col bg-slate-900/95 shrink-0"
+      class="w-full md:w-80 border-r border-white/5 flex flex-col surface-glass shrink-0"
       :class="{ 'hidden md:flex': activeConversationId }"
     >
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h2 class="font-bold text-base text-white tracking-tight">Conversations</h2>
+      <div class="p-4 border-b border-white/5 flex items-center justify-between">
+        <h2 class="font-display font-bold text-base tracking-tight" style="color: var(--unmute-text-primary);">Conversations</h2>
         <span
           v-if="chatStore.totalUnreadCount > 0"
-          class="px-2 py-0.5 rounded-full bg-gradient-to-r from-brand-500 to-pink-500 text-white text-[10px] font-extrabold shadow-sm shadow-pink-500/40"
+          class="px-2 py-0.5 rounded-full text-white text-[10px] font-extrabold shadow-sm"
+          :style="{ background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' }"
         >
           {{ chatStore.totalUnreadCount }} new
         </span>
@@ -140,8 +144,16 @@
             class="max-w-[82%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm shadow-md transition-all relative overflow-hidden"
             :class="
               msg.senderId === authStore.user?.id
-                ? 'bg-gradient-to-r from-brand-600 via-purple-600 to-pink-600 text-white rounded-br-none shadow-brand-500/15'
-                : 'bg-slate-850 text-slate-100 rounded-bl-none border border-slate-750 shadow-sm'
+                ? 'text-white rounded-br-none'
+                : 'surface-raised rounded-bl-none border border-white/5 shadow-sm'
+            "
+            :style="
+              msg.senderId === authStore.user?.id
+                ? {
+                    background: 'var(--unmute-primary-gradient)',
+                    boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-3d-specular)'
+                  }
+                : { color: 'var(--unmute-text-primary)' }
             "
           >
             <!-- Top highlight on sent bubble -->
@@ -157,7 +169,7 @@
           <div class="flex items-center gap-1 mt-1 text-[10px] text-slate-500 px-1">
             <span>{{ formatMessageTime(msg.createdAt) }}</span>
             <span v-if="msg.senderId === authStore.user?.id">
-              <span v-if="msg.status === 'read'" class="text-brand-400 font-semibold">✓✓</span>
+              <span v-if="msg.status === 'read'" class="font-semibold" style="color: var(--unmute-primary-light);">✓✓</span>
               <span v-else>✓</span>
             </span>
           </div>
@@ -165,13 +177,14 @@
       </div>
 
       <!-- Message Input Box -->
-      <div v-if="activeConversationId" class="p-3 sm:p-4 border-t border-slate-800 surface-glass">
+      <div v-if="activeConversationId" class="p-3 sm:p-4 border-t border-white/10 surface-glass">
         <form @submit.prevent="handleSend" class="flex items-center gap-2">
           <input
             v-model="inputContent"
             type="text"
             placeholder="Type a message without pressure..."
-            class="flex-1 bg-slate-850 border border-slate-700/80 rounded-2xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"
+            class="flex-1 rounded-2xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-all focus:outline-none"
+            style="background-color: var(--unmute-input-bg); color: var(--unmute-text-primary); border: 1px solid var(--unmute-input-border); box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);"
           />
           <UButton
             type="submit"

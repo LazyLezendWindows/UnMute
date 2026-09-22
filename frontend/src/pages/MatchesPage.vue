@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Your Matches</h1>
-        <p class="text-xs text-slate-400">People you connected with mutually</p>
+        <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color: var(--unmute-text-primary);">Your Matches</h1>
+        <p class="text-xs" style="color: var(--unmute-text-muted);">People you connected with mutually</p>
       </div>
       <UBadge variant="primary" size="md">
         {{ chatStore.matches.length }} Matches

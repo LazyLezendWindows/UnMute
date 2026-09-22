@@ -4,46 +4,46 @@
       <!-- Brand Logo -->
       <router-link to="/discover" class="flex items-center gap-2.5 group select-none">
         <div
-          class="w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 group-active:scale-95 transition-transform"
-          style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
+          class="w-10 h-10 rounded-2xl flex items-center justify-center group-hover:scale-105 group-active:scale-95 transition-transform"
+          style="background: var(--unmute-primary-gradient); box-shadow: 0 3px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);"
         >
           <svg class="w-5 h-5 text-white stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2v20M17 5v14M7 8v8M22 10v4M2 10v4" />
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="font-bold text-lg tracking-tight" style="color: var(--unmute-text-primary);">
+          <span class="font-display font-extrabold text-xl tracking-tight leading-none" style="color: var(--unmute-text-primary);">
             Unmute
           </span>
-          <span class="text-[10px] text-slate-400 font-medium -mt-1 hidden sm:inline">
+          <span class="text-[10px] font-medium tracking-wide mt-0.5 hidden sm:inline" style="color: var(--unmute-text-muted);">
             Connect without the pressure
           </span>
         </div>
       </router-link>
 
       <!-- Desktop Nav -->
-      <nav class="hidden md:flex items-center gap-1.5 p-1 rounded-2xl surface-raised border border-white/5">
+      <nav class="hidden md:flex items-center gap-1.5 p-1.5 rounded-2xl surface-raised border border-white/5 shadow-inner">
         <router-link
           to="/discover"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all relative"
-          :class="$route.path === '/discover' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-100'"
-          :style="$route.path === '/discover' ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : {}"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all relative select-none"
+          :class="$route.path === '/discover' ? 'text-white' : 'hover:text-white'"
+          :style="$route.path === '/discover' ? { background: 'var(--unmute-primary-gradient)', boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
         >
           Discover
         </router-link>
         <router-link
           to="/matches"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all relative"
-          :class="$route.path === '/matches' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-100'"
-          :style="$route.path === '/matches' ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : {}"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all relative select-none"
+          :class="$route.path === '/matches' ? 'text-white' : 'hover:text-white'"
+          :style="$route.path === '/matches' ? { background: 'var(--unmute-primary-gradient)', boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
         >
           Matches
         </router-link>
         <router-link
           to="/chat"
-          class="relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
-          :class="$route.path.startsWith('/chat') ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-100'"
-          :style="$route.path.startsWith('/chat') ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : {}"
+          class="relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all select-none"
+          :class="$route.path.startsWith('/chat') ? 'text-white' : 'hover:text-white'"
+          :style="$route.path.startsWith('/chat') ? { background: 'var(--unmute-primary-gradient)', boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
         >
           Messages
           <span
@@ -55,17 +55,17 @@
         </router-link>
         <router-link
           to="/safety"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
-          :class="$route.path === '/safety' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-100'"
-          :style="$route.path === '/safety' ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : {}"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all select-none"
+          :class="$route.path === '/safety' ? 'text-white' : 'hover:text-white'"
+          :style="$route.path === '/safety' ? { background: 'var(--unmute-primary-gradient)', boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
         >
           Safety
         </router-link>
         <router-link
           to="/settings"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
-          :class="$route.path === '/settings' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-100'"
-          :style="$route.path === '/settings' ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : {}"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all select-none"
+          :class="$route.path === '/settings' ? 'text-white' : 'hover:text-white'"
+          :style="$route.path === '/settings' ? { background: 'var(--unmute-primary-gradient)', boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
         >
           Settings
         </router-link>
@@ -73,21 +73,23 @@
 
       <!-- Right Actions: Theme Toggle, Settings, & Profile Avatar -->
       <div class="flex items-center gap-2">
-        <!-- Quick Dark/Light Mode Toggle -->
+        <!-- Quick Dark/Light Mode Toggle with 3D tactile button feel -->
         <button
           type="button"
           @click="themeStore.toggleMode()"
-          class="p-2 rounded-xl text-slate-400 hover:text-white transition-all surface-raised border border-white/5 active:scale-95"
+          class="p-2.5 rounded-xl transition-all surface-raised border border-white/10 active:translate-y-0.5 select-none"
+          style="box-shadow: 0 2px 0 var(--unmute-glass-border), var(--unmute-3d-specular);"
           :title="themeStore.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
         >
           <Sun v-if="themeStore.isDarkMode" class="w-4 h-4 text-amber-400" />
-          <Moon v-else class="w-4 h-4 text-purple-600" />
+          <Moon v-else class="w-4 h-4" style="color: var(--unmute-primary);" />
         </button>
 
         <!-- Settings icon shortcut for mobile -->
         <router-link
           to="/settings"
-          class="md:hidden p-2 rounded-xl text-slate-400 hover:text-white transition-all surface-raised border border-white/5 active:scale-95"
+          class="md:hidden p-2.5 rounded-xl transition-all surface-raised border border-white/10 active:translate-y-0.5 select-none"
+          style="box-shadow: 0 2px 0 var(--unmute-glass-border), var(--unmute-3d-specular); color: var(--unmute-text-secondary);"
           title="Settings"
         >
           <Settings class="w-4 h-4" />

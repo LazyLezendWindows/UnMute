@@ -1,20 +1,26 @@
 // Unmute Design Tokens
-// Central variables for dual-tone surfaces (Dark / Light), 3D shadows, radii, and typography
+// Complete 3D Depth System: Bevels, Specular Highlights, Tactile Extrusions, and Dual-Tone Palettes
 
 :root {
   // --- DARK THEME (Default) ---
-  --unmute-bg: #07090e;
-  --unmute-surface: #0f131f;
-  --unmute-surface-raised: #161c2d;
-  --unmute-surface-overlay: #1e263c;
-  --unmute-surface-active: #26304d;
+  --unmute-bg: #06080e;
+  --unmute-surface: #0e121e;
+  --unmute-surface-raised: #151b2c;
+  --unmute-surface-overlay: #1d253c;
+  --unmute-surface-active: #273150;
 
-  // Glassmorphic Surfaces
-  --unmute-glass-bg: rgba(15, 19, 31, 0.8);
-  --unmute-glass-surface: rgba(22, 28, 45, 0.7);
-  --unmute-glass-border: rgba(255, 255, 255, 0.08);
-  --unmute-glass-border-hover: rgba(255, 255, 255, 0.18);
-  --unmute-glass-highlight: rgba(255, 255, 255, 0.12);
+  // 3D Glass Surfaces with Edge Refraction
+  --unmute-glass-bg: rgba(14, 18, 30, 0.82);
+  --unmute-glass-surface: rgba(21, 27, 44, 0.72);
+  --unmute-glass-border: rgba(255, 255, 255, 0.1);
+  --unmute-glass-border-hover: rgba(255, 255, 255, 0.22);
+  --unmute-glass-highlight: rgba(255, 255, 255, 0.18);
+
+  // 3D Specular & Bevel Tokens
+  --unmute-3d-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
+  --unmute-3d-bevel-primary: #4c1d95;
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.4);
+  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 0 rgba(0, 0, 0, 0.35);
 
   // Text & Content Hierarchy
   --unmute-text-primary: #f8fafc;
@@ -23,37 +29,35 @@
   --unmute-text-dim: #475569;
 
   // Input background & border
-  --unmute-input-bg: #141928;
-  --unmute-input-border: #232d46;
+  --unmute-input-bg: #0b0e18;
+  --unmute-input-border: #1f273d;
 
-  // 3D Depth & Soft Ambient Shadows
-  --unmute-shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.28);
-  --unmute-shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.38), 0 4px 10px -2px rgba(0, 0, 0, 0.25);
-  --unmute-shadow-lg: 0 20px 45px -5px rgba(0, 0, 0, 0.5), 0 8px 18px -4px rgba(0, 0, 0, 0.35);
-  --unmute-shadow-3d: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --unmute-shadow-3d-hover: 0 24px 50px -6px rgba(0, 0, 0, 0.65), 0 10px 22px -3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  // 3D Mechanical Shadows & Tactile Extrusions
+  --unmute-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --unmute-shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.45), 0 3px 8px -1px rgba(0, 0, 0, 0.3);
+  --unmute-shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 14px -2px rgba(0, 0, 0, 0.35);
+  --unmute-shadow-3d: 0 16px 32px -4px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.4), inset 0 1.5px 0 rgba(255, 255, 255, 0.14);
+  --unmute-shadow-3d-hover: 0 24px 48px -6px rgba(0, 0, 0, 0.7), 0 8px 20px -3px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.25);
+  
+  // 3D Button Tactile Extrusion (Default Fallback)
+  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 10px 22px rgba(0, 0, 0, 0.4);
+  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 4px 10px rgba(0, 0, 0, 0.3);
 
-  // Default Accent (Overridden dynamically by ThemeStore)
-  --unmute-primary: #7c3aed;
-  --unmute-primary-light: #9d68f6;
-  --unmute-primary-dark: #5b21b6;
-  --unmute-primary-gradient: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #ec4899 100%);
-  --unmute-primary-surface: rgba(124, 58, 237, 0.15);
-  --unmute-glow-primary: 0 0 30px -4px rgba(124, 58, 237, 0.45);
-
-  --unmute-accent-pink: #ec4899;
-  --unmute-accent-purple: #8b5cf6;
-  --unmute-accent-cyan: #06b6d4;
-  --unmute-accent-emerald: #10b981;
-  --unmute-accent-amber: #f59e0b;
-  --unmute-accent-rose: #f43f5e;
+  // Dynamic Accent Defaults (Cyberpunk Neon)
+  --unmute-primary: #8b5cf6;
+  --unmute-primary-light: #c084fc;
+  --unmute-primary-dark: #6d28d9;
+  --unmute-primary-bevel: #4c1d95;
+  --unmute-primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%);
+  --unmute-primary-surface: rgba(139, 92, 246, 0.16);
+  --unmute-glow-primary: 0 8px 30px -4px rgba(217, 70, 239, 0.55);
 
   // Border Radii
-  --unmute-radius-xs: 6px;
-  --unmute-radius-sm: 10px;
-  --unmute-radius-md: 16px;
-  --unmute-radius-lg: 24px;
-  --unmute-radius-xl: 32px;
+  --unmute-radius-xs: 8px;
+  --unmute-radius-sm: 12px;
+  --unmute-radius-md: 18px;
+  --unmute-radius-lg: 26px;
+  --unmute-radius-xl: 36px;
   --unmute-radius-pill: 9999px;
 
   // Typography Scale
@@ -67,29 +71,34 @@
   --font-display: 2.25rem;
 
   // Transitions
-  --unmute-transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
-  --unmute-transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
-  --unmute-transition-bounce: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --unmute-transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --unmute-transition-normal: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --unmute-transition-bounce: 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 // --- LIGHT / WHITE THEME ---
 [data-theme="light"] {
-  --unmute-bg: #f8fafc;
+  --unmute-bg: #f4f6fb;
   --unmute-surface: #ffffff;
-  --unmute-surface-raised: #f1f5f9;
-  --unmute-surface-overlay: #e2e8f0;
-  --unmute-surface-active: #ede9fe;
+  --unmute-surface-raised: #ebf0f8;
+  --unmute-surface-overlay: #e2e8f4;
+  --unmute-surface-active: #e8edfa;
 
-  // Glassmorphic Surfaces for Light
-  --unmute-glass-bg: rgba(255, 255, 255, 0.88);
-  --unmute-glass-surface: rgba(248, 250, 252, 0.82);
+  // Glassmorphic Surfaces for Light with Crystal Refraction
+  --unmute-glass-bg: rgba(255, 255, 255, 0.9);
+  --unmute-glass-surface: rgba(244, 246, 251, 0.85);
   --unmute-glass-border: rgba(15, 23, 42, 0.08);
-  --unmute-glass-border-hover: rgba(15, 23, 42, 0.16);
-  --unmute-glass-highlight: rgba(255, 255, 255, 0.9);
+  --unmute-glass-border-hover: rgba(15, 23, 42, 0.18);
+  --unmute-glass-highlight: rgba(255, 255, 255, 0.95);
+
+  // 3D Specular & Bevel Tokens for Light
+  --unmute-3d-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.65);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(15, 23, 42, 0.06);
+  --unmute-3d-card-rim: inset 0 1.5px 0 0 rgba(255, 255, 255, 0.9), inset 0 -1.5px 0 0 rgba(15, 23, 42, 0.05);
 
   // Text & Content Hierarchy for Light
   --unmute-text-primary: #0f172a;
-  --unmute-text-secondary: #475569;
+  --unmute-text-secondary: #334155;
   --unmute-text-muted: #64748b;
   --unmute-text-dim: #94a3b8;
 
@@ -97,13 +106,17 @@
   --unmute-input-bg: #ffffff;
   --unmute-input-border: #cbd5e1;
 
-  // Crisp, tactile light shadows
-  --unmute-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --unmute-shadow-md: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --unmute-shadow-lg: 0 20px 40px -6px rgba(15, 23, 42, 0.12), 0 8px 16px -3px rgba(15, 23, 42, 0.06);
-  --unmute-shadow-3d: 0 16px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --unmute-shadow-3d-hover: 0 22px 45px -5px rgba(15, 23, 42, 0.18), 0 8px 18px -3px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+  // Crisp, tactile light 3D shadows
+  --unmute-shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --unmute-shadow-md: 0 8px 20px -3px rgba(15, 23, 42, 0.08), 0 3px 8px -2px rgba(15, 23, 42, 0.04);
+  --unmute-shadow-lg: 0 18px 36px -5px rgba(15, 23, 42, 0.12), 0 6px 14px -3px rgba(15, 23, 42, 0.05);
+  --unmute-shadow-3d: 0 14px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05), inset 0 1.5px 0 rgba(255, 255, 255, 0.9);
+  --unmute-shadow-3d-hover: 0 22px 42px -6px rgba(15, 23, 42, 0.18), 0 8px 16px -3px rgba(15, 23, 42, 0.07), inset 0 2px 0 rgba(255, 255, 255, 1);
 
-  --unmute-glow-primary: 0 0 25px -4px rgba(124, 58, 237, 0.3);
-  --unmute-primary-surface: rgba(124, 58, 237, 0.1);
+  // 3D Button Tactile Extrusion for Light
+  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 8px 18px rgba(15, 23, 42, 0.2);
+  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(15, 23, 42, 0.15);
+
+  --unmute-glow-primary: 0 8px 25px -3px rgba(139, 92, 246, 0.4);
+  --unmute-primary-surface: rgba(139, 92, 246, 0.1);
 }

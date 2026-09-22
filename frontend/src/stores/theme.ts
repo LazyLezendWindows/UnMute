@@ -2,14 +2,16 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-export type AccentColor = 'violet' | 'rose' | 'cyan' | 'emerald' | 'amber';
+export type AccentColor = 'cyberpunk' | 'aurora' | 'ember' | 'matrix' | 'luxe' | 'sapphire';
 
 export interface AccentPreset {
   id: AccentColor;
   name: string;
+  subtitle: string;
   primary: string;
   light: string;
   dark: string;
+  bevel: string; // 3D bottom bevel extrusion color
   gradient: string;
   glow: string;
   surface: string;
@@ -17,71 +19,95 @@ export interface AccentPreset {
 }
 
 export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
-  violet: {
-    id: 'violet',
-    name: 'Electric Violet',
-    primary: '#7c3aed',
-    light: '#9d68f6',
-    dark: '#5b21b6',
-    gradient: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #ec4899 100%)',
-    glow: '0 0 30px -4px rgba(124, 58, 237, 0.45)',
-    surface: 'rgba(124, 58, 237, 0.15)',
-    preview: '#7c3aed',
+  cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Neon',
+    subtitle: 'Electric Violet & Hyper Pink',
+    primary: '#8b5cf6',
+    light: '#c084fc',
+    dark: '#6d28d9',
+    bevel: '#4c1d95',
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%)',
+    glow: '0 8px 30px -4px rgba(217, 70, 239, 0.55)',
+    surface: 'rgba(139, 92, 246, 0.16)',
+    preview: '#d946ef',
   },
-  rose: {
-    id: 'rose',
-    name: 'Sunset Rose',
-    primary: '#ec4899',
-    light: '#f472b6',
-    dark: '#be185d',
-    gradient: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 50%, #fb923c 100%)',
-    glow: '0 0 30px -4px rgba(236, 72, 153, 0.45)',
-    surface: 'rgba(236, 72, 153, 0.15)',
-    preview: '#ec4899',
-  },
-  cyan: {
-    id: 'cyan',
-    name: 'Ocean Cyan',
+  aurora: {
+    id: 'aurora',
+    name: 'Midnight Aurora',
+    subtitle: 'Electric Cyan & Azure',
     primary: '#06b6d4',
     light: '#38bdf8',
-    dark: '#0e7490',
-    gradient: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 50%, #3b82f6 100%)',
-    glow: '0 0 30px -4px rgba(6, 182, 212, 0.45)',
-    surface: 'rgba(6, 182, 212, 0.15)',
-    preview: '#06b6d4',
+    dark: '#0891b2',
+    bevel: '#0e7490',
+    gradient: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #6366f1 100%)',
+    glow: '0 8px 30px -4px rgba(0, 242, 254, 0.55)',
+    surface: 'rgba(6, 182, 212, 0.16)',
+    preview: '#00f2fe',
   },
-  emerald: {
-    id: 'emerald',
-    name: 'Emerald Mint',
-    primary: '#10b981',
-    light: '#34d399',
-    dark: '#047857',
-    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #06b6d4 100%)',
-    glow: '0 0 30px -4px rgba(16, 185, 129, 0.45)',
-    surface: 'rgba(16, 185, 129, 0.15)',
-    preview: '#10b981',
+  ember: {
+    id: 'ember',
+    name: 'Solar Flare',
+    subtitle: 'Hot Coral & Tangerine',
+    primary: '#ff416c',
+    light: '#ff6b8b',
+    dark: '#e11d48',
+    bevel: '#9f1239',
+    gradient: 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 55%, #f9d423 100%)',
+    glow: '0 8px 30px -4px rgba(255, 65, 108, 0.55)',
+    surface: 'rgba(255, 65, 108, 0.16)',
+    preview: '#ff416c',
   },
-  amber: {
-    id: 'amber',
-    name: 'Amber Glow',
+  matrix: {
+    id: 'matrix',
+    name: 'Neon Matrix',
+    subtitle: 'Acid Mint & Hyper Emerald',
+    primary: '#00f5a0',
+    light: '#5eead4',
+    dark: '#059669',
+    bevel: '#065f46',
+    gradient: 'linear-gradient(135deg, #00f5a0 0%, #00d995 50%, #84cc16 100%)',
+    glow: '0 8px 30px -4px rgba(0, 245, 160, 0.55)',
+    surface: 'rgba(0, 245, 160, 0.16)',
+    preview: '#00f5a0',
+  },
+  luxe: {
+    id: 'luxe',
+    name: 'Champagne Luxe',
+    subtitle: 'Solar Gold & Royal Amber',
     primary: '#f59e0b',
-    light: '#fbbf24',
-    dark: '#b45309',
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 50%, #ef4444 100%)',
-    glow: '0 0 30px -4px rgba(245, 158, 11, 0.45)',
-    surface: 'rgba(245, 158, 11, 0.15)',
-    preview: '#f59e0b',
+    light: '#fde047',
+    dark: '#d97706',
+    bevel: '#92400e',
+    gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 45%, #ea580c 100%)',
+    glow: '0 8px 30px -4px rgba(245, 158, 11, 0.55)',
+    surface: 'rgba(245, 158, 11, 0.16)',
+    preview: '#fbbf24',
+  },
+  sapphire: {
+    id: 'sapphire',
+    name: 'Electric Sapphire',
+    subtitle: 'Cobalt Glow & Crystalline Ice',
+    primary: '#2563eb',
+    light: '#60a5fa',
+    dark: '#1d4ed8',
+    bevel: '#1e3a8a',
+    gradient: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 50%, #93c5fd 100%)',
+    glow: '0 8px 30px -4px rgba(37, 99, 235, 0.55)',
+    surface: 'rgba(37, 99, 235, 0.16)',
+    preview: '#38bdf8',
   },
 };
 
 export const useThemeStore = defineStore('theme', () => {
   const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'dark';
-  const savedAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'violet';
+  const rawAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'cyberpunk';
+  const initialAccent: AccentColor = ACCENT_PRESETS[rawAccent] ? rawAccent : 'cyberpunk';
 
   const mode = ref<ThemeMode>(savedMode);
-  const accent = ref<AccentColor>(savedAccent);
+  const accent = ref<AccentColor>(initialAccent);
 
-  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS.violet);
+  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS.cyberpunk);
 
   const isDarkMode = computed(() => {
     if (mode.value === 'system') {
@@ -102,6 +128,7 @@ export const useThemeStore = defineStore('theme', () => {
     root.style.setProperty('--unmute-primary', preset.primary);
     root.style.setProperty('--unmute-primary-light', preset.light);
     root.style.setProperty('--unmute-primary-dark', preset.dark);
+    root.style.setProperty('--unmute-primary-bevel', preset.bevel);
     root.style.setProperty('--unmute-primary-gradient', preset.gradient);
     root.style.setProperty('--unmute-primary-surface', preset.surface);
     root.style.setProperty('--unmute-glow-primary', preset.glow);

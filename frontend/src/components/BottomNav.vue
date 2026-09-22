@@ -1,5 +1,8 @@
 <template>
-  <nav class="md:hidden fixed bottom-3 left-4 right-4 z-40 surface-glass rounded-3xl border border-white/10 shadow-2xl px-5 py-2 flex justify-between items-center">
+  <nav
+    class="md:hidden fixed bottom-3 left-4 right-4 z-40 surface-glass rounded-3xl border border-white/10 px-5 py-2.5 flex justify-between items-center select-none"
+    style="box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), inset 0 1.5px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.4);"
+  >
     <!-- Discover -->
     <router-link
       to="/discover"

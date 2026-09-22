@@ -33,7 +33,7 @@
       <!-- Candidate Basic Info Overlay -->
       <div class="absolute bottom-4 left-5 right-5">
         <div class="flex items-center gap-2 flex-wrap">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">

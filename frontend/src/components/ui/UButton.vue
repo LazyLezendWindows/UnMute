@@ -107,74 +107,104 @@ const sizeClass = computed(() => {
 <style scoped>
 .u-button {
   transform: translateY(0);
-  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast), border-color var(--unmute-transition-fast), color var(--unmute-transition-fast);
+  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast), border-color var(--unmute-transition-fast), color var(--unmute-transition-fast), filter var(--unmute-transition-fast);
 }
 
-.u-button:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-}
-
-.u-button:active:not(:disabled) {
-  transform: translateY(1.5px) scale(0.985);
-}
-
-/* Dynamic Primary Variant */
+/* 3D Dynamic Primary Button */
 .u-btn-primary {
   background: var(--unmute-primary-gradient);
-  box-shadow: var(--unmute-glow-primary);
+  box-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 10px 22px rgba(0, 0, 0, 0.35), var(--unmute-3d-specular);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .u-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--unmute-primary-bevel), 0 14px 28px rgba(0, 0, 0, 0.45), var(--unmute-3d-specular);
   filter: brightness(1.08);
 }
 
-/* Dynamic Secondary Variant */
+.u-btn-primary:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
+}
+
+/* 3D Secondary Variant */
 .u-btn-secondary {
   background-color: var(--unmute-surface-raised);
   color: var(--unmute-text-primary);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-sm);
+  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 6px 16px rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
 }
 
 .u-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1.5px);
   background-color: var(--unmute-surface-overlay);
   border-color: var(--unmute-glass-border-hover);
+  box-shadow: 0 4.5px 0 var(--unmute-glass-border-hover), 0 8px 20px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
 }
 
-/* Dynamic Glass Variant */
+.u-btn-secondary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
+}
+
+/* 3D Glass Variant */
 .u-btn-glass {
   background: var(--unmute-glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--unmute-text-primary);
   border: 1px solid var(--unmute-glass-border);
+  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 6px 16px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
 }
 
 .u-btn-glass:hover:not(:disabled) {
+  transform: translateY(-1.5px);
   border-color: var(--unmute-glass-border-hover);
+  box-shadow: 0 4.5px 0 var(--unmute-glass-border-hover), 0 8px 20px rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
+}
+
+.u-btn-glass:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Dynamic Ghost Variant */
 .u-btn-ghost {
   background: transparent;
   color: var(--unmute-text-secondary);
+  border: 1px solid transparent;
 }
 
 .u-btn-ghost:hover:not(:disabled) {
   background-color: var(--unmute-surface-raised);
   color: var(--unmute-text-primary);
+  border-color: var(--unmute-glass-border);
+  transform: translateY(-1px);
 }
 
-/* Dynamic Icon Variant */
+.u-btn-ghost:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* 3D Icon Variant */
 .u-btn-icon {
   background-color: var(--unmute-surface-raised);
   color: var(--unmute-text-secondary);
   border: 1px solid var(--unmute-glass-border);
+  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 4px 12px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
 }
 
 .u-btn-icon:hover:not(:disabled) {
+  transform: translateY(-1.5px);
   color: var(--unmute-text-primary);
   border-color: var(--unmute-primary);
+  box-shadow: 0 4px 0 var(--unmute-primary), 0 6px 16px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
+}
+
+.u-btn-icon:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 </style>
 

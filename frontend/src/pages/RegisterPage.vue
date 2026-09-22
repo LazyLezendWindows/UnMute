@@ -1,22 +1,25 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden transition-colors" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
     <!-- Ambient 3D Depth Blobs -->
-    <div class="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-brand-600/15 blur-[120px] pointer-events-none animate-pulse-glow"></div>
-    <div class="absolute -bottom-20 -left-20 w-96 h-96 rounded-full bg-pink-600/10 blur-[120px] pointer-events-none animate-pulse-glow" style="animation-delay: 1.5s;"></div>
+    <div class="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[130px] pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary); opacity: 0.15;"></div>
+    <div class="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[130px] pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary-light); opacity: 0.12; animation-delay: 1.5s;"></div>
 
     <div class="w-full max-w-md relative z-10">
       <UCard variant="glass" padding="lg" class="shadow-2xl space-y-6">
         <!-- Title -->
         <div class="text-center space-y-1.5">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-pink-500 shadow-xl shadow-brand-500/30 mb-1 animate-float">
+          <div
+            class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-1 animate-float"
+            style="background: var(--unmute-primary-gradient); box-shadow: 0 4px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);"
+          >
             <svg class="w-7 h-7 text-white stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2v20M17 5v14M7 8v8M22 10v4M2 10v4" />
             </svg>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color: var(--unmute-text-primary);">
             Join Unmute
           </h1>
-          <p class="text-xs text-slate-400 font-medium">
+          <p class="text-xs font-medium" style="color: var(--unmute-text-muted);">
             Discover people based on shared interests & conversation
           </p>
         </div>

@@ -30,22 +30,22 @@ const props = withDefaults(
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-brand-500/20 text-brand-300 border border-brand-500/30';
+      return 'u-badge-primary border';
     case 'glow':
-      return 'bg-gradient-to-r from-brand-600 to-pink-600 text-white shadow-sm shadow-brand-500/30';
+      return 'u-badge-glow text-white';
     case 'success':
-      return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+      return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm';
     case 'warning':
-      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+      return 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm';
     case 'danger':
-      return 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+      return 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm';
     case 'glass':
-      return 'surface-glass text-slate-200 border-white/10';
+      return 'surface-glass text-slate-200 border-white/10 shadow-sm';
     case 'outline':
       return 'bg-transparent text-slate-300 border border-slate-700';
     case 'secondary':
     default:
-      return 'bg-slate-800 text-slate-300 border border-slate-750';
+      return 'surface-raised text-slate-300 border border-white/5 shadow-sm';
   }
 });
 
@@ -75,4 +75,22 @@ const dotClass = computed(() => {
   }
 });
 </script>
+
+<style scoped>
+.u-badge {
+  box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.2);
+}
+
+.u-badge-primary {
+  background: var(--unmute-primary-surface);
+  color: var(--unmute-primary-light);
+  border-color: var(--unmute-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.u-badge-glow {
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+</style>
 
