@@ -15,3 +15,4 @@ const layout = computed(() => {
   return route.meta.requiresAuth ? AppLayout : 'div';
 });
 </script>
+

@@ -38,3 +38,4 @@ fi
 
 mariadb --socket="$SOCK_PATH" -u $(whoami) -e "CREATE DATABASE IF NOT EXISTS unmute_db;"
 echo "[MariaDB] Ready! Database unmute_db verified."
+

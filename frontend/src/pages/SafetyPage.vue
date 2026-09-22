@@ -2,63 +2,66 @@
   <div class="max-w-xl mx-auto w-full space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-xl font-extrabold text-white tracking-tight">Safety & Community</h1>
-      <p class="text-xs text-slate-400">Our commitments to keeping Unmute safe, authentic, and pressure-free</p>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Safety & Community</h1>
+      <p class="text-xs text-slate-400">Our commitments to keeping Unmute authentic, safe, and pressure-free</p>
     </div>
 
-    <!-- Core Safety Principles -->
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+    <!-- Core Safety Commitments in UCard -->
+    <UCard variant="elevated" padding="lg" class="space-y-4">
       <div class="flex items-center gap-2 text-brand-400">
         <ShieldCheck class="w-5 h-5" />
         <h2 class="font-bold text-sm text-white">Our Commitments</h2>
       </div>
 
       <div class="grid grid-cols-1 gap-3 text-xs text-slate-300">
-        <div class="p-3 bg-slate-850 rounded-2xl border border-slate-800 space-y-1">
-          <strong class="text-white block font-semibold">1. Zero Pressure for Physical Meetings</strong>
+        <div class="p-3.5 bg-slate-850 rounded-2xl border border-slate-750 space-y-1">
+          <strong class="text-white block font-bold text-xs">1. Zero Pressure for Physical Meetings</strong>
           <p class="text-slate-400 text-[11px] leading-relaxed">
             Physical meetings are never required by Unmute. You independently decide whether, when, and how you communicate or meet outside the app.
           </p>
         </div>
 
-        <div class="p-3 bg-slate-850 rounded-2xl border border-slate-800 space-y-1">
-          <strong class="text-white block font-semibold">2. Privacy First</strong>
+        <div class="p-3.5 bg-slate-850 rounded-2xl border border-slate-750 space-y-1">
+          <strong class="text-white block font-bold text-xs">2. Privacy First</strong>
           <p class="text-slate-400 text-[11px] leading-relaxed">
-            We never expose your exact GPS coordinates, email, or sensitive personal data to other users. Only approximate city areas are displayed.
+            We never expose your exact GPS coordinates, email, or private contact details to other users. Only approximate city areas are displayed.
           </p>
         </div>
 
-        <div class="p-3 bg-slate-850 rounded-2xl border border-slate-800 space-y-1">
-          <strong class="text-white block font-semibold">3. Strict 18+ Age Policy</strong>
+        <div class="p-3.5 bg-slate-850 rounded-2xl border border-slate-750 space-y-1">
+          <strong class="text-white block font-bold text-xs">3. Strict 18+ Age Policy</strong>
           <p class="text-slate-400 text-[11px] leading-relaxed">
             Unmute is exclusively for adults. Date of birth is validated server-side, and minors are not permitted on the platform.
           </p>
         </div>
 
-        <div class="p-3 bg-slate-850 rounded-2xl border border-slate-800 space-y-1">
-          <strong class="text-white block font-semibold">4. Zero Tolerance for Abuse & Solicitations</strong>
+        <div class="p-3.5 bg-slate-850 rounded-2xl border border-slate-750 space-y-1">
+          <strong class="text-white block font-bold text-xs">4. Zero Tolerance for Abuse & Solicitations</strong>
           <p class="text-slate-400 text-[11px] leading-relaxed">
-            Unmute is not an escort service, paid companionship marketplace, or commercial platform. Harassment, solicitation, and abusive conduct result in permanent removal.
+            Unmute is not an escort service, paid companionship marketplace, or commercial platform. Harassment and solicitations result in permanent removal.
           </p>
         </div>
       </div>
-    </div>
+    </UCard>
 
-    <!-- Blocked Users Management -->
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+    <!-- Blocked Users Management in UCard -->
+    <UCard variant="default" padding="lg" class="space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2 text-amber-400">
           <UserX class="w-5 h-5" />
           <h2 class="font-bold text-sm text-white">Blocked Users</h2>
         </div>
-        <span class="text-xs text-slate-400 font-medium">{{ blockedList.length }} blocked</span>
+        <UBadge variant="warning" size="sm">
+          {{ blockedList.length }} blocked
+        </UBadge>
       </div>
 
-      <div v-if="loading" class="text-xs text-slate-500 text-center py-4">
-        Loading blocked list...
+      <div v-if="loading" class="py-4 space-y-2">
+        <USkeleton type="text" />
+        <USkeleton type="text" />
       </div>
 
-      <div v-else-if="blockedList.length === 0" class="text-xs text-slate-500 text-center py-4">
+      <div v-else-if="blockedList.length === 0" class="text-xs text-slate-500 text-center py-6">
         You haven't blocked any users.
       </div>
 
@@ -66,44 +69,43 @@
         <div
           v-for="user in blockedList"
           :key="user.id"
-          class="flex items-center justify-between p-3 bg-slate-800/60 rounded-2xl border border-slate-800"
+          class="flex items-center justify-between p-3 bg-slate-850 rounded-2xl border border-slate-750"
         >
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-slate-800 overflow-hidden border border-slate-700">
-              <img
-                v-if="user.avatarUrl"
-                :src="user.avatarUrl"
-                alt="Blocked user"
-                class="w-full h-full object-cover"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center font-bold text-xs text-slate-400">
-                {{ user.displayName.charAt(0) }}
-              </div>
-            </div>
+            <UAvatar
+              :src="user.avatarUrl"
+              :name="user.displayName"
+              size="sm"
+            />
             <div>
-              <h4 class="text-xs font-semibold text-white">{{ user.displayName }}</h4>
+              <h4 class="text-xs font-bold text-white">{{ user.displayName }}</h4>
               <p class="text-[10px] text-slate-400">
                 {{ user.reason ? `Reason: ${user.reason}` : 'Blocked from discovery & chat' }}
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
+          <UButton
+            variant="secondary"
+            size="sm"
             @click="unblock(user.blockedId)"
-            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold transition-colors border border-slate-700"
           >
             Unblock
-          </button>
+          </UButton>
         </div>
       </div>
-    </div>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ShieldCheck, UserX } from 'lucide-vue-next';
+import UCard from '../components/ui/UCard.vue';
+import UAvatar from '../components/ui/UAvatar.vue';
+import UBadge from '../components/ui/UBadge.vue';
+import UButton from '../components/ui/UButton.vue';
+import USkeleton from '../components/ui/USkeleton.vue';
 import { api } from '../services/api';
 import { BlockedUser } from '../types';
 

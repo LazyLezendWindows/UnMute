@@ -159,3 +159,4 @@ The database comes pre-seeded with diverse conversation-first profiles:
 * `meera.iyer@example.com` (Pass: `UnmutePassword123!`)
 * `kabir.patel@example.com` (Pass: `UnmutePassword123!`)
 * `priya.nair@example.com` (Pass: `UnmutePassword123!`)
+

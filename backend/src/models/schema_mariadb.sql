@@ -122,3 +122,4 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

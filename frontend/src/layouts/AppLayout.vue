@@ -1,8 +1,12 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+  <div class="min-h-screen flex flex-col bg-slate-950 text-slate-100 relative overflow-hidden">
+    <!-- Ambient 3D Depth Lighting & Blobs -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 rounded-full bg-brand-600/10 blur-[120px] pointer-events-none -z-10 animate-pulse-glow"></div>
+    <div class="fixed bottom-10 right-1/4 w-80 h-80 rounded-full bg-pink-600/8 blur-[100px] pointer-events-none -z-10 animate-pulse-glow" style="animation-delay: 1.5s;"></div>
+
     <Navbar />
 
-    <main class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4 md:p-6 pb-24 md:pb-8">
+    <main class="flex-1 flex flex-col container max-w-4xl px-4 py-4 md:py-6 pb-28 md:pb-10 relative z-10">
       <slot />
     </main>
 

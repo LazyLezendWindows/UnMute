@@ -1,23 +1,23 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3">
     <div class="flex items-center justify-between">
-      <span class="text-xs text-slate-400 font-medium">
+      <span class="text-xs text-slate-400 font-semibold">
         Select up to 10 interests ({{ modelValue.length }}/10 selected)
       </span>
     </div>
 
-    <!-- Category grouping or simple chip grid -->
+    <!-- Interactive chip grid with tactile press depth -->
     <div class="flex flex-wrap gap-2">
       <button
         v-for="interest in allInterests"
         :key="interest.id"
         type="button"
         @click="toggleInterest(interest.id)"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all select-none active:scale-95"
         :class="
           isSelected(interest.id)
-            ? 'bg-gradient-to-r from-brand-600 to-pink-600 text-white shadow-sm shadow-brand-500/30 ring-1 ring-white/20'
-            : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 hover:text-white border border-slate-700/60'
+            ? 'bg-gradient-to-r from-brand-600 via-purple-600 to-pink-600 text-white shadow-md shadow-brand-500/30 border border-white/20 -translate-y-0.5'
+            : 'bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-750'
         "
       >
         <span>{{ interest.name }}</span>

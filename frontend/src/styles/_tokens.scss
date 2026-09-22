@@ -1,0 +1,72 @@
+// Unmute Design Tokens
+// Central variables for tonal surfaces, 3D shadows, radii, and typography
+
+:root {
+  // Tonal Surface System (Depth hierarchy)
+  --unmute-bg: #07090e;
+  --unmute-surface: #0f131f;
+  --unmute-surface-raised: #161c2d;
+  --unmute-surface-overlay: #1e263c;
+  --unmute-surface-active: #26304d;
+
+  // Glassmorphic Surfaces
+  --unmute-glass-bg: rgba(15, 19, 31, 0.75);
+  --unmute-glass-surface: rgba(22, 28, 45, 0.65);
+  --unmute-glass-border: rgba(255, 255, 255, 0.08);
+  --unmute-glass-border-hover: rgba(255, 255, 255, 0.16);
+  --unmute-glass-highlight: rgba(255, 255, 255, 0.12);
+
+  // Text & Content Hierarchy
+  --unmute-text-primary: #f8fafc;
+  --unmute-text-secondary: #94a3b8;
+  --unmute-text-muted: #64748b;
+  --unmute-text-dim: #475569;
+
+  // Brand & Emotional Accents
+  --unmute-primary: #7c3aed;
+  --unmute-primary-light: #9d68f6;
+  --unmute-primary-dark: #5b21b6;
+  --unmute-primary-surface: rgba(124, 58, 237, 0.15);
+
+  --unmute-accent-pink: #ec4899;
+  --unmute-accent-pink-light: #f472b6;
+  --unmute-accent-purple: #8b5cf6;
+  --unmute-accent-cyan: #06b6d4;
+  --unmute-accent-emerald: #10b981;
+  --unmute-accent-amber: #f59e0b;
+  --unmute-accent-rose: #f43f5e;
+
+  // 3D Depth & Soft Ambient Shadows
+  --unmute-shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.28);
+  --unmute-shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.38), 0 4px 10px -2px rgba(0, 0, 0, 0.25);
+  --unmute-shadow-lg: 0 20px 45px -5px rgba(0, 0, 0, 0.5), 0 8px 18px -4px rgba(0, 0, 0, 0.35);
+  --unmute-shadow-3d: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --unmute-shadow-3d-hover: 0 24px 50px -6px rgba(0, 0, 0, 0.65), 0 10px 22px -3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  --unmute-glow-primary: 0 0 30px -4px rgba(124, 58, 237, 0.45);
+  --unmute-glow-pink: 0 0 30px -4px rgba(236, 72, 153, 0.4);
+  --unmute-glow-active: 0 0 20px -2px rgba(124, 58, 237, 0.6);
+
+  // Border Radii
+  --unmute-radius-xs: 6px;
+  --unmute-radius-sm: 10px;
+  --unmute-radius-md: 16px;
+  --unmute-radius-lg: 24px;
+  --unmute-radius-xl: 32px;
+  --unmute-radius-pill: 9999px;
+
+  // Typography Scale
+  --font-xs: 0.75rem;    // 12px
+  --font-sm: 0.8125rem;  // 13px
+  --font-base: 0.875rem; // 14px
+  --font-md: 1rem;       // 16px
+  --font-lg: 1.125rem;   // 18px
+  --font-xl: 1.375rem;   // 22px
+  --font-2xl: 1.75rem;   // 28px
+  --font-display: 2.25rem; // 36px
+
+  // Transitions
+  --unmute-transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  --unmute-transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  --unmute-transition-bounce: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}

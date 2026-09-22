@@ -1,0 +1,76 @@
+// Unmute Global Stylesheet
+// Integrates Bootstrap 5 with custom design tokens
+
+// 1. Unmute Tokens
+@import "./tokens";
+@import "./mixins";
+@import "./animations";
+@import "./utilities";
+
+// 2. Bootstrap Variable Overrides
+$primary: #7c3aed;
+$secondary: #64748b;
+$success: #10b981;
+$info: #06b6d4;
+$warning: #f59e0b;
+$danger: #f43f5e;
+$light: #f8fafc;
+$dark: #0f131f;
+
+$body-bg: #07090e;
+$body-color: #f8fafc;
+$font-family-base: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+$border-radius: 16px;
+$border-radius-sm: 10px;
+$border-radius-lg: 24px;
+$border-radius-pill: 9999px;
+
+// 3. Import Bootstrap 5
+@import "bootstrap/scss/bootstrap.scss";
+
+// 4. Overrides & Global Defaults
+body {
+  background-color: var(--unmute-bg);
+  color: var(--unmute-text-primary);
+  font-family: $font-family-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+// Reset standard Bootstrap button visual flatness
+.btn {
+  font-weight: 600;
+  border-radius: var(--unmute-radius-md);
+  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast);
+
+  &:active {
+    transform: translateY(2px) scale(0.98);
+  }
+}
+
+// Reset standard Bootstrap card visual flatness
+.card {
+  background-color: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  border-radius: var(--unmute-radius-lg);
+  box-shadow: var(--unmute-shadow-md);
+}
+
+// Custom Scrollbars
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e263c;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

@@ -1,0 +1,54 @@
+// Unmute SCSS Mixins
+
+@mixin surface-glass($blur: 16px, $bg: var(--unmute-glass-bg), $border: var(--unmute-glass-border)) {
+  background: $bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid $border;
+  box-shadow: inset 0 1px 0 var(--unmute-glass-highlight);
+}
+
+@mixin surface-raised {
+  background: var(--unmute-surface-raised);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: var(--unmute-shadow-md);
+}
+
+@mixin elevation-hover($lift: -4px, $shadow: var(--unmute-shadow-lg)) {
+  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal);
+  will-change: transform, box-shadow;
+
+  &:hover {
+    transform: translateY($lift);
+    box-shadow: $shadow;
+  }
+}
+
+@mixin press-depth($scale: 0.98, $translate: 2px) {
+  transition: transform var(--unmute-transition-fast), opacity var(--unmute-transition-fast);
+
+  &:active:not(:disabled) {
+    transform: translateY($translate) scale($scale);
+  }
+}
+
+@mixin perspective-3d($distance: 1000px) {
+  perspective: $distance;
+  transform-style: preserve-3d;
+}
+
+@mixin focus-ring($color: var(--unmute-primary)) {
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+    border-color: $color;
+  }
+}
+
+@mixin truncate-lines($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
