@@ -1,15 +1,15 @@
 <template>
   <div
     class="chat-layout-container flex-grow-1 d-flex flex-column flex-md-row surface-raised rounded-4 overflow-hidden max-w-4xl mx-auto w-100 position-relative border"
-    style="box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim); border-color: var(--unmute-border) !important;"
+    style="box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim); border-color: var(--unmute-glass-border) !important;"
   >
     <!-- Conversations Sidebar (Desktop or Mobile when no active conversation) -->
     <div
       class="chat-sidebar border-end d-flex flex-column surface-glass flex-shrink-0"
       :class="activeConversationId ? 'd-none d-md-flex' : 'd-flex w-100'"
-      style="border-color: var(--unmute-border) !important;"
+      style="border-color: var(--unmute-glass-border) !important;"
     >
-      <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--unmute-border) !important;">
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--unmute-glass-border) !important;">
         <h2 class="font-display fw-bold fs-6 mb-0 tracking-tight" style="color: var(--unmute-text-primary);">Conversations</h2>
         <span
           v-if="chatStore.totalUnreadCount > 0"
@@ -57,16 +57,16 @@
             <!-- Message Info -->
             <div class="min-w-0 flex-grow-1">
               <div class="d-flex align-items-center justify-content-between">
-                <h4 class="fw-bold fs-6 mb-0 text-white text-truncate">
+                <h4 class="fw-bold fs-6 mb-0 text-truncate" style="color: var(--unmute-text-primary);">
                   {{ conv.otherUser.displayName }}
                 </h4>
-                <span v-if="conv.lastMessageAt" class="extra-small text-muted flex-shrink-0 ms-1">
+                <span v-if="conv.lastMessageAt" class="extra-small flex-shrink-0 ms-1" style="color: var(--unmute-text-dim);">
                   {{ formatTime(conv.lastMessageAt) }}
                 </span>
               </div>
 
-              <p class="small text-white-50 text-truncate mb-0 mt-1">
-                <span v-if="conv.lastMessage?.senderId === authStore.user?.id" class="text-muted">You: </span>
+              <p class="small text-truncate mb-0 mt-1" style="color: var(--unmute-text-muted);">
+                <span v-if="conv.lastMessage?.senderId === authStore.user?.id">You: </span>
                 {{ conv.lastMessage?.content || 'Say hello...' }}
               </p>
             </div>
@@ -81,15 +81,16 @@
       :class="!activeConversationId ? 'd-none d-md-flex' : 'd-flex'"
     >
       <!-- Chat Header -->
-      <div v-if="activeOtherUser" class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between surface-glass" style="border-color: var(--unmute-border) !important;">
+      <div v-if="activeOtherUser" class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between surface-glass" style="border-color: var(--unmute-glass-border) !important;">
         <div class="d-flex align-items-center gap-2">
           <!-- Back button on mobile -->
           <button
             type="button"
             @click="backToList"
-            class="d-md-none btn btn-sm btn-link text-white-50 p-1 me-1"
+            class="d-md-none btn btn-sm btn-link p-1 me-1 text-decoration-none"
+            style="color: var(--unmute-text-secondary);"
           >
-            <ChevronLeft class="icon-sm" />
+            <i class="ri-arrow-left-s-line fs-5"></i>
           </button>
 
           <UAvatar
@@ -100,7 +101,7 @@
           />
 
           <div>
-            <h3 class="fw-bold fs-6 text-white mb-0">
+            <h3 class="fw-bold fs-6 mb-0" style="color: var(--unmute-text-primary);">
               {{ activeOtherUser.displayName }}, {{ activeOtherUser.age }}
             </h3>
             <span class="extra-small text-success fw-medium d-block">Connected</span>
@@ -111,10 +112,11 @@
         <button
           type="button"
           @click="isSafetyOpen = true"
-          class="btn btn-sm btn-outline-secondary border-0 text-white-50 p-2 rounded-circle"
+          class="btn btn-sm btn-link text-decoration-none p-2 rounded-circle"
+          style="color: var(--unmute-text-muted);"
           title="Safety options"
         >
-          <ShieldAlert class="icon-sm" />
+          <i class="ri-shield-alert-line fs-5"></i>
         </button>
       </div>
 
@@ -123,15 +125,15 @@
         ref="messagesContainer"
         class="flex-grow-1 overflow-y-auto p-3 p-sm-4 d-flex flex-column gap-3"
       >
-        <div v-if="chatStore.loading" class="text-center small text-muted py-4">
+        <div v-if="chatStore.loading" class="text-center small py-4" style="color: var(--unmute-text-muted);">
           Loading conversation...
         </div>
 
         <div v-else-if="chatStore.activeMessages.length === 0" class="text-center py-5 px-3">
-          <p class="small text-white-50 fw-medium mb-1">
+          <p class="small fw-medium mb-1" style="color: var(--unmute-text-secondary);">
             This is the beginning of your conversation with {{ activeOtherUser?.displayName }}.
           </p>
-          <p class="extra-small text-muted mb-0">
+          <p class="extra-small mb-0" style="color: var(--unmute-text-dim);">
             Say something friendly, ask about their hobbies, or share a recommendation.
           </p>
         </div>
@@ -169,7 +171,7 @@
           </div>
 
           <!-- Timestamp & status -->
-          <div class="d-flex align-items-center gap-1 mt-1 extra-small text-muted px-1">
+          <div class="d-flex align-items-center gap-1 mt-1 extra-small px-1" style="color: var(--unmute-text-dim);">
             <span>{{ formatMessageTime(msg.createdAt) }}</span>
             <span v-if="msg.senderId === authStore.user?.id">
               <span v-if="msg.status === 'read'" class="fw-bold" style="color: var(--unmute-primary-light);">✓✓</span>
@@ -180,7 +182,7 @@
       </div>
 
       <!-- Message Input Box -->
-      <div v-if="activeConversationId" class="p-3 border-top surface-glass" style="border-color: var(--unmute-border) !important;">
+      <div v-if="activeConversationId" class="p-3 border-top surface-glass" style="border-color: var(--unmute-glass-border) !important;">
         <form @submit.prevent="handleSend" class="d-flex align-items-center gap-2">
           <input
             v-model="inputContent"
@@ -196,14 +198,14 @@
             :disabled="!inputContent.trim() || chatStore.sending"
             class="flex-shrink-0 rounded-circle"
           >
-            <Send class="icon-sm" />
+            <i class="ri-send-plane-2-fill fs-6"></i>
           </UButton>
         </form>
       </div>
 
       <!-- No active conversation placeholder on desktop -->
-      <div v-else class="flex-grow-1 d-none d-md-flex flex-column align-items-center justify-content-center text-muted p-4">
-        <MessageSquare class="icon-xl mb-2 text-white-50" />
+      <div v-else class="flex-grow-1 d-none d-md-flex flex-column align-items-center justify-content-center p-4" style="color: var(--unmute-text-muted);">
+        <i class="ri-message-3-line display-5 mb-2 opacity-50"></i>
         <p class="small fw-semibold mb-0">Select a conversation to start chatting</p>
       </div>
     </div>
@@ -223,7 +225,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ChevronLeft, Send, ShieldAlert, MessageSquare } from 'lucide-vue-next';
 import SafetyModal from '../components/SafetyModal.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
 import UButton from '../components/ui/UButton.vue';
@@ -343,7 +344,7 @@ function formatMessageTime(iso: string): string {
 }
 
 .chat-view-pane {
-  background-color: rgba(3, 7, 18, 0.4);
+  background-color: var(--unmute-surface, #ffffff);
 }
 
 .chat-conv-item {
@@ -352,25 +353,24 @@ function formatMessageTime(iso: string): string {
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--unmute-surface-raised, #161e31);
-    color: #ffffff;
+    background-color: var(--unmute-surface-raised, #f8fafd);
   }
 
   &.conv-active {
-    background-color: var(--unmute-surface-active, rgba(99, 102, 241, 0.1));
+    background-color: var(--unmute-surface-active, #e4ebf8);
   }
 }
 
 .active-conv-indicator {
   width: 4px;
-  background-color: var(--theme-primary, #6366f1);
+  background-color: var(--unmute-primary, #8b5cf6);
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
 
 .chat-bubble {
   max-width: 80%;
-  border-radius: var(--radius-lg, 18px);
+  border-radius: var(--unmute-radius-md, 18px);
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
 
@@ -380,10 +380,11 @@ function formatMessageTime(iso: string): string {
   }
 
   &.bubble-received {
-    background-color: var(--unmute-surface-raised, #161e31);
-    color: var(--unmute-text-primary, #ffffff);
-    border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08));
+    background-color: var(--unmute-surface-raised, #f8fafd);
+    color: var(--unmute-text-primary, #0f172a);
+    border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
     border-bottom-left-radius: 4px;
+    box-shadow: var(--unmute-shadow-sm);
   }
 }
 
@@ -394,15 +395,5 @@ function formatMessageTime(iso: string): string {
 
 .extra-small {
   font-size: 0.6875rem;
-}
-
-.icon-sm {
-  width: 1rem;
-  height: 1rem;
-}
-
-.icon-xl {
-  width: 3rem;
-  height: 3rem;
 }
 </style>

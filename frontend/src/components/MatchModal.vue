@@ -8,7 +8,7 @@
       <!-- Badge -->
       <div>
         <div class="match-sparkle-badge d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill fw-bold user-select-none">
-          <Sparkles class="sparkle-icon" />
+          <i class="ri-sparkling-fill sparkle-icon"></i>
           <span>Mutual Connection</span>
         </div>
       </div>
@@ -35,10 +35,10 @@
 
       <!-- Title & Philosophy -->
       <div>
-        <h2 class="fs-4 fw-extrabold text-white mb-1 font-display">
+        <h2 class="fs-4 fw-extrabold mb-1 font-display" style="color: var(--unmute-text-primary);">
           You and {{ match.matchedUser.displayName }} clicked!
         </h2>
-        <p class="small text-white-50 mb-0 max-w-xs mx-auto">
+        <p class="small mb-0 max-w-xs mx-auto" style="color: var(--unmute-text-secondary);">
           No awkward pickup lines needed. Connect on your shared interests without the pressure.
         </p>
       </div>
@@ -49,7 +49,7 @@
           v-model="quickMessage"
           type="text"
           placeholder="Say hello or ask about their interests..."
-          class="form-control form-control-dark-custom w-100"
+          class="form-control form-control-themed w-100"
           @keyup.enter="sendAndOpen"
         />
 
@@ -68,7 +68,8 @@
         <button
           type="button"
           @click="dismiss"
-          class="btn btn-link btn-sm text-decoration-none text-muted p-0"
+          class="btn btn-link btn-sm text-decoration-none p-0"
+          style="color: var(--unmute-text-muted);"
         >
           Keep discovering for now
         </button>
@@ -80,7 +81,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { Sparkles } from 'lucide-vue-next';
 import UModal from './ui/UModal.vue';
 import UAvatar from './ui/UAvatar.vue';
 import UButton from './ui/UButton.vue';
@@ -136,14 +136,13 @@ async function sendAndOpen() {
 <style scoped lang="scss">
 .match-sparkle-badge {
   font-size: 0.75rem;
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--theme-primary, #6366f1);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
+  background: var(--unmute-primary-surface, rgba(139, 92, 246, 0.12));
+  color: var(--unmute-primary, #8b5cf6);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
 
   .sparkle-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -165,23 +164,24 @@ async function sendAndOpen() {
   &:hover { transform: scale(1.08); }
 }
 
-.form-control-dark-custom {
-  background-color: var(--unmute-surface-raised, #161e31);
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.12));
-  color: #ffffff;
-  border-radius: var(--radius-md, 14px);
+.form-control-themed {
+  background-color: var(--unmute-input-bg, #ffffff);
+  border: 1px solid var(--unmute-input-border, #cbd5e1);
+  color: var(--unmute-text-primary, #0f172a);
+  border-radius: var(--unmute-radius-md, 14px);
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
 
   &:focus {
-    background-color: var(--unmute-surface-raised, #161e31);
-    border-color: var(--theme-primary, #6366f1);
-    box-shadow: 0 0 0 3px var(--theme-glow, rgba(99, 102, 241, 0.25));
-    color: #ffffff;
+    background-color: var(--unmute-input-bg, #ffffff);
+    border-color: var(--unmute-primary, #8b5cf6);
+    box-shadow: 0 0 0 3px var(--unmute-primary-surface);
+    color: var(--unmute-text-primary, #0f172a);
   }
 
   &::placeholder {
-    color: var(--unmute-text-muted, #64748b);
+    color: var(--unmute-text-dim, #94a3b8);
   }
 }
 </style>

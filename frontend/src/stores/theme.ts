@@ -100,7 +100,7 @@ export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
 };
 
 export const useThemeStore = defineStore('theme', () => {
-  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'dark';
+  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'light';
   const rawAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'cyberpunk';
   const initialAccent: AccentColor = ACCENT_PRESETS[rawAccent] ? rawAccent : 'cyberpunk';
 

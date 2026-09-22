@@ -2,43 +2,43 @@
   <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100">
     <!-- Header -->
     <div>
-      <h1 class="font-display fs-3 fw-bolder text-white tracking-tight mb-1">Safety & Community</h1>
-      <p class="small mb-0 text-white-50">Our commitments to keeping Unmute authentic, safe, and pressure-free</p>
+      <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">Safety & Community</h1>
+      <p class="small mb-0" style="color: var(--unmute-text-muted);">Our commitments to keeping Unmute authentic, safe, and pressure-free</p>
     </div>
 
     <!-- Core Safety Commitments in UCard -->
     <UCard variant="elevated" padding="lg">
       <div class="d-flex flex-column gap-3">
         <div class="d-flex align-items-center gap-2 text-primary">
-          <ShieldCheck class="icon-md" />
-          <h2 class="font-display fw-bold fs-6 text-white mb-0">Our Commitments</h2>
+          <i class="ri-shield-check-fill fs-5"></i>
+          <h2 class="font-display fw-bold fs-6 mb-0" style="color: var(--unmute-text-primary);">Our Commitments</h2>
         </div>
 
         <div class="d-flex flex-column gap-3">
-          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-border) !important;">
-            <strong class="text-white d-block small fw-bold mb-1">1. Zero Pressure for Physical Meetings</strong>
-            <p class="extra-small text-white-50 mb-0 lh-base">
+          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
+            <strong class="d-block small fw-bold mb-1" style="color: var(--unmute-text-primary);">1. Zero Pressure for Physical Meetings</strong>
+            <p class="extra-small mb-0 lh-base" style="color: var(--unmute-text-secondary);">
               Physical meetings are never required by Unmute. You independently decide whether, when, and how you communicate or meet outside the app.
             </p>
           </div>
 
-          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-border) !important;">
-            <strong class="text-white d-block small fw-bold mb-1">2. Privacy First</strong>
-            <p class="extra-small text-white-50 mb-0 lh-base">
+          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
+            <strong class="d-block small fw-bold mb-1" style="color: var(--unmute-text-primary);">2. Privacy First</strong>
+            <p class="extra-small mb-0 lh-base" style="color: var(--unmute-text-secondary);">
               We never expose your exact GPS coordinates, email, or private contact details to other users. Only approximate city areas are displayed.
             </p>
           </div>
 
-          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-border) !important;">
-            <strong class="text-white d-block small fw-bold mb-1">3. Strict 18+ Age Policy</strong>
-            <p class="extra-small text-white-50 mb-0 lh-base">
+          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
+            <strong class="d-block small fw-bold mb-1" style="color: var(--unmute-text-primary);">3. Strict 18+ Age Policy</strong>
+            <p class="extra-small mb-0 lh-base" style="color: var(--unmute-text-secondary);">
               Unmute is exclusively for adults. Date of birth is validated server-side, and minors are not permitted on the platform.
             </p>
           </div>
 
-          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-border) !important;">
-            <strong class="text-white d-block small fw-bold mb-1">4. Zero Tolerance for Abuse & Solicitations</strong>
-            <p class="extra-small text-white-50 mb-0 lh-base">
+          <div class="safety-rule-card p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
+            <strong class="d-block small fw-bold mb-1" style="color: var(--unmute-text-primary);">4. Zero Tolerance for Abuse & Solicitations</strong>
+            <p class="extra-small mb-0 lh-base" style="color: var(--unmute-text-secondary);">
               Unmute is not an escort service, paid companionship marketplace, or commercial platform. Harassment and solicitations result in permanent removal.
             </p>
           </div>
@@ -51,8 +51,8 @@
       <div class="d-flex flex-column gap-3">
         <div class="d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2 text-warning">
-            <UserX class="icon-md" />
-            <h2 class="font-display fw-bold fs-6 text-white mb-0">Blocked Users</h2>
+            <i class="ri-user-forbid-line fs-5"></i>
+            <h2 class="font-display fw-bold fs-6 mb-0" style="color: var(--unmute-text-primary);">Blocked Users</h2>
           </div>
           <UBadge variant="warning" size="sm">
             {{ blockedList.length }} blocked
@@ -73,7 +73,7 @@
             v-for="user in blockedList"
             :key="user.id"
             class="d-flex align-items-center justify-content-between p-3 surface-raised rounded-3 border"
-            style="border-color: var(--unmute-border) !important;"
+            style="border-color: var(--unmute-glass-border) !important;"
           >
             <div class="d-flex align-items-center gap-3">
               <UAvatar
@@ -82,8 +82,8 @@
                 size="sm"
               />
               <div>
-                <h4 class="small fw-bold text-white mb-0">{{ user.displayName }}</h4>
-                <p class="extra-small text-white-50 mb-0">
+                <h4 class="small fw-bold mb-0" style="color: var(--unmute-text-primary);">{{ user.displayName }}</h4>
+                <p class="extra-small mb-0" style="color: var(--unmute-text-muted);">
                   {{ user.reason ? `Reason: ${user.reason}` : 'Blocked from discovery & chat' }}
                 </p>
               </div>
@@ -105,7 +105,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { ShieldCheck, UserX } from 'lucide-vue-next';
 import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
 import UBadge from '../components/ui/UBadge.vue';
@@ -146,10 +145,5 @@ async function unblock(blockedId: string) {
 <style scoped>
 .extra-small {
   font-size: 0.6875rem;
-}
-
-.icon-md {
-  width: 1.25rem;
-  height: 1.25rem;
 }
 </style>

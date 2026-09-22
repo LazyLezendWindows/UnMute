@@ -17,20 +17,20 @@
         <!-- Header -->
         <div v-if="title || $slots.header" class="u-modal-header px-4 py-3 d-flex align-items-center justify-content-between">
           <slot name="header">
-            <h3 class="fw-bold mb-0 fs-6 text-white font-display">{{ title }}</h3>
+            <h3 class="fw-bold mb-0 fs-6 font-display" style="color: var(--unmute-text-primary);">{{ title }}</h3>
           </slot>
           <button
             type="button"
             @click="close"
-            class="btn-close-custom btn btn-sm d-flex align-items-center justify-content-center p-1 rounded-circle border-0 text-white-50"
+            class="btn-close-custom btn btn-sm d-flex align-items-center justify-content-center p-1 rounded-circle border-0"
             aria-label="Close modal"
           >
-            <X class="modal-close-icon" />
+            <i class="ri-close-line modal-close-icon"></i>
           </button>
         </div>
 
         <!-- Body -->
-        <div class="u-modal-body p-4">
+        <div class="u-modal-body p-4" style="color: var(--unmute-text-primary);">
           <slot />
         </div>
 
@@ -45,7 +45,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue';
-import { X } from 'lucide-vue-next';
 
 const props = withDefaults(
   defineProps<{
@@ -106,18 +105,18 @@ const maxWidthClass = computed(() => {
 <style scoped lang="scss">
 .u-modal-backdrop {
   z-index: 1050;
-  background-color: rgba(3, 7, 18, 0.82);
+  background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .u-modal-container {
-  background: var(--unmute-surface, #0d1322);
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.1));
-  border-radius: var(--radius-xl, 24px);
-  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8),
-              0 0 35px -5px rgba(99, 102, 241, 0.2),
-              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
+  border-radius: var(--unmute-radius-lg, 24px);
+  box-shadow: var(--unmute-shadow-lg),
+              0 0 35px -5px var(--unmute-primary-surface),
+              var(--unmute-3d-card-rim);
   overflow: hidden;
 }
 
@@ -128,31 +127,32 @@ const maxWidthClass = computed(() => {
 
 .modal-specular-bar {
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--theme-primary, #6366f1), transparent);
+  background: linear-gradient(90deg, transparent, var(--unmute-primary, #6366f1), transparent);
 }
 
 .u-modal-header {
-  border-bottom: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.07));
+  border-bottom: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
 }
 
 .u-modal-footer {
-  border-top: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.07));
-  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
+  background-color: var(--unmute-surface-raised, #f8fafd);
 }
 
 .btn-close-custom {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--unmute-surface-overlay, rgba(15, 23, 42, 0.05));
+  color: var(--unmute-text-muted, #64748b);
   transition: all 0.18s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff !important;
+    background: var(--unmute-surface-active);
+    color: var(--unmute-text-primary, #0f172a);
     transform: scale(1.1);
   }
 
   .modal-close-icon {
-    width: 1rem;
-    height: 1rem;
+    font-size: 1.125rem;
+    line-height: 1;
   }
 }
 </style>

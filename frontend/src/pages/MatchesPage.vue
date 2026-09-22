@@ -16,8 +16,10 @@
       v-if="chatStore.matches.length === 0"
       title="No matches yet"
       description="When someone you like also likes you back, they will appear here and you can chat freely."
-      :icon="Sparkles"
     >
+      <template #icon>
+        <i class="ri-sparkling-fill fs-2"></i>
+      </template>
       <template #action>
         <UButton
           variant="primary"
@@ -29,7 +31,7 @@
       </template>
     </UEmptyState>
 
-    <!-- Matches Grid using Bootstrap 5 row & cols + UCard interactive -->
+    <!-- Matches Grid using Bootstrap 5 row & cols + UCard interactive matching light cards -->
     <div v-else class="row g-3">
       <div
         v-for="match in chatStore.matches"
@@ -49,10 +51,10 @@
             />
 
             <div class="min-w-0 flex-grow-1">
-              <h3 class="fw-bold fs-6 text-white text-truncate mb-1">
+              <h3 class="fw-bold fs-6 text-truncate mb-1" style="color: var(--unmute-text-primary);">
                 {{ match.user.displayName }}, {{ match.user.age }}
               </h3>
-              <p v-if="match.user.approximateLocation" class="extra-small text-white-50 text-truncate mb-2">
+              <p v-if="match.user.approximateLocation" class="extra-small text-truncate mb-2" style="color: var(--unmute-text-muted);">
                 {{ match.user.approximateLocation }}
               </p>
 
@@ -78,7 +80,7 @@
               block
               @click="$router.push(`/chat/${match.conversationId}`)"
             >
-              <MessageSquare class="icon-xs me-2 text-primary" />
+              <i class="ri-message-3-line icon-xs me-2 text-primary"></i>
               <span v-if="match.lastMessage">Continue Conversation</span>
               <span v-else>Say Hello</span>
             </UButton>
@@ -91,7 +93,6 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { Sparkles, MessageSquare } from 'lucide-vue-next';
 import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
 import UBadge from '../components/ui/UBadge.vue';
@@ -111,7 +112,7 @@ onMounted(() => {
   font-size: 0.75rem;
 }
 .icon-xs {
-  width: 0.875rem;
-  height: 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1;
 }
 </style>

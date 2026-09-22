@@ -24,15 +24,17 @@
       v-else
       title="You're all caught up!"
       description="You've reviewed all active connections matching your criteria. Check back soon or update your interests to meet more people."
-      :icon="Sparkles"
     >
+      <template #icon>
+        <i class="ri-sparkling-fill fs-2"></i>
+      </template>
       <template #action>
         <UButton
           variant="secondary"
           size="md"
           @click="discoverStore.loadFeed"
         >
-          <RefreshCw class="icon-sm me-2" />
+          <i class="ri-refresh-line me-2"></i>
           <span>Refresh Feed</span>
         </UButton>
         <UButton
@@ -59,7 +61,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Sparkles, RefreshCw } from 'lucide-vue-next';
 import DiscoverCard from '../components/DiscoverCard.vue';
 import SafetyModal from '../components/SafetyModal.vue';
 import USkeleton from '../components/ui/USkeleton.vue';
@@ -98,10 +99,3 @@ function onSafetyActionCompleted() {
   discoverStore.currentIndex++;
 }
 </script>
-
-<style scoped>
-.icon-sm {
-  width: 1rem;
-  height: 1rem;
-}
-</style>

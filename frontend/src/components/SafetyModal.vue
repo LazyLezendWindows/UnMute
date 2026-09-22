@@ -6,8 +6,8 @@
   >
     <template #header>
       <div class="d-flex align-items-center gap-2 text-danger">
-        <ShieldAlert class="safety-icon" />
-        <h3 class="fw-bold fs-6 text-white mb-0 font-display">
+        <i class="ri-shield-alert-fill safety-icon"></i>
+        <h3 class="fw-bold fs-6 mb-0 font-display" style="color: var(--unmute-text-primary);">
           {{ mode === 'report' ? 'Report Profile' : 'Block Connection' }}
         </h3>
       </div>
@@ -20,7 +20,8 @@
           type="button"
           @click="mode = 'report'"
           class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
-          :class="mode === 'report' ? 'btn-danger shadow-sm' : 'text-white-50'"
+          :class="mode === 'report' ? 'btn-danger shadow-sm' : ''"
+          :style="mode === 'report' ? {} : { color: 'var(--unmute-text-secondary)' }"
         >
           Report User
         </button>
@@ -28,7 +29,8 @@
           type="button"
           @click="mode = 'block'"
           class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
-          :class="mode === 'block' ? 'btn-warning text-dark shadow-sm' : 'text-white-50'"
+          :class="mode === 'block' ? 'btn-warning text-dark shadow-sm' : ''"
+          :style="mode === 'block' ? {} : { color: 'var(--unmute-text-secondary)' }"
         >
           Block User
         </button>
@@ -37,10 +39,10 @@
       <!-- Report Form -->
       <div v-if="mode === 'report'" class="d-flex flex-column gap-3">
         <div>
-          <label class="form-label small fw-semibold text-white-50 mb-1">Reason for Report</label>
+          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Reason for Report</label>
           <select
             v-model="reportCategory"
-            class="form-select form-control-dark-custom w-100"
+            class="form-select form-control-themed w-100"
           >
             <option disabled value="">Select a category</option>
             <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
@@ -48,12 +50,12 @@
         </div>
 
         <div>
-          <label class="form-label small fw-semibold text-white-50 mb-1">Details (Optional)</label>
+          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Details (Optional)</label>
           <textarea
             v-model="reportDetails"
             rows="3"
             placeholder="Tell us what happened so our moderation team can investigate..."
-            class="form-control form-control-dark-custom w-100"
+            class="form-control form-control-themed w-100"
           ></textarea>
         </div>
 
@@ -64,7 +66,7 @@
             v-model="alsoBlockOnReport"
             class="form-check-input mt-0"
           />
-          <label for="alsoBlock" class="form-check-label small text-white-50 user-select-none">
+          <label for="alsoBlock" class="form-check-label small user-select-none" style="color: var(--unmute-text-secondary);">
             Also block this user immediately
           </label>
         </div>
@@ -72,16 +74,16 @@
 
       <!-- Block Form -->
       <div v-else class="d-flex flex-column gap-2">
-        <p class="small text-white-50 p-3 rounded-3 surface-raised border mb-0" style="border-color: var(--unmute-border) !important;">
-          Blocking <strong class="text-white fw-bold">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
+        <p class="small p-3 rounded-3 surface-raised border mb-0" style="color: var(--unmute-text-secondary); border-color: var(--unmute-glass-border) !important;">
+          Blocking <strong class="fw-bold" style="color: var(--unmute-text-primary);">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
         </p>
         <div>
-          <label class="form-label small fw-semibold text-white-50 mb-1">Reason (Optional)</label>
+          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Reason (Optional)</label>
           <input
             v-model="blockReason"
             type="text"
             placeholder="e.g. Incompatible conversation, spam, etc."
-            class="form-control form-control-dark-custom w-100"
+            class="form-control form-control-themed w-100"
           />
         </div>
       </div>
@@ -115,7 +117,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ShieldAlert } from 'lucide-vue-next';
 import UModal from './ui/UModal.vue';
 import UButton from './ui/UButton.vue';
 import { useDiscoverStore } from '../stores/discover';
@@ -186,32 +187,32 @@ async function submitAction() {
 
 <style scoped lang="scss">
 .safety-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .safety-mode-pills {
-  background-color: var(--unmute-surface-raised, #161e31);
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08));
+  background-color: var(--unmute-surface-overlay, #eef2f9);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
 }
 
-.form-control-dark-custom {
-  background-color: var(--unmute-surface-raised, #161e31);
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.12));
-  color: #ffffff;
-  border-radius: var(--radius-md, 14px);
+.form-control-themed {
+  background-color: var(--unmute-input-bg, #ffffff);
+  border: 1px solid var(--unmute-input-border, #cbd5e1);
+  color: var(--unmute-text-primary, #0f172a);
+  border-radius: var(--unmute-radius-md, 14px);
   padding: 0.65rem 1rem;
   font-size: 0.875rem;
 
   &:focus {
-    background-color: var(--unmute-surface-raised, #161e31);
-    border-color: var(--theme-primary, #6366f1);
-    box-shadow: 0 0 0 3px var(--theme-glow, rgba(99, 102, 241, 0.25));
-    color: #ffffff;
+    background-color: var(--unmute-input-bg, #ffffff);
+    border-color: var(--unmute-primary, #8b5cf6);
+    box-shadow: 0 0 0 3px var(--unmute-primary-surface);
+    color: var(--unmute-text-primary, #0f172a);
   }
 
   &::placeholder {
-    color: var(--unmute-text-muted, #64748b);
+    color: var(--unmute-text-dim, #94a3b8);
   }
 }
 </style>

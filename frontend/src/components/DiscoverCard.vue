@@ -12,8 +12,8 @@
         :alt="candidate.displayName"
         class="w-100 h-100 object-fit-cover card-photo-img"
       />
-      <div v-else class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-muted">
-        <User class="photo-placeholder-icon" />
+      <div v-else class="w-100 h-100 d-flex flex-column align-items-center justify-content-center surface-raised text-muted">
+        <i class="ri-user-3-line photo-placeholder-icon"></i>
         <span class="small mt-2 fw-medium">No photo uploaded</span>
       </div>
 
@@ -27,7 +27,7 @@
         class="btn-safety-trigger position-absolute top-0 end-0 m-3 p-2 rounded-circle border-0 d-flex align-items-center justify-content-center"
         title="Report or Block"
       >
-        <MoreVertical class="safety-icon-sm" />
+        <i class="ri-more-2-fill safety-icon-sm"></i>
       </button>
 
       <!-- Candidate Basic Info Overlay -->
@@ -37,39 +37,39 @@
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">
-            <CheckCircle2 class="icon-xs" />
+            <i class="ri-checkbox-circle-fill icon-xs"></i>
             <span>Verified</span>
           </UBadge>
         </div>
 
         <div v-if="candidate.approximateLocation" class="d-flex align-items-center gap-1 small text-white-50 mt-1 fw-medium">
-          <MapPin class="icon-xs text-primary" />
+          <i class="ri-map-pin-2-fill icon-xs text-primary"></i>
           <span>{{ candidate.approximateLocation }}</span>
         </div>
       </div>
     </div>
 
     <!-- Details Body -->
-    <div class="p-4 d-flex flex-column gap-3">
-      <!-- Common Interests Badge (Conversation First!) -->
+    <div class="p-4 d-flex flex-column gap-3 card-details-body">
+      <!-- Common Interests Banner (Conversation First!) -->
       <div
         v-if="candidate.commonInterestsCount > 0"
         class="common-interests-banner d-flex align-items-center gap-2 p-3 rounded-3"
       >
-        <Sparkles class="icon-sm text-primary flex-shrink-0 animate-pulse-glow" />
+        <i class="ri-sparkling-fill icon-sm text-primary flex-shrink-0 animate-pulse-glow"></i>
         <span class="small fw-medium">
-          Common interests: <strong class="text-white fw-bold">{{ candidate.commonInterests.join(', ') }}</strong>
+          Common interests: <strong class="fw-bold" style="color: var(--unmute-text-primary);">{{ candidate.commonInterests.join(', ') }}</strong>
         </span>
       </div>
 
       <!-- Bio / Story -->
       <div v-if="candidate.bio" class="candidate-bio-box p-3 rounded-3 small">
-        <p class="mb-0 text-white-50" style="white-space: pre-line;">{{ candidate.bio }}</p>
+        <p class="mb-0 lh-base" style="white-space: pre-line; color: var(--unmute-text-secondary);">{{ candidate.bio }}</p>
       </div>
 
       <!-- Connection Intentions / Interaction Preferences -->
       <div v-if="candidate.interactionPreferences && candidate.interactionPreferences.length > 0">
-        <span class="extra-small fw-bold text-muted text-uppercase tracking-wider d-block mb-1">
+        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1" style="color: var(--unmute-text-muted);">
           Looking for
         </span>
         <div class="d-flex flex-wrap gap-1">
@@ -86,7 +86,7 @@
 
       <!-- All Interests tags -->
       <div v-if="candidate.interests && candidate.interests.length > 0">
-        <span class="extra-small fw-bold text-muted text-uppercase tracking-wider d-block mb-1">
+        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1" style="color: var(--unmute-text-muted);">
           Interests & Topics
         </span>
         <div class="d-flex flex-wrap gap-1">
@@ -110,7 +110,7 @@
           class="flex-fill"
           @click="$emit('pass')"
         >
-          <X class="icon-sm text-muted me-2" />
+          <i class="ri-close-line icon-sm me-2"></i>
           <span>Pass</span>
         </UButton>
 
@@ -121,7 +121,7 @@
           class="flex-fill"
           @click="$emit('like')"
         >
-          <Heart class="icon-sm fill-white me-2" />
+          <i class="ri-heart-3-fill icon-sm me-2"></i>
           <span>Connect</span>
         </UButton>
       </div>
@@ -130,15 +130,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  User,
-  MapPin,
-  CheckCircle2,
-  Sparkles,
-  Heart,
-  X,
-  MoreVertical,
-} from 'lucide-vue-next';
 import UCard from './ui/UCard.vue';
 import UButton from './ui/UButton.vue';
 import UBadge from './ui/UBadge.vue';
@@ -158,7 +149,7 @@ defineEmits<{
 <style scoped lang="scss">
 .card-photo-hero {
   height: 22rem;
-  background-color: var(--unmute-surface-raised, #161e31);
+  background-color: var(--unmute-surface-raised, #f0f3fa);
 }
 
 .card-photo-img {
@@ -169,23 +160,23 @@ defineEmits<{
 }
 
 .card-photo-overlay {
-  background: linear-gradient(to top, rgba(9, 13, 22, 0.95) 0%, rgba(9, 13, 22, 0.4) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.3) 50%, transparent 100%);
 }
 
 .photo-placeholder-icon {
-  width: 4rem;
-  height: 4rem;
+  font-size: 3.5rem;
+  line-height: 1;
 }
 
 .btn-safety-trigger {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: #cbd5e1;
+  color: #ffffff;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.4);
     color: #ffffff;
     transform: scale(1.08);
   }
@@ -196,18 +187,18 @@ defineEmits<{
 }
 
 .safety-icon-sm {
-  width: 1rem;
-  height: 1rem;
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .icon-xs {
-  width: 0.8125rem;
-  height: 0.8125rem;
+  font-size: 0.875rem;
+  line-height: 1;
 }
 
 .icon-sm {
-  width: 1rem;
-  height: 1rem;
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .extra-small {
@@ -218,14 +209,18 @@ defineEmits<{
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
+.card-details-body {
+  background-color: var(--unmute-surface, #ffffff);
+}
+
 .common-interests-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.08));
-  border: 1px solid var(--theme-border-glow, rgba(99, 102, 241, 0.3));
-  color: var(--theme-primary-hover, #c084fc);
+  background: var(--unmute-primary-surface, rgba(139, 92, 246, 0.08));
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
+  color: var(--unmute-primary, #7c3aed);
 }
 
 .candidate-bio-box {
-  background-color: var(--unmute-surface-raised, #131b2e);
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.06));
+  background-color: var(--unmute-surface-raised, #f8fafd);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.06));
 }
 </style>

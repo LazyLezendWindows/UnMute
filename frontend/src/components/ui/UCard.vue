@@ -1,13 +1,13 @@
 <template>
   <div
-    class="u-card rounded-3xl transition-all position-relative overflow-hidden"
+    class="u-card transition-all position-relative overflow-hidden"
     :class="[variantClass, paddingClass, { 'cursor-pointer user-select-none': interactive }]"
     @click="$emit('click', $event)"
   >
-    <!-- Optional subtle top specular highlight for 3D realism -->
+    <!-- Subtle top specular highlight for 3D realism -->
     <div
       class="u-card-specular pe-none position-absolute top-0 start-0 end-0"
-      style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);"
+      style="height: 1.5px; background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight, rgba(255,255,255,0.85)), transparent);"
     ></div>
 
     <slot />
@@ -70,62 +70,62 @@ const paddingClass = computed(() => {
 
 <style scoped>
 .u-card {
+  border-radius: var(--unmute-radius-lg, 24px);
   transform: translateY(0);
   transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal), border-color var(--unmute-transition-normal), background-color var(--unmute-transition-normal);
 }
 
 .u-card-default {
-  background-color: var(--unmute-surface);
-  border: 1px solid var(--unmute-glass-border);
+  background-color: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary);
+  color: var(--unmute-text-primary, #0f172a);
 }
 
 .u-card-elevated {
-  background-color: var(--unmute-surface-raised);
-  border: 1px solid var(--unmute-glass-border);
+  background-color: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary);
+  color: var(--unmute-text-primary, #0f172a);
 }
 
 .u-card-glass {
-  background: var(--unmute-glass-bg);
+  background: var(--unmute-glass-bg, rgba(255, 255, 255, 0.94));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--unmute-glass-border);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary);
+  color: var(--unmute-text-primary, #0f172a);
 }
 
 .u-card-interactive {
-  background-color: var(--unmute-surface);
-  border: 1px solid var(--unmute-glass-border);
+  background-color: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-sm), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary);
+  color: var(--unmute-text-primary, #0f172a);
 }
 
 .u-card-interactive:hover {
-  transform: translateY(-5px) scale(1.01);
+  transform: translateY(-4px) scale(1.008);
   border-color: var(--unmute-primary);
   box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
 }
 
 /* 3D perspective tilt on hover */
 .u-card-3d {
-  background-color: var(--unmute-surface-raised);
-  border: 1px solid var(--unmute-glass-border);
+  background-color: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary);
+  color: var(--unmute-text-primary, #0f172a);
   transform-style: preserve-3d;
   perspective: 1200px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .u-card-3d:hover {
-    transform: perspective(1200px) translateY(-6px) rotateX(1.5deg) rotateY(-1.5deg);
+    transform: perspective(1200px) translateY(-5px) rotateX(1.5deg) rotateY(-1.5deg);
     box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
     border-color: var(--unmute-primary);
   }
 }
 </style>
-

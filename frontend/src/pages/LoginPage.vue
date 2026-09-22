@@ -1,8 +1,8 @@
 <template>
   <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
     <!-- Ambient 3D Depth Blobs -->
-    <div class="position-absolute ambient-blob-top rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary); opacity: 0.15;"></div>
-    <div class="position-absolute ambient-blob-bottom rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary-light); opacity: 0.12; animation-delay: 2s;"></div>
+    <div class="position-absolute ambient-blob-top rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary); opacity: 0.12;"></div>
+    <div class="position-absolute ambient-blob-bottom rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary-light); opacity: 0.10; animation-delay: 2s;"></div>
 
     <div class="w-100 max-w-md position-relative" style="z-index: 10;">
       <UCard variant="glass" padding="lg" class="shadow-2xl">
@@ -13,9 +13,7 @@
               class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-2 animate-float"
               style="background: var(--unmute-primary-gradient); box-shadow: 0 4px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);"
             >
-              <svg class="auth-logo-icon text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M17 5v14M7 8v8M22 10v4M2 10v4" />
-              </svg>
+              <i class="ri-voiceprint-fill text-white fs-2"></i>
             </div>
             <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">
               Welcome back
@@ -64,7 +62,7 @@
           <!-- Switch to Register -->
           <div class="text-center small text-muted pt-1">
             Don't have an account?
-            <router-link to="/register" class="fw-bold ms-1 text-decoration-none" style="color: var(--unmute-primary-light);">
+            <router-link to="/register" class="fw-bold ms-1 text-decoration-none" style="color: var(--unmute-primary);">
               Create account
             </router-link>
           </div>
@@ -122,13 +120,8 @@ async function handleLogin() {
 }
 
 .auth-logo-badge {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: var(--radius-lg, 18px);
-}
-
-.auth-logo-icon {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: var(--unmute-radius-lg, 20px);
 }
 </style>
