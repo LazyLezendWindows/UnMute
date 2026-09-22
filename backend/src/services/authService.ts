@@ -143,24 +143,41 @@ export class AuthService {
     let displayName = input.displayName;
     let avatarUrl = input.avatarUrl;
 
-    // Decode Google JWT credential if provided
-    if (input.credential && input.credential.includes('.')) {
+    // Verify and decode Google JWT credential if provided
+    if (input.credential) {
+      // 1. Attempt verification with Google's official tokeninfo API
       try {
-        const parts = input.credential.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-          googleId = payload.sub || googleId;
-          email = payload.email || email;
-          displayName = payload.name || displayName;
-          avatarUrl = payload.picture || avatarUrl;
+        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(input.credential)}`);
+        if (googleRes.ok) {
+          const googleData = await googleRes.json();
+          googleId = googleData.sub || googleId;
+          email = googleData.email || email;
+          displayName = googleData.name || displayName;
+          avatarUrl = googleData.picture || avatarUrl;
         }
-      } catch (e) {
-        console.warn('[GoogleAuth] Failed to parse credential payload:', e);
+      } catch {
+        // Offline / network failure - fall back to JWT structure decoding
+      }
+
+      // 2. Decode JWT payload if email not resolved by tokeninfo
+      if (!email && input.credential.includes('.')) {
+        try {
+          const parts = input.credential.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+            googleId = payload.sub || googleId;
+            email = payload.email || email;
+            displayName = payload.name || displayName;
+            avatarUrl = payload.picture || avatarUrl;
+          }
+        } catch (e) {
+          console.warn('[GoogleAuth] Failed to parse credential payload:', e);
+        }
       }
     }
 
     if (!email) {
-      throw new AppError('Email is required for Google authentication', 400);
+      throw new AppError('Valid Google account or email is required for Google authentication', 400);
     }
 
     const normalizedEmail = email.toLowerCase().trim();

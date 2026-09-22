@@ -29,13 +29,18 @@
             <span>{{ error }}</span>
           </div>
 
-          <!-- Google Authentication Button (1-Click Real Auth) -->
-          <div class="d-flex flex-column gap-2">
+          <!-- Google Authentication: Official Google Identity Container + Styled Button -->
+          <div class="d-flex flex-column gap-2 align-items-center w-100">
+            <!-- Native Google GIS Render Target (Used when VITE_GOOGLE_CLIENT_ID is active) -->
+            <div ref="googleNativeBtnRef" class="w-100 d-flex justify-content-center" :class="{ 'd-none': !hasGoogleClientId }"></div>
+
+            <!-- Styled Elyse Google Button (Fallback when Client ID not set or loading) -->
             <button
+              v-if="!hasGoogleClientId"
               type="button"
               class="btn-google-auth w-100 d-flex align-items-center justify-content-center gap-3 py-2.5 px-4 rounded-3 user-select-none"
               :disabled="loading"
-              @click="handleGoogleSignIn"
+              @click="handleGoogleClick"
             >
               <svg class="google-icon" width="18" height="18" viewBox="0 0 48 48">
                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -47,7 +52,6 @@
                 Continue with Google
               </span>
             </button>
-            <div id="google-signin-btn-container" class="d-none"></div>
           </div>
 
           <!-- Divider -->
@@ -101,6 +105,74 @@
       </UCard>
     </div>
 
+    <!-- Google OAuth Setup & Test Modal (Shown if VITE_GOOGLE_CLIENT_ID not configured yet) -->
+    <UModal
+      :isOpen="showGoogleSetupModal"
+      title="Google Sign-In Authentication"
+      maxWidth="md"
+      @close="showGoogleSetupModal = false"
+    >
+      <div class="d-flex flex-column gap-3">
+        <div class="p-3 rounded-3 surface-raised border small" style="border-color: var(--unmute-glass-border) !important;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="ri-google-fill fs-5" style="color: var(--unmute-primary);"></i>
+            <span class="fw-bold" style="color: var(--unmute-text-primary);">Google Identity Services</span>
+          </div>
+          <p class="mb-2 text-muted lh-base">
+            For production deployment, add your OAuth Client ID from Google Cloud Console into <code class="p-1 rounded bg-light">frontend/.env</code> as <code class="p-1 rounded bg-light">VITE_GOOGLE_CLIENT_ID</code>.
+          </p>
+          <div class="extra-small text-muted">
+            The app automatically mounts Google's official One-Tap and Sign-In popup whenever the client ID is present.
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label small fw-semibold mb-2" style="color: var(--unmute-text-primary);">
+            Instant Google Account Simulation:
+          </label>
+          <div class="d-flex flex-column gap-2">
+            <button
+              type="button"
+              class="p-2.5 rounded-3 surface-raised border d-flex align-items-center justify-content-between text-start transition-all"
+              style="border-color: var(--unmute-glass-border) !important;"
+              @click="signInWithGoogleProfile('alex.vanguard@gmail.com', 'Alex Vanguard')"
+            >
+              <div class="d-flex align-items-center gap-2">
+                <img src="https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=AlexVanguard" width="32" height="32" class="rounded-circle border" />
+                <div class="small">
+                  <div class="fw-bold" style="color: var(--unmute-text-primary);">Alex Vanguard</div>
+                  <div class="text-muted extra-small">alex.vanguard@gmail.com</div>
+                </div>
+              </div>
+              <i class="ri-arrow-right-line text-muted"></i>
+            </button>
+
+            <button
+              type="button"
+              class="p-2.5 rounded-3 surface-raised border d-flex align-items-center justify-content-between text-start transition-all"
+              style="border-color: var(--unmute-glass-border) !important;"
+              @click="signInWithGoogleProfile('elena.roche@gmail.com', 'Elena Roche')"
+            >
+              <div class="d-flex align-items-center gap-2">
+                <img src="https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=ElenaRoche" width="32" height="32" class="rounded-circle border" />
+                <div class="small">
+                  <div class="fw-bold" style="color: var(--unmute-text-primary);">Elena Roche</div>
+                  <div class="text-muted extra-small">elena.roche@gmail.com</div>
+                </div>
+              </div>
+              <i class="ri-arrow-right-line text-muted"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <UButton variant="secondary" size="md" @click="showGoogleSetupModal = false">
+          Close
+        </UButton>
+      </template>
+    </UModal>
+
     <!-- Google 18+ Age Verification Modal (for first-time Google sign-ins) -->
     <UModal
       :isOpen="showDobModal"
@@ -121,7 +193,7 @@
         </div>
 
         <p class="small mb-0" style="color: var(--unmute-text-secondary); line-height: 1.5;">
-          To ensure a safe environment, all Unmute members must be at least 18 years old. Please confirm your date of birth to complete registration.
+          To ensure a safe adult environment, all Unmute members must be at least 18 years old. Please confirm your date of birth to complete registration.
         </p>
 
         <UInput
@@ -173,10 +245,17 @@ const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-// Google First-Time Registration Modal
+// Google Native Button & Modals
+const googleNativeBtnRef = ref<HTMLElement | null>(null);
+const showGoogleSetupModal = ref(false);
 const showDobModal = ref(false);
-const googleDob = ref('');
+const googleDob = ref('2000-01-01');
 const dobError = ref<string | null>(null);
+
+const hasGoogleClientId = computed(() => {
+  return Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+});
+
 const pendingGoogleData = ref({
   credential: '',
   googleId: '',
@@ -192,21 +271,39 @@ const maxDateFor18 = computed(() => {
 });
 
 onMounted(() => {
-  initGoogleAuth();
+  initNativeGoogleIdentity();
 });
 
-function initGoogleAuth() {
+function initNativeGoogleIdentity() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && clientId) {
-    try {
-      (window as any).google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredentialResponse,
-      });
-    } catch (err) {
-      console.warn('Google Identity initialization error:', err);
+  if (!clientId) return;
+
+  const tryInit = () => {
+    if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleNativeBtnRef.value) {
+      try {
+        (window as any).google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false,
+        });
+
+        (window as any).google.accounts.id.renderButton(googleNativeBtnRef.value, {
+          type: 'standard',
+          shape: 'pill',
+          theme: 'outline',
+          text: 'continue_with',
+          size: 'large',
+          width: 360,
+        });
+      } catch (err) {
+        console.warn('[Google] Native GIS init error:', err);
+      }
+    } else {
+      setTimeout(tryInit, 200);
     }
-  }
+  };
+
+  tryInit();
 }
 
 async function handleGoogleCredentialResponse(response: any) {
@@ -214,32 +311,28 @@ async function handleGoogleCredentialResponse(response: any) {
   await processGoogleAuth({ credential: response.credential });
 }
 
-async function handleGoogleSignIn() {
+function handleGoogleClick() {
   error.value = null;
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  
-  if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && clientId) {
+
+  if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
     (window as any).google.accounts.id.prompt();
     return;
   }
 
-  // Graceful direct Google OAuth demo authentication
-  // Prompts user for test Google account email if clientId is not yet configured with Google Console
-  const defaultGoogleEmail = 'alex.resident@gmail.com';
-  const promptEmail = window.prompt(
-    'Enter your Google account email to sign in / register via Google:',
-    defaultGoogleEmail
-  );
-  if (!promptEmail) return;
+  // Show clean in-app modal
+  showGoogleSetupModal.value = true;
+}
 
-  const demoGoogleId = 'goog_' + btoa(promptEmail.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
-  const demoName = promptEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+async function signInWithGoogleProfile(googleEmail: string, name: string) {
+  showGoogleSetupModal.value = false;
+  const demoGoogleId = 'goog_' + btoa(googleEmail.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
 
   await processGoogleAuth({
     googleId: demoGoogleId,
-    email: promptEmail.trim(),
-    displayName: demoName,
-    avatarUrl: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(promptEmail)}`,
+    email: googleEmail,
+    displayName: name,
+    avatarUrl: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(googleEmail)}`,
   });
 }
 
