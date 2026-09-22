@@ -11,6 +11,10 @@ export const config = {
   minAge: parseInt(process.env.MIN_AGE || '18', 10),
   jwtExpiresIn: '7d',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  snapchatClientId: process.env.SNAPCHAT_CLIENT_ID || '',
+  snapchatClientSecret: process.env.SNAPCHAT_CLIENT_SECRET || '',
+  instagramClientId: process.env.INSTAGRAM_CLIENT_ID || '',
+  instagramClientSecret: process.env.INSTAGRAM_CLIENT_SECRET || '',
   // MariaDB configuration
   mariadb: {
     host: process.env.MARIADB_HOST || '127.0.0.1',

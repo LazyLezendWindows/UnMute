@@ -36,6 +36,30 @@ export const googleAuthSchema = z.object({
     .optional(),
 });
 
+export const snapchatAuthSchema = z.object({
+  credential: z.string().min(1, 'Snapchat credential or authorization code is required'),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+    .refine((dob) => isAtLeast18YearsOld(dob), {
+      message: 'You must be at least 18 years of age to join Unmute',
+    })
+    .optional(),
+});
+
+export const instagramAuthSchema = z.object({
+  credential: z.string().min(1, 'Instagram credential or authorization code is required'),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+    .refine((dob) => isAtLeast18YearsOld(dob), {
+      message: 'You must be at least 18 years of age to join Unmute',
+    })
+    .optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
+export type SnapchatAuthInput = z.infer<typeof snapchatAuthSchema>;
+export type InstagramAuthInput = z.infer<typeof instagramAuthSchema>;

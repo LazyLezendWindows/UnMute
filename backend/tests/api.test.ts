@@ -190,6 +190,48 @@ describe('Unmute API End-to-End Test Suite', () => {
       expect(res.headers['set-cookie']).toBeDefined();
     });
 
+    it('should handle new Snapchat authentication with 18+ dateOfBirth', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'snapuser@example.com',
+        sub: 'snap-sub-999888',
+        name: 'Snap Member',
+      });
+
+      const res = await request(app)
+        .post('/api/v1/auth/snapchat')
+        .send({
+          credential,
+          dateOfBirth: '1998-11-20',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.isNewUser).toBe(true);
+      expect(res.body.data.user.email).toBe('snapuser@example.com');
+      expect(res.headers['set-cookie']).toBeDefined();
+    });
+
+    it('should handle new Instagram authentication with 18+ dateOfBirth', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'instauser@example.com',
+        sub: 'insta-sub-777666',
+        name: 'Insta Member',
+      });
+
+      const res = await request(app)
+        .post('/api/v1/auth/instagram')
+        .send({
+          credential,
+          dateOfBirth: '1995-03-10',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.isNewUser).toBe(true);
+      expect(res.body.data.user.email).toBe('instauser@example.com');
+      expect(res.headers['set-cookie']).toBeDefined();
+    });
+
     it('should access user session via session cookie and revoke on logout', async () => {
       // 1. Log in to obtain session cookie
       const loginRes = await request(app)

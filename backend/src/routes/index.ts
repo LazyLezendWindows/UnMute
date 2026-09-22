@@ -15,6 +15,8 @@ apiRouter.get('/config', (_req, res) => {
     success: true,
     data: {
       googleClientId: config.googleClientId || '',
+      snapchatClientId: config.snapchatClientId || '',
+      instagramClientId: config.instagramClientId || '',
       minAge: config.minAge || 18,
     },
   });

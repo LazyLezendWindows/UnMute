@@ -69,6 +69,36 @@ export class AuthController {
     }
   }
 
+  static async snapchatAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AuthService.snapchatAuth(req.body);
+      if (result.sessionToken) {
+        setSessionCookie(res, result.sessionToken);
+      }
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async instagramAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AuthService.instagramAuth(req.body);
+      if (result.sessionToken) {
+        setSessionCookie(res, result.sessionToken);
+      }
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const sessionToken = req.cookies?.unmute_session;

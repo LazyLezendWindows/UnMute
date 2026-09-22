@@ -131,6 +131,78 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithSnapchat(payload: {
+    credential: string;
+    dateOfBirth?: string;
+  }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/auth/snapchat', payload);
+      const result = res.data.data;
+      if (result.requiresDob) {
+        return {
+          requiresDob: true,
+          email: result.email,
+          displayName: result.displayName,
+          avatarUrl: result.avatarUrl,
+        };
+      }
+      user.value = result.user;
+      authState.value = 'AUTHENTICATED';
+      if (result.token) {
+        localStorage.setItem('unmute_token', result.token);
+      }
+      connectSocket();
+      return {
+        requiresDob: false,
+        isNewUser: result.isNewUser,
+        user: result.user,
+      };
+    } catch (err: any) {
+      error.value = err.message || 'Snapchat authentication failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function loginWithInstagram(payload: {
+    credential: string;
+    dateOfBirth?: string;
+  }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/auth/instagram', payload);
+      const result = res.data.data;
+      if (result.requiresDob) {
+        return {
+          requiresDob: true,
+          email: result.email,
+          displayName: result.displayName,
+          avatarUrl: result.avatarUrl,
+        };
+      }
+      user.value = result.user;
+      authState.value = 'AUTHENTICATED';
+      if (result.token) {
+        localStorage.setItem('unmute_token', result.token);
+      }
+      connectSocket();
+      return {
+        requiresDob: false,
+        isNewUser: result.isNewUser,
+        user: result.user,
+      };
+    } catch (err: any) {
+      error.value = err.message || 'Instagram authentication failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function fetchMe() {
     return checkSession();
   }
@@ -177,6 +249,8 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     login,
     loginWithGoogle,
+    loginWithSnapchat,
+    loginWithInstagram,
     fetchMe,
     updateProfile,
     logout,
