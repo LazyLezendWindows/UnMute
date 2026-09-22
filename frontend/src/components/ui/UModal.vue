@@ -108,3 +108,4 @@ const maxWidthClass = computed(() => {
   box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7), 0 0 35px -5px rgba(124, 58, 237, 0.15);
 }
 </style>
+

@@ -94,3 +94,4 @@ defineEmits<{
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>
+
