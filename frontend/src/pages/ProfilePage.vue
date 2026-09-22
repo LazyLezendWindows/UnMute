@@ -1,15 +1,20 @@
 <template>
-  <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100">
+  <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100 py-2">
     <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center justify-content-between pb-2 border-bottom" style="border-color: var(--unmute-glass-border) !important;">
       <div>
-        <h1 class="fs-4 fw-bolder tracking-tight mb-1 font-display" style="color: var(--unmute-text-primary);">Your Profile</h1>
-        <p class="small mb-0" style="color: var(--unmute-text-muted);">Share your interests and intentions without the pressure</p>
+        <h1 class="fs-3 fw-bolder tracking-tight mb-1 font-editorial" style="color: var(--unmute-text-primary);">
+          Your Profile
+        </h1>
+        <p class="small mb-0" style="color: var(--unmute-text-muted);">
+          Present your authentic self in a private, high-standard space
+        </p>
       </div>
       <div class="d-flex align-items-center gap-2">
         <router-link to="/settings">
           <UButton variant="secondary" size="sm">
-            <template #default>Settings</template>
+            <i class="ri-settings-4-line me-1"></i>
+            <span>Settings</span>
           </UButton>
         </router-link>
         <UButton
@@ -17,7 +22,8 @@
           size="sm"
           @click="handleLogout"
         >
-          Log out
+          <i class="ri-logout-box-r-line me-1"></i>
+          <span>Log out</span>
         </UButton>
       </div>
     </div>
@@ -31,28 +37,98 @@
       {{ errorMsg }}
     </div>
 
-    <!-- Profile Form in UCard -->
-    <form @submit.prevent="saveProfile">
-      <UCard variant="elevated" padding="lg">
-        <div class="d-flex flex-column gap-4">
-          <!-- Avatar Section with UAvatar -->
-          <div class="d-flex align-items-center gap-3 p-3 rounded-4 surface-raised border" style="border-color: var(--unmute-border) !important;">
+    <!-- Luxury Ambient Profile Hero Banner -->
+    <div class="profile-hero-banner rounded-4 position-relative overflow-hidden p-4 d-flex align-items-end">
+      <div class="profile-hero-backdrop position-absolute top-0 start-0 end-0 bottom-0"></div>
+      <div class="position-relative z-1 d-flex align-items-center gap-3 w-100 flex-wrap justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <div class="profile-avatar-frame rounded-circle p-1" style="background: var(--unmute-gold-gradient); box-shadow: var(--unmute-gold-glow);">
             <UAvatar
               :src="form.avatarUrl"
               :name="form.displayName || 'User'"
               size="xl"
-              :border="true"
             />
-
-            <div class="flex-grow-1">
-              <UInput
-                v-model="form.avatarUrl"
-                label="Profile Photo URL"
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                hint="Enter an image URL for your public profile photo"
-              />
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h2 class="fs-4 fw-bold text-white mb-0 font-editorial">
+                {{ form.displayName || 'Anonymous Member' }}
+              </h2>
+              <UBadge variant="gold" size="sm">
+                <i class="ri-shield-check-fill icon-xs me-1"></i>
+                <span>18+ Verified</span>
+              </UBadge>
             </div>
+            <span class="small text-white-50 mt-1 d-block">
+              {{ form.approximateLocation || 'Private Location' }} • Member of Unmute
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voice Introduction Audio Module (Unmute Signature) -->
+    <UCard variant="elevated" padding="md">
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded-3" style="background: var(--unmute-gold-surface); color: var(--unmute-gold-dark);">
+              <i class="ri-mic-line fs-5"></i>
+            </div>
+            <div>
+              <h3 class="fs-6 fw-bold mb-0 font-editorial" style="color: var(--unmute-text-primary);">
+                Signature Voice Prompt
+              </h3>
+              <p class="extra-small mb-0" style="color: var(--unmute-text-muted);">
+                Your voice reveals warmth and authenticity before physical appearances
+              </p>
+            </div>
+          </div>
+          <UBadge variant="gold" size="sm">Active</UBadge>
+        </div>
+
+        <div class="p-3 rounded-3 surface-raised d-flex align-items-center justify-content-between border" style="border-color: var(--unmute-glass-border) !important;">
+          <div class="d-flex align-items-center gap-3">
+            <button
+              type="button"
+              @click="toggleProfileAudio"
+              class="profile-audio-btn rounded-circle border-0 d-flex align-items-center justify-content-center"
+              :class="{ 'playing': isPlayingAudio }"
+            >
+              <i :class="isPlayingAudio ? 'ri-pause-fill' : 'ri-play-fill'" class="fs-5"></i>
+            </button>
+            <div>
+              <span class="small fw-semibold d-block" style="color: var(--unmute-text-primary);">
+                {{ isPlayingAudio ? 'Playing intro preview...' : 'My 30-second Voice Greeting' }}
+              </span>
+              <span class="extra-small" style="color: var(--unmute-text-dim);">Duration: 0:24 • Recorded in Sanctuary</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="p-sw-bar" :class="{ 'anim': isPlayingAudio }" style="height: 10px;"></span>
+            <span class="p-sw-bar" :class="{ 'anim': isPlayingAudio }" style="height: 18px;"></span>
+            <span class="p-sw-bar" :class="{ 'anim': isPlayingAudio }" style="height: 14px;"></span>
+            <span class="p-sw-bar" :class="{ 'anim': isPlayingAudio }" style="height: 22px;"></span>
+            <span class="p-sw-bar" :class="{ 'anim': isPlayingAudio }" style="height: 12px;"></span>
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Profile Form in UCard -->
+    <form @submit.prevent="saveProfile">
+      <UCard variant="elevated" padding="lg">
+        <div class="d-flex flex-column gap-4">
+          <!-- Profile Photo URL -->
+          <div>
+            <UInput
+              v-model="form.avatarUrl"
+              label="Profile Photo URL"
+              type="url"
+              placeholder="https://images.unsplash.com/..."
+              hint="Enter an image URL for your public profile photo"
+            />
           </div>
 
           <!-- Display Name & Age Info -->
@@ -119,9 +195,9 @@
                 :class="
                   form.interactionPreferences.includes(pref)
                     ? 'pref-selected'
-                    : 'surface-raised text-white-50'
+                    : 'surface-raised'
                 "
-                :style="form.interactionPreferences.includes(pref) ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)', color: '#ffffff' } : {}"
+                :style="form.interactionPreferences.includes(pref) ? { background: 'var(--unmute-obsidian-gradient)', color: '#ffffff', boxShadow: '0 2px 8px rgba(10,10,10,0.2)' } : { color: 'var(--unmute-text-secondary)' }"
               >
                 {{ pref }}
               </button>
@@ -129,20 +205,20 @@
           </div>
 
           <!-- Interests Selector -->
-          <div class="pt-3 border-top" style="border-color: var(--unmute-border) !important;">
+          <div class="pt-3 border-top" style="border-color: var(--unmute-glass-border) !important;">
             <label class="form-label small fw-semibold mb-2" style="color: var(--unmute-text-secondary);">Interests & Hobbies</label>
             <InterestSelector v-model="form.interestIds" />
           </div>
 
           <!-- Save Button -->
-          <div class="pt-3 border-top d-flex justify-content-end" style="border-color: var(--unmute-border) !important;">
+          <div class="pt-3 border-top d-flex justify-content-end" style="border-color: var(--unmute-glass-border) !important;">
             <UButton
               type="submit"
               variant="primary"
               size="lg"
               :loading="saving"
             >
-              Save Profile
+              Save Profile Changes
             </UButton>
           </div>
         </div>
@@ -156,6 +232,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
+import UBadge from '../components/ui/UBadge.vue';
 import UInput from '../components/ui/UInput.vue';
 import UButton from '../components/ui/UButton.vue';
 import InterestSelector from '../components/InterestSelector.vue';
@@ -167,6 +244,11 @@ const authStore = useAuthStore();
 const saving = ref(false);
 const successMsg = ref<string | null>(null);
 const errorMsg = ref<string | null>(null);
+const isPlayingAudio = ref(false);
+
+function toggleProfileAudio() {
+  isPlayingAudio.value = !isPlayingAudio.value;
+}
 
 const availablePreferences = [
   'Deep conversations',
@@ -240,13 +322,69 @@ function handleLogout() {
   font-size: 0.6875rem;
 }
 
+.profile-hero-banner {
+  background: var(--unmute-obsidian-gradient, linear-gradient(135deg, #1a1817 0%, #0a0a0a 100%));
+  min-height: 130px;
+  border: 1px solid var(--unmute-gold-border);
+  box-shadow: var(--unmute-shadow-3d);
+}
+
+.profile-hero-backdrop {
+  background: radial-gradient(circle at 85% 20%, rgba(197, 168, 128, 0.22) 0%, transparent 60%);
+}
+
+.profile-avatar-frame {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.profile-audio-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--unmute-obsidian-gradient);
+  color: var(--unmute-gold);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: scale(1.08);
+    color: #ffffff;
+  }
+
+  &.playing {
+    background: var(--unmute-gold-gradient);
+    color: #1a1817;
+  }
+}
+
+.p-sw-bar {
+  width: 3px;
+  background-color: var(--unmute-gold, #c5a880);
+  border-radius: 9999px;
+  opacity: 0.45;
+  transition: height 0.2s ease;
+
+  &.anim {
+    animation: profileSoundwave 0.8s ease-in-out infinite alternate;
+    opacity: 1;
+
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+    &:nth-child(4) { animation-delay: 0.45s; }
+    &:nth-child(5) { animation-delay: 0.2s; }
+  }
+}
+
+@keyframes profileSoundwave {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.3); }
+}
+
 .pref-chip-btn {
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08)) !important;
+  border: 1px solid var(--unmute-glass-border, rgba(10, 10, 10, 0.08)) !important;
   transition: all 0.18s ease;
 
   &:hover {
     transform: translateY(-1px);
-    color: #ffffff;
+    border-color: var(--unmute-gold-border) !important;
   }
 
   &.pref-selected {

@@ -49,6 +49,28 @@ h1, h2, h3, .font-display, .font-editorial, .brand-heading {
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
 }
 
+// Glassmorphism Panels with Architectural Blur
+.glass-panel {
+  background: var(--unmute-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--unmute-glass-border);
+}
+
+.gold-gradient-text {
+  background: var(--unmute-gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.luxury-badge-gold {
+  background: var(--unmute-gold-surface);
+  color: #8b6e43;
+  border: 1px solid var(--unmute-gold-border);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
 // Reset standard Bootstrap button visual flatness with 3D tactile feel
 .btn {
   font-family: 'Outfit', sans-serif;
@@ -69,7 +91,7 @@ h1, h2, h3, .font-display, .font-editorial, .brand-heading {
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
 }
 
-// Custom Scrollbars
+// Refined Architectural Custom Scrollbars
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -78,9 +100,9 @@ h1, h2, h3, .font-display, .font-editorial, .brand-heading {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e263c;
+  background: #deddd9;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #c5a880;
 }

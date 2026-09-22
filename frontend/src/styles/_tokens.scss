@@ -51,6 +51,16 @@
   --unmute-primary-surface: rgba(26, 24, 23, 0.08);
   --unmute-glow-primary: 0 8px 25px -4px rgba(26, 24, 23, 0.25);
 
+  // Signature Champagne Gold & Metallic Accents
+  --unmute-gold: #c5a880;
+  --unmute-gold-light: #dfc8a7;
+  --unmute-gold-dark: #9e7f54;
+  --unmute-gold-gradient: linear-gradient(135deg, #dfc8a7 0%, #c5a880 50%, #9e7f54 100%);
+  --unmute-gold-surface: rgba(197, 168, 128, 0.12);
+  --unmute-gold-border: rgba(197, 168, 128, 0.32);
+  --unmute-gold-glow: 0 8px 24px -4px rgba(197, 168, 128, 0.35);
+  --unmute-obsidian-gradient: linear-gradient(135deg, #22201e 0%, #121110 100%);
+
   // Border Radii (Refined architectural curve)
   --unmute-radius-xs: 8px;
   --unmute-radius-sm: 12px;

@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-type BadgeVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'glass' | 'outline' | 'glow';
+type BadgeVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'glass' | 'outline' | 'glow' | 'gold';
 type BadgeSize = 'sm' | 'md';
 
 const props = withDefaults(
@@ -31,6 +31,8 @@ const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
       return 'u-badge-primary border';
+    case 'gold':
+      return 'luxury-badge-gold';
     case 'glow':
       return 'u-badge-glow text-white';
     case 'success':

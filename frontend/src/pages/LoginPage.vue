@@ -29,7 +29,7 @@
             <span>{{ error }}</span>
           </div>
 
-          <!-- Social Authentication Providers: Google, Snapchat, Instagram -->
+          <!-- Google Dynamic Authentication Button -->
           <div class="d-flex flex-column gap-2 align-items-center w-100">
             <!-- Native Google GIS Render Target -->
             <div ref="googleNativeBtnRef" class="w-100 d-flex justify-content-center" :class="{ 'd-none': !hasGoogleClientId }"></div>
@@ -38,7 +38,7 @@
             <button
               v-if="!hasGoogleClientId"
               type="button"
-              class="btn-social-auth btn-google-auth w-100 d-flex align-items-center justify-content-center gap-3 py-2.5 px-4 rounded-3 user-select-none"
+              class="btn-google-auth w-100 d-flex align-items-center justify-content-center gap-3 py-2.5 px-4 rounded-3 user-select-none"
               :disabled="loading"
               @click="handleGoogleClick"
             >
@@ -52,31 +52,6 @@
                 Continue with Google
               </span>
             </button>
-
-            <div class="row g-2 w-100">
-              <div class="col-6">
-                <button
-                  type="button"
-                  class="btn-social-auth btn-snapchat-auth w-100 d-flex align-items-center justify-content-center gap-2 py-2 px-3 rounded-3 user-select-none"
-                  :disabled="loading"
-                  @click="handleSnapchatClick"
-                >
-                  <i class="ri-snapchat-fill fs-5" style="color: #FFFC00; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));"></i>
-                  <span class="fw-semibold small" style="color: var(--unmute-text-primary);">Snapchat</span>
-                </button>
-              </div>
-              <div class="col-6">
-                <button
-                  type="button"
-                  class="btn-social-auth btn-instagram-auth w-100 d-flex align-items-center justify-content-center gap-2 py-2 px-3 rounded-3 user-select-none"
-                  :disabled="loading"
-                  @click="handleInstagramClick"
-                >
-                  <i class="ri-instagram-line fs-5 text-danger"></i>
-                  <span class="fw-semibold small" style="color: var(--unmute-text-primary);">Instagram</span>
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- Divider -->
@@ -185,92 +160,6 @@
       </template>
     </UModal>
 
-    <!-- Snapchat Auth Modal -->
-    <UModal
-      :isOpen="showSnapchatPromptModal"
-      title="Continue with Snapchat"
-      maxWidth="sm"
-      @close="showSnapchatPromptModal = false"
-    >
-      <div class="d-flex flex-column gap-3">
-        <div class="d-flex align-items-center gap-3 p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
-          <div class="rounded-circle d-flex align-items-center justify-content-center bg-dark p-2 border shadow-sm">
-            <i class="ri-snapchat-fill fs-4" style="color: #FFFC00;"></i>
-          </div>
-          <div class="small">
-            <div class="fw-bold" style="color: var(--unmute-text-primary);">Snapchat Login Kit</div>
-            <div class="text-muted extra-small">Authenticate with your Snapchat account</div>
-          </div>
-        </div>
-
-        <UInput
-          v-model="promptSnapchatUsername"
-          label="Snapchat Username / Handle"
-          type="text"
-          required
-          placeholder="e.g. alex_snap"
-        />
-      </div>
-
-      <template #footer>
-        <UButton variant="secondary" size="md" @click="showSnapchatPromptModal = false">
-          Cancel
-        </UButton>
-        <UButton
-          variant="primary"
-          size="md"
-          :loading="loading"
-          :disabled="!promptSnapchatUsername"
-          @click="submitSnapchatPrompt"
-        >
-          Continue
-        </UButton>
-      </template>
-    </UModal>
-
-    <!-- Instagram Auth Modal -->
-    <UModal
-      :isOpen="showInstagramPromptModal"
-      title="Continue with Instagram"
-      maxWidth="sm"
-      @close="showInstagramPromptModal = false"
-    >
-      <div class="d-flex flex-column gap-3">
-        <div class="d-flex align-items-center gap-3 p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
-          <div class="rounded-circle d-flex align-items-center justify-content-center bg-white p-2 border shadow-sm">
-            <i class="ri-instagram-line fs-4 text-danger"></i>
-          </div>
-          <div class="small">
-            <div class="fw-bold" style="color: var(--unmute-text-primary);">Instagram OAuth</div>
-            <div class="text-muted extra-small">Authenticate with your Instagram account</div>
-          </div>
-        </div>
-
-        <UInput
-          v-model="promptInstagramUsername"
-          label="Instagram Handle"
-          type="text"
-          required
-          placeholder="e.g. alex.gram"
-        />
-      </div>
-
-      <template #footer>
-        <UButton variant="secondary" size="md" @click="showInstagramPromptModal = false">
-          Cancel
-        </UButton>
-        <UButton
-          variant="primary"
-          size="md"
-          :loading="loading"
-          :disabled="!promptInstagramUsername"
-          @click="submitInstagramPrompt"
-        >
-          Continue
-        </UButton>
-      </template>
-    </UModal>
-
     <!-- Google 18+ Age Verification Modal (for first-time Google sign-ins) -->
     <UModal
       :isOpen="showDobModal"
@@ -351,12 +240,6 @@ const googleNativeBtnRef = ref<HTMLElement | null>(null);
 const showGooglePromptModal = ref(false);
 const promptGoogleEmail = ref('');
 const promptGoogleName = ref('');
-
-const showSnapchatPromptModal = ref(false);
-const promptSnapchatUsername = ref('');
-
-const showInstagramPromptModal = ref(false);
-const promptInstagramUsername = ref('');
 
 const showDobModal = ref(false);
 const googleDob = ref('2000-01-01');
@@ -461,74 +344,6 @@ async function submitGooglePrompt() {
   showGooglePromptModal.value = false;
   const mockToken = createSignedMockToken(promptGoogleEmail.value, promptGoogleName.value);
   await processGoogleAuth(mockToken);
-}
-
-function handleSnapchatClick() {
-  error.value = null;
-  showSnapchatPromptModal.value = true;
-}
-
-async function submitSnapchatPrompt() {
-  if (!promptSnapchatUsername.value) return;
-  showSnapchatPromptModal.value = false;
-  const username = promptSnapchatUsername.value.trim().replace(/^@/, '');
-  const email = `${username}@snapchat.com`;
-  const mockToken = createSignedMockToken(email, username);
-  loading.value = true;
-  error.value = null;
-  try {
-    const res = await authStore.loginWithSnapchat({ credential: mockToken });
-    if (res.requiresDob) {
-      pendingGoogleData.value = {
-        credential: mockToken,
-        email: res.email || email,
-        displayName: res.displayName || username,
-        avatarUrl: res.avatarUrl || '',
-      };
-      googleDob.value = '2000-01-01';
-      showDobModal.value = true;
-      return;
-    }
-    router.push(res.isNewUser ? '/profile' : '/discover');
-  } catch (err: any) {
-    error.value = err.message || 'Snapchat authentication failed';
-  } finally {
-    loading.value = false;
-  }
-}
-
-function handleInstagramClick() {
-  error.value = null;
-  showInstagramPromptModal.value = true;
-}
-
-async function submitInstagramPrompt() {
-  if (!promptInstagramUsername.value) return;
-  showInstagramPromptModal.value = false;
-  const username = promptInstagramUsername.value.trim().replace(/^@/, '');
-  const email = `${username}@instagram.com`;
-  const mockToken = createSignedMockToken(email, username);
-  loading.value = true;
-  error.value = null;
-  try {
-    const res = await authStore.loginWithInstagram({ credential: mockToken });
-    if (res.requiresDob) {
-      pendingGoogleData.value = {
-        credential: mockToken,
-        email: res.email || email,
-        displayName: res.displayName || username,
-        avatarUrl: res.avatarUrl || '',
-      };
-      googleDob.value = '2000-01-01';
-      showDobModal.value = true;
-      return;
-    }
-    router.push(res.isNewUser ? '/profile' : '/discover');
-  } catch (err: any) {
-    error.value = err.message || 'Instagram authentication failed';
-  } finally {
-    loading.value = false;
-  }
 }
 
 async function processGoogleAuth(credential: string, dateOfBirth?: string) {

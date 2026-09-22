@@ -152,16 +152,8 @@
                 ? 'bubble-sent'
                 : 'bubble-received'
             "
-            :style="
-              msg.senderId === authStore.user?.id
-                ? {
-                    background: 'var(--unmute-primary-gradient)',
-                    boxShadow: '0 2px 0 var(--unmute-primary-bevel), var(--unmute-3d-specular)'
-                  }
-                : {}
-            "
           >
-            <!-- Top highlight on sent bubble -->
+            <!-- Champagne gold top specular highlight on sent bubble -->
             <div
               v-if="msg.senderId === authStore.user?.id"
               class="bubble-specular position-absolute top-0 start-0 end-0"
@@ -174,39 +166,49 @@
           <div class="d-flex align-items-center gap-1 mt-1 extra-small px-1" style="color: var(--unmute-text-dim);">
             <span>{{ formatMessageTime(msg.createdAt) }}</span>
             <span v-if="msg.senderId === authStore.user?.id">
-              <span v-if="msg.status === 'read'" class="fw-bold" style="color: var(--unmute-primary-light);">✓✓</span>
-              <span v-else>✓</span>
+              <span v-if="msg.status === 'read'" class="fw-bold" style="color: var(--unmute-gold);">✓✓</span>
+              <span v-else style="color: var(--unmute-text-dim);">✓</span>
             </span>
           </div>
         </div>
       </div>
 
-      <!-- Message Input Box -->
-      <div v-if="activeConversationId" class="p-3 border-top surface-glass" style="border-color: var(--unmute-glass-border) !important;">
+      <!-- Message Input Box with Luxury Voice Button -->
+      <div v-if="activeConversationId" class="p-3 border-top glass-panel" style="border-color: var(--unmute-glass-border) !important;">
         <form @submit.prevent="handleSend" class="d-flex align-items-center gap-2">
+          <!-- Voice Note quick trigger -->
+          <button
+            type="button"
+            class="btn-voice-record-trigger rounded-circle d-flex align-items-center justify-content-center border-0 flex-shrink-0"
+            title="Record Voice Note"
+          >
+            <i class="ri-mic-line fs-5"></i>
+          </button>
+
           <input
             v-model="inputContent"
             type="text"
-            placeholder="Type a message without pressure..."
-            class="form-control rounded-pill px-3 py-2"
-            style="background-color: var(--unmute-input-bg); color: var(--unmute-text-primary); border: 1px solid var(--unmute-input-border);"
+            placeholder="Type a thoughtful message..."
+            class="form-control rounded-pill px-3 py-2 flex-grow-1 luxury-chat-input"
           />
           <UButton
             type="submit"
             variant="primary"
             size="md"
             :disabled="!inputContent.trim() || chatStore.sending"
-            class="flex-shrink-0 rounded-circle"
+            class="flex-shrink-0 rounded-circle luxury-btn-send"
           >
-            <i class="ri-send-plane-2-fill fs-6"></i>
+            <i class="ri-send-plane-2-fill fs-6 text-warning"></i>
           </UButton>
         </form>
       </div>
 
       <!-- No active conversation placeholder on desktop -->
       <div v-else class="flex-grow-1 d-none d-md-flex flex-column align-items-center justify-content-center p-4" style="color: var(--unmute-text-muted);">
-        <i class="ri-message-3-line display-5 mb-2 opacity-50"></i>
-        <p class="small fw-semibold mb-0">Select a conversation to start chatting</p>
+        <div class="p-3 rounded-circle surface-raised mb-2" style="box-shadow: var(--unmute-gold-glow);">
+          <i class="ri-message-3-line display-6" style="color: var(--unmute-gold);"></i>
+        </div>
+        <p class="small fw-semibold mb-0">Select a conversation to enter the sanctuary</p>
       </div>
     </div>
 
@@ -363,7 +365,7 @@ function formatMessageTime(iso: string): string {
 
 .active-conv-indicator {
   width: 4px;
-  background-color: var(--unmute-primary, #8b5cf6);
+  background: var(--unmute-gold-gradient, linear-gradient(to bottom, #dfc8a7, #c5a880));
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -371,26 +373,59 @@ function formatMessageTime(iso: string): string {
 .chat-bubble {
   max-width: 80%;
   border-radius: var(--unmute-radius-md, 18px);
-  padding: 0.65rem 1rem;
+  padding: 0.75rem 1.15rem;
   font-size: 0.875rem;
 
   &.bubble-sent {
+    background: var(--unmute-obsidian-gradient, linear-gradient(135deg, #1a1817 0%, #0a0a0a 100%));
     color: #ffffff;
     border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 14px rgba(10, 10, 10, 0.15);
   }
 
   &.bubble-received {
-    background-color: var(--unmute-surface-raised, #f8fafd);
-    color: var(--unmute-text-primary, #0f172a);
-    border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
+    background-color: #ffffff;
+    color: var(--unmute-text-primary, #0a0a0a);
+    border: 1px solid var(--unmute-glass-border, rgba(10, 10, 10, 0.08));
     border-bottom-left-radius: 4px;
     box-shadow: var(--unmute-shadow-sm);
   }
 }
 
 .bubble-specular {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(197, 168, 128, 0.55), transparent);
+}
+
+.btn-voice-record-trigger {
+  width: 2.35rem;
+  height: 2.35rem;
+  background: var(--unmute-gold-surface, rgba(197, 168, 128, 0.12));
+  color: #8b6e43;
+  border: 1px solid var(--unmute-gold-border, rgba(197, 168, 128, 0.3)) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    background: var(--unmute-gold-gradient);
+    color: #1a1817;
+    transform: scale(1.06);
+  }
+}
+
+.luxury-chat-input {
+  background-color: var(--unmute-input-bg, #ffffff);
+  color: var(--unmute-text-primary);
+  border: 1px solid var(--unmute-input-border, #deddd9);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: var(--unmute-gold, #c5a880);
+    box-shadow: 0 0 0 3px var(--unmute-gold-surface);
+  }
+}
+
+.luxury-btn-send {
+  box-shadow: 0 4px 12px rgba(10, 10, 10, 0.15);
 }
 
 .extra-small {
