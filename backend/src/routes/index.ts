@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { config } from '../config/env';
 import authRoutes from './authRoutes';
 import profileRoutes from './profileRoutes';
 import discoverRoutes from './discoverRoutes';
@@ -8,6 +9,16 @@ import chatRoutes from './chatRoutes';
 import safetyRoutes from './safetyRoutes';
 
 const apiRouter = Router();
+
+apiRouter.get('/config', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      googleClientId: config.googleClientId || '',
+      minAge: config.minAge || 18,
+    },
+  });
+});
 
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/users', profileRoutes);
