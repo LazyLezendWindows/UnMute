@@ -1,27 +1,54 @@
--- Unmute Database Schema
--- Compatible with PostgreSQL and SQLite
+-- Unmute SQLite Schema (Development & Embedded Fallback)
+-- Multi-Provider Authentication & Production Entity Model
+
+PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   google_id TEXT UNIQUE DEFAULT NULL,
   password_hash TEXT DEFAULT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
   is_active INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS auth_accounts (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  provider_account_id TEXT NOT NULL,
+  password_hash TEXT DEFAULT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (provider, provider_account_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  session_token_hash TEXT UNIQUE NOT NULL,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  last_used_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS profiles (
   id TEXT PRIMARY KEY,
-  user_id TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
   date_of_birth TEXT NOT NULL,
-  bio TEXT DEFAULT '',
+  bio TEXT,
   approximate_location TEXT DEFAULT '',
   avatar_url TEXT DEFAULT '',
-  interaction_preferences TEXT DEFAULT '[]',
+  interaction_preferences TEXT,
   is_verified INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS interests (
@@ -32,78 +59,85 @@ CREATE TABLE IF NOT EXISTS interests (
 );
 
 CREATE TABLE IF NOT EXISTS user_interests (
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  interest_id TEXT NOT NULL REFERENCES interests(id) ON DELETE CASCADE,
-  PRIMARY KEY (user_id, interest_id)
+  user_id TEXT NOT NULL,
+  interest_id TEXT NOT NULL,
+  PRIMARY KEY (user_id, interest_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (interest_id) REFERENCES interests(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS likes (
   id TEXT PRIMARY KEY,
-  liker_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  likee_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  liker_id TEXT NOT NULL,
+  likee_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  UNIQUE(liker_id, likee_id)
+  UNIQUE (liker_id, likee_id),
+  FOREIGN KEY (liker_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (likee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS passes (
   id TEXT PRIMARY KEY,
-  passer_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  passee_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  passer_id TEXT NOT NULL,
+  passee_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  UNIQUE(passer_id, passee_id)
+  UNIQUE (passer_id, passee_id),
+  FOREIGN KEY (passer_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (passee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS matches (
   id TEXT PRIMARY KEY,
-  user_a_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  user_b_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_a_id TEXT NOT NULL,
+  user_b_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  UNIQUE(user_a_id, user_b_id)
+  UNIQUE (user_a_id, user_b_id),
+  FOREIGN KEY (user_a_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_b_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
   id TEXT PRIMARY KEY,
-  match_id TEXT UNIQUE REFERENCES matches(id) ON DELETE CASCADE,
-  user_a_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  user_b_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  match_id TEXT UNIQUE,
+  user_a_id TEXT NOT NULL,
+  user_b_id TEXT NOT NULL,
   last_message_at TEXT,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_a_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_b_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY,
-  conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  conversation_id TEXT NOT NULL,
+  sender_id TEXT NOT NULL,
   content TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'sent',
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS blocks (
   id TEXT PRIMARY KEY,
-  blocker_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  blocked_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  blocker_id TEXT NOT NULL,
+  blocked_id TEXT NOT NULL,
   reason TEXT DEFAULT '',
   created_at TEXT NOT NULL,
-  UNIQUE(blocker_id, blocked_id)
+  UNIQUE (blocker_id, blocked_id),
+  FOREIGN KEY (blocker_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS reports (
   id TEXT PRIMARY KEY,
-  reporter_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  reported_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reporter_id TEXT NOT NULL,
+  reported_id TEXT NOT NULL,
   reason_category TEXT NOT NULL,
-  details TEXT DEFAULT '',
+  details TEXT,
   status TEXT NOT NULL DEFAULT 'pending',
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reported_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_likes_liker ON likes(liker_id);
-CREATE INDEX IF NOT EXISTS idx_likes_likee ON likes(likee_id);
-CREATE INDEX IF NOT EXISTS idx_passes_passer ON passes(passer_id);
-CREATE INDEX IF NOT EXISTS idx_matches_users ON matches(user_a_id, user_b_id);
-CREATE INDEX IF NOT EXISTS idx_conv_users ON conversations(user_a_id, user_b_id);
-CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_blocks_blocker ON blocks(blocker_id);
-CREATE INDEX IF NOT EXISTS idx_blocks_blocked ON blocks(blocked_id);

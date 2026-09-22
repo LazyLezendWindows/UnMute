@@ -29,14 +29,35 @@
             <span>{{ error }}</span>
           </div>
 
-          <!-- Google 1-Click Registration: Native GIS Button + Styled Button -->
+          <!-- Missing Config Alert (Shown if Google Client ID is not yet configured in .env) -->
+          <div v-if="configWarning" class="alert alert-warning py-2.5 px-3 small rounded-3 mb-0">
+            <div class="fw-bold mb-1 d-flex align-items-center gap-1.5">
+              <i class="ri-settings-3-line"></i>
+              <span>Google Identity Configuration Required</span>
+            </div>
+            <div class="extra-small lh-base mb-2">
+              To activate real Google Sign-In, provide your Web Client ID in <code>frontend/.env</code> as <code>VITE_GOOGLE_CLIENT_ID</code> and in <code>backend/.env</code> as <code>GOOGLE_CLIENT_ID</code>.
+            </div>
+            <a
+              href="https://console.cloud.google.com/apis/credentials"
+              target="_blank"
+              rel="noopener"
+              class="extra-small fw-bold text-decoration-none d-inline-flex align-items-center gap-1"
+              style="color: var(--unmute-primary);"
+            >
+              <span>Open Google Cloud Console</span>
+              <i class="ri-external-link-line"></i>
+            </a>
+          </div>
+
+          <!-- Google 1-Click Registration: Native GIS Button -->
           <div class="d-flex flex-column gap-2 align-items-center w-100">
             <!-- Native Google GIS Render Target -->
-            <div ref="googleNativeBtnRef" class="w-100 d-flex justify-content-center" :class="{ 'd-none': !hasGoogleClientId }"></div>
+            <div ref="googleNativeBtnRef" class="w-100 d-flex justify-content-center"></div>
 
-            <!-- Styled Elyse Google Button -->
+            <!-- Fallback Styled Button if Google Client ID not yet loaded in DOM -->
             <button
-              v-if="!hasGoogleClientId"
+              v-if="!hasRenderedGoogleBtn"
               type="button"
               class="btn-google-auth w-100 d-flex align-items-center justify-content-center gap-3 py-2.5 px-4 rounded-3 user-select-none"
               :disabled="loading"
@@ -128,74 +149,6 @@
       </UCard>
     </div>
 
-    <!-- Google OAuth Setup & Test Modal -->
-    <UModal
-      :isOpen="showGoogleSetupModal"
-      title="Google Sign-In Authentication"
-      maxWidth="md"
-      @close="showGoogleSetupModal = false"
-    >
-      <div class="d-flex flex-column gap-3">
-        <div class="p-3 rounded-3 surface-raised border small" style="border-color: var(--unmute-glass-border) !important;">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="ri-google-fill fs-5" style="color: var(--unmute-primary);"></i>
-            <span class="fw-bold" style="color: var(--unmute-text-primary);">Google Identity Services</span>
-          </div>
-          <p class="mb-2 text-muted lh-base">
-            For production deployment, add your OAuth Client ID from Google Cloud Console into <code class="p-1 rounded bg-light">frontend/.env</code> as <code class="p-1 rounded bg-light">VITE_GOOGLE_CLIENT_ID</code>.
-          </p>
-          <div class="extra-small text-muted">
-            The app automatically mounts Google's official One-Tap and Sign-In popup whenever the client ID is present.
-          </div>
-        </div>
-
-        <div>
-          <label class="form-label small fw-semibold mb-2" style="color: var(--unmute-text-primary);">
-            Instant Google Account Simulation:
-          </label>
-          <div class="d-flex flex-column gap-2">
-            <button
-              type="button"
-              class="p-2.5 rounded-3 surface-raised border d-flex align-items-center justify-content-between text-start transition-all"
-              style="border-color: var(--unmute-glass-border) !important;"
-              @click="signInWithGoogleProfile('elena.roche@gmail.com', 'Elena Roche')"
-            >
-              <div class="d-flex align-items-center gap-2">
-                <img src="https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=ElenaRoche" width="32" height="32" class="rounded-circle border" />
-                <div class="small">
-                  <div class="fw-bold" style="color: var(--unmute-text-primary);">Elena Roche</div>
-                  <div class="text-muted extra-small">elena.roche@gmail.com</div>
-                </div>
-              </div>
-              <i class="ri-arrow-right-line text-muted"></i>
-            </button>
-
-            <button
-              type="button"
-              class="p-2.5 rounded-3 surface-raised border d-flex align-items-center justify-content-between text-start transition-all"
-              style="border-color: var(--unmute-glass-border) !important;"
-              @click="signInWithGoogleProfile('alex.vanguard@gmail.com', 'Alex Vanguard')"
-            >
-              <div class="d-flex align-items-center gap-2">
-                <img src="https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=AlexVanguard" width="32" height="32" class="rounded-circle border" />
-                <div class="small">
-                  <div class="fw-bold" style="color: var(--unmute-text-primary);">Alex Vanguard</div>
-                  <div class="text-muted extra-small">alex.vanguard@gmail.com</div>
-                </div>
-              </div>
-              <i class="ri-arrow-right-line text-muted"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <UButton variant="secondary" size="md" @click="showGoogleSetupModal = false">
-          Close
-        </UButton>
-      </template>
-    </UModal>
-
     <!-- Google 18+ Age Verification Modal -->
     <UModal
       :isOpen="showDobModal"
@@ -269,21 +222,17 @@ const dateOfBirth = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
+const configWarning = ref(false);
 
 // Google Native Button & Modals
 const googleNativeBtnRef = ref<HTMLElement | null>(null);
-const showGoogleSetupModal = ref(false);
+const hasRenderedGoogleBtn = ref(false);
 const showDobModal = ref(false);
 const googleDob = ref('2000-01-01');
 const dobError = ref<string | null>(null);
 
-const hasGoogleClientId = computed(() => {
-  return Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
-});
-
 const pendingGoogleData = ref({
   credential: '',
-  googleId: '',
   email: '',
   displayName: '',
   avatarUrl: '',
@@ -302,7 +251,9 @@ onMounted(() => {
 
 function initNativeGoogleIdentity() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  if (!clientId) return;
+  if (!clientId) {
+    return;
+  }
 
   const tryInit = () => {
     if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleNativeBtnRef.value) {
@@ -321,6 +272,8 @@ function initNativeGoogleIdentity() {
           size: 'large',
           width: 360,
         });
+
+        hasRenderedGoogleBtn.value = true;
       } catch (err) {
         console.warn('[Google] Native GIS init error:', err);
       }
@@ -334,7 +287,7 @@ function initNativeGoogleIdentity() {
 
 async function handleGoogleCredentialResponse(response: any) {
   if (!response?.credential) return;
-  await processGoogleAuth({ credential: response.credential });
+  await processGoogleAuth(response.credential);
 }
 
 function handleGoogleClick() {
@@ -346,40 +299,20 @@ function handleGoogleClick() {
     return;
   }
 
-  showGoogleSetupModal.value = true;
+  configWarning.value = true;
 }
 
-async function signInWithGoogleProfile(googleEmail: string, name: string) {
-  showGoogleSetupModal.value = false;
-  const demoGoogleId = 'goog_' + btoa(googleEmail.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
-
-  await processGoogleAuth({
-    googleId: demoGoogleId,
-    email: googleEmail,
-    displayName: name,
-    avatarUrl: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(googleEmail)}`,
-  });
-}
-
-async function processGoogleAuth(payload: {
-  credential?: string;
-  googleId?: string;
-  email?: string;
-  displayName?: string;
-  avatarUrl?: string;
-  dateOfBirth?: string;
-}) {
+async function processGoogleAuth(credential: string, dateOfBirth?: string) {
   loading.value = true;
   error.value = null;
   try {
-    const res = await authStore.loginWithGoogle(payload);
+    const res = await authStore.loginWithGoogle({ credential, dateOfBirth });
     if (res.requiresDob) {
       pendingGoogleData.value = {
-        credential: payload.credential || '',
-        googleId: res.googleId || payload.googleId || '',
-        email: res.email || payload.email || '',
-        displayName: res.displayName || payload.displayName || '',
-        avatarUrl: res.avatarUrl || payload.avatarUrl || '',
+        credential,
+        email: res.email || '',
+        displayName: res.displayName || '',
+        avatarUrl: res.avatarUrl || '',
       };
       googleDob.value = '2000-01-01';
       showDobModal.value = true;
@@ -406,10 +339,7 @@ async function confirmGoogleDob() {
   dobError.value = null;
   loading.value = true;
   try {
-    await processGoogleAuth({
-      ...pendingGoogleData.value,
-      dateOfBirth: googleDob.value,
-    });
+    await processGoogleAuth(pendingGoogleData.value.credential, googleDob.value);
     showDobModal.value = false;
   } catch (err: any) {
     dobError.value = err.message || 'Age verification failed';

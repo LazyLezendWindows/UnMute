@@ -2,12 +2,13 @@ import axios from 'axios';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  withCredentials: true, // Secure HttpOnly session cookie transmission
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Attach JWT token from localStorage if present
+// Attach Bearer token if present (for mobile Capacitor or native token usage)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('unmute_token');
   if (token && config.headers) {
@@ -26,7 +27,7 @@ api.interceptors.response.use(
       error.message ||
       'An unexpected error occurred';
 
-    // If unauthorized, clear local session
+    // If unauthorized, clear local session tokens
     if (error.response?.status === 401) {
       localStorage.removeItem('unmute_token');
     }

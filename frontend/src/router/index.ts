@@ -6,10 +6,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: () => {
-        const token = localStorage.getItem('unmute_token');
-        return token ? '/discover' : '/login';
-      },
+      redirect: () => '/discover',
     },
     {
       path: '/login',
@@ -62,27 +59,26 @@ const router = createRouter({
   ],
 });
 
-// Navigation Guards
+// Navigation Guards: State-Machine Driven & Flicker-Free
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
-  const token = localStorage.getItem('unmute_token');
 
-  if (token && !authStore.user) {
-    try {
-      await authStore.fetchMe();
-    } catch {
-      localStorage.removeItem('unmute_token');
-    }
+  // If session state is UNKNOWN, check session with server first
+  if (authStore.authState === 'UNKNOWN') {
+    await authStore.checkSession();
+  }
+
+  if (to.path === '/') {
+    return next(authStore.isAuthenticated ? '/discover' : '/login');
   }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login');
+    return next('/login');
   } else if (to.meta.guestOnly && authStore.isAuthenticated) {
-    next('/discover');
+    return next('/discover');
   } else {
-    next();
+    return next();
   }
 });
 
 export default router;
-

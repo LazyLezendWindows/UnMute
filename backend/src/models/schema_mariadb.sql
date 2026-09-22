@@ -1,12 +1,39 @@
 -- Unmute MariaDB Schema
+-- Multi-Provider Authentication & Production Entity Model
 
 CREATE TABLE IF NOT EXISTS users (
   id VARCHAR(64) PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   google_id VARCHAR(255) UNIQUE DEFAULT NULL,
   password_hash VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'active',
   is_active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at VARCHAR(64) NOT NULL
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS auth_accounts (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id VARCHAR(64) NOT NULL,
+  provider VARCHAR(50) NOT NULL,
+  provider_account_id VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) DEFAULT NULL,
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL,
+  UNIQUE KEY uq_provider_account (provider, provider_account_id),
+  KEY idx_auth_user (user_id),
+  CONSTRAINT fk_auth_accounts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id VARCHAR(64) NOT NULL,
+  session_token_hash VARCHAR(64) UNIQUE NOT NULL,
+  expires_at VARCHAR(64) NOT NULL,
+  created_at VARCHAR(64) NOT NULL,
+  last_used_at VARCHAR(64) NOT NULL,
+  KEY idx_sessions_user (user_id),
+  CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS profiles (
@@ -114,13 +141,3 @@ CREATE TABLE IF NOT EXISTS reports (
   CONSTRAINT fk_reports_reporter FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_reports_reported FOREIGN KEY (reported_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS sessions (
-  id VARCHAR(64) PRIMARY KEY,
-  user_id VARCHAR(64) NOT NULL,
-  token TEXT NOT NULL,
-  expires_at VARCHAR(64) NOT NULL,
-  created_at VARCHAR(64) NOT NULL,
-  CONSTRAINT fk_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-

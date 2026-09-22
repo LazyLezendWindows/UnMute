@@ -26,11 +26,7 @@ export const loginSchema = z.object({
 });
 
 export const googleAuthSchema = z.object({
-  credential: z.string().optional(),
-  email: z.string().email('Please enter a valid email address').optional(),
-  displayName: z.string().trim().max(100).optional(),
-  avatarUrl: z.string().optional(),
-  googleId: z.string().optional(),
+  credential: z.string().min(1, 'Google credential token is required'),
   dateOfBirth: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')

@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { config } from './config/env';
 import { apiRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
@@ -16,7 +17,7 @@ export function createApp(): Express {
     })
   );
 
-  // CORS
+  // CORS with credentials support
   app.use(
     cors({
       origin: config.corsOrigin,
@@ -25,6 +26,9 @@ export function createApp(): Express {
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
+
+  // Cookie Parser
+  app.use(cookieParser());
 
   // Body parsers
   app.use(express.json({ limit: '1mb' }));
@@ -38,8 +42,9 @@ export function createApp(): Express {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Base API v1
+  // Base API (both /api/v1 and /api for compatibility)
   app.use('/api/v1', apiRouter);
+  app.use('/api', apiRouter);
 
   // 404 handler
   app.use((_req: Request, res: Response) => {

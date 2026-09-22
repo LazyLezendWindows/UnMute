@@ -21,6 +21,8 @@ describe('Unmute API End-to-End Test Suite', () => {
     await db.exec('DELETE FROM blocks;');
     await db.exec('DELETE FROM reports;');
     await db.exec('DELETE FROM user_interests;');
+    await db.exec('DELETE FROM sessions;');
+    await db.exec('DELETE FROM auth_accounts;');
     await db.exec('DELETE FROM profiles;');
     await db.exec('DELETE FROM users;');
     try {
@@ -28,6 +30,12 @@ describe('Unmute API End-to-End Test Suite', () => {
     } catch {}
     await seedInterests();
   });
+
+  function createMockGoogleIdToken(payload: Record<string, any>): string {
+    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+    const body = Buffer.from(JSON.stringify({ email_verified: true, ...payload })).toString('base64url');
+    return `${header}.${body}.mock_signature`;
+  }
 
   describe('Age Policy & Authentication', () => {
     it('should reject registration if date_of_birth is under 18 years old', async () => {
@@ -104,13 +112,15 @@ describe('Unmute API End-to-End Test Suite', () => {
     });
 
     it('should return requiresDob when new Google user authenticates without date of birth', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'googleuser@example.com',
+        sub: 'google-sub-123456',
+        name: 'Google User',
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/google')
-        .send({
-          email: 'googleuser@example.com',
-          googleId: 'google-sub-123456',
-          displayName: 'Google User',
-        });
+        .send({ credential });
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -119,12 +129,16 @@ describe('Unmute API End-to-End Test Suite', () => {
     });
 
     it('should reject Google registration if dateOfBirth is under 18', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'underage-google@example.com',
+        sub: 'google-sub-underage',
+        name: 'Underage Google',
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/google')
         .send({
-          email: 'underage-google@example.com',
-          googleId: 'google-sub-underage',
-          displayName: 'Underage Google',
+          credential,
           dateOfBirth: '2012-05-15',
         });
 
@@ -133,14 +147,18 @@ describe('Unmute API End-to-End Test Suite', () => {
     });
 
     it('should successfully register a new user via Google auth with 18+ dateOfBirth', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'googleuser@example.com',
+        sub: 'google-sub-123456',
+        name: 'Google Member',
+        picture: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/google')
         .send({
-          email: 'googleuser@example.com',
-          googleId: 'google-sub-123456',
-          displayName: 'Google Member',
+          credential,
           dateOfBirth: '1996-04-12',
-          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
         });
 
       expect(res.status).toBe(200);
@@ -148,22 +166,61 @@ describe('Unmute API End-to-End Test Suite', () => {
       expect(res.body.data.token).toBeDefined();
       expect(res.body.data.isNewUser).toBe(true);
       expect(res.body.data.user.email).toBe('googleuser@example.com');
-      expect(res.body.data.user.profile.isVerified).toBe(true);
+      // Should set HttpOnly session cookie
+      expect(res.headers['set-cookie']).toBeDefined();
+      expect(res.headers['set-cookie'][0]).toMatch(/unmute_session=/);
     });
 
     it('should authenticate existing Google user directly without requiring dateOfBirth again', async () => {
+      const credential = createMockGoogleIdToken({
+        email: 'googleuser@example.com',
+        sub: 'google-sub-123456',
+        name: 'Google Member',
+      });
+
       const res = await request(app)
         .post('/api/v1/auth/google')
-        .send({
-          googleId: 'google-sub-123456',
-          email: 'googleuser@example.com',
-        });
+        .send({ credential });
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.token).toBeDefined();
       expect(res.body.data.isNewUser).toBe(false);
       expect(res.body.data.user.email).toBe('googleuser@example.com');
+      expect(res.headers['set-cookie']).toBeDefined();
+    });
+
+    it('should access user session via session cookie and revoke on logout', async () => {
+      // 1. Log in to obtain session cookie
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'alice@example.com', password: 'Password123!' });
+
+      expect(loginRes.status).toBe(200);
+      const sessionCookie = loginRes.headers['set-cookie'];
+      expect(sessionCookie).toBeDefined();
+
+      // 2. Fetch session via cookie
+      const sessionRes = await request(app)
+        .get('/api/v1/auth/session')
+        .set('Cookie', sessionCookie);
+
+      expect(sessionRes.status).toBe(200);
+      expect(sessionRes.body.data.email).toBe('alice@example.com');
+
+      // 3. Logout and verify cookie revocation
+      const logoutRes = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Cookie', sessionCookie);
+
+      expect(logoutRes.status).toBe(200);
+
+      // 4. Subsequent session call with old cookie should fail
+      const afterLogoutRes = await request(app)
+        .get('/api/v1/auth/session')
+        .set('Cookie', sessionCookie);
+
+      expect(afterLogoutRes.status).toBe(401);
     });
   });
 

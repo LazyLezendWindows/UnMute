@@ -6,13 +6,16 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-export function connectSocket(token: string): Socket {
+export function connectSocket(token?: string): Socket {
   if (socket?.connected) {
     return socket;
   }
 
+  const effectiveToken = token || localStorage.getItem('unmute_token') || '';
+
   socket = io(window.location.origin, {
-    auth: { token },
+    auth: { token: effectiveToken },
+    withCredentials: true,
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
