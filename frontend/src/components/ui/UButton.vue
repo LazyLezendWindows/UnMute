@@ -72,17 +72,17 @@ defineEmits<{
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-gradient-to-r from-brand-600 via-purple-600 to-pink-600 hover:from-brand-500 hover:to-pink-500 text-white shadow-lg shadow-brand-500/25 border border-white/10 hover:shadow-brand-500/40';
+      return 'u-btn-primary text-white border border-white/10';
     case 'secondary':
-      return 'bg-slate-800 hover:bg-slate-700/90 text-slate-200 hover:text-white border border-slate-700/80 shadow-sm';
+      return 'u-btn-secondary';
     case 'glass':
-      return 'surface-glass text-slate-100 hover:bg-slate-800/80 hover:text-white border-white/10 shadow-md';
+      return 'u-btn-glass';
     case 'danger':
-      return 'bg-rose-600/90 hover:bg-rose-500 text-white shadow-md shadow-rose-600/25 border border-rose-500/30';
+      return 'bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/25 border border-rose-500/30';
     case 'ghost':
-      return 'bg-transparent hover:bg-slate-800/60 text-slate-400 hover:text-slate-100';
+      return 'u-btn-ghost';
     case 'icon':
-      return 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-full border border-slate-700/50 shadow-sm';
+      return 'u-btn-icon';
     default:
       return '';
   }
@@ -107,7 +107,7 @@ const sizeClass = computed(() => {
 <style scoped>
 .u-button {
   transform: translateY(0);
-  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast);
+  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast), border-color var(--unmute-transition-fast), color var(--unmute-transition-fast);
 }
 
 .u-button:hover:not(:disabled) {
@@ -116,6 +116,65 @@ const sizeClass = computed(() => {
 
 .u-button:active:not(:disabled) {
   transform: translateY(1.5px) scale(0.985);
+}
+
+/* Dynamic Primary Variant */
+.u-btn-primary {
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary);
+}
+
+.u-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* Dynamic Secondary Variant */
+.u-btn-secondary {
+  background-color: var(--unmute-surface-raised);
+  color: var(--unmute-text-primary);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
+}
+
+.u-btn-secondary:hover:not(:disabled) {
+  background-color: var(--unmute-surface-overlay);
+  border-color: var(--unmute-glass-border-hover);
+}
+
+/* Dynamic Glass Variant */
+.u-btn-glass {
+  background: var(--unmute-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--unmute-text-primary);
+  border: 1px solid var(--unmute-glass-border);
+}
+
+.u-btn-glass:hover:not(:disabled) {
+  border-color: var(--unmute-glass-border-hover);
+}
+
+/* Dynamic Ghost Variant */
+.u-btn-ghost {
+  background: transparent;
+  color: var(--unmute-text-secondary);
+}
+
+.u-btn-ghost:hover:not(:disabled) {
+  background-color: var(--unmute-surface-raised);
+  color: var(--unmute-text-primary);
+}
+
+/* Dynamic Icon Variant */
+.u-btn-icon {
+  background-color: var(--unmute-surface-raised);
+  color: var(--unmute-text-secondary);
+  border: 1px solid var(--unmute-glass-border);
+}
+
+.u-btn-icon:hover:not(:disabled) {
+  color: var(--unmute-text-primary);
+  border-color: var(--unmute-primary);
 }
 </style>
 

@@ -11,5 +11,10 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 
+// Initialize theme from user preference
+import { useThemeStore } from './stores/theme';
+const themeStore = useThemeStore();
+themeStore.initTheme();
+
 app.mount('#app');
 

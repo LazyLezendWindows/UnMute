@@ -3,16 +3,23 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Your Profile</h1>
-        <p class="text-xs text-slate-400">Share your interests and intentions without the pressure</p>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight" style="color: var(--unmute-text-primary);">Your Profile</h1>
+        <p class="text-xs" style="color: var(--unmute-text-muted);">Share your interests and intentions without the pressure</p>
       </div>
-      <UButton
-        variant="ghost"
-        size="sm"
-        @click="handleLogout"
-      >
-        Log out
-      </UButton>
+      <div class="flex items-center gap-2">
+        <router-link to="/settings">
+          <UButton variant="secondary" size="sm">
+            <template #default>Settings</template>
+          </UButton>
+        </router-link>
+        <UButton
+          variant="ghost"
+          size="sm"
+          @click="handleLogout"
+        >
+          Log out
+        </UButton>
+      </div>
     </div>
 
     <!-- Feedback Message -->
@@ -28,7 +35,7 @@
     <form @submit.prevent="saveProfile">
       <UCard variant="elevated" padding="lg" class="space-y-6">
         <!-- Avatar Section with UAvatar -->
-        <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-850/80 border border-slate-750">
+        <div class="flex items-center gap-4 p-4 rounded-2xl surface-raised border border-white/5">
           <UAvatar
             :src="form.avatarUrl"
             :name="form.displayName || 'User'"
@@ -81,23 +88,24 @@
         <!-- Bio / About You -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between">
-            <label class="block text-xs font-semibold text-slate-300">
+            <label class="block text-xs font-semibold" style="color: var(--unmute-text-secondary);">
               About You & Conversation Prompts
             </label>
-            <span class="text-[10px] text-slate-500">{{ (form.bio || '').length }}/500</span>
+            <span class="text-[10px]" style="color: var(--unmute-text-dim);">{{ (form.bio || '').length }}/500</span>
           </div>
           <textarea
             v-model="form.bio"
             rows="3"
             maxlength="500"
             placeholder="What kind of topics spark your curiosity? Favorite books, coffee habits, creative projects..."
-            class="w-full bg-slate-850 text-white placeholder-slate-500 border border-slate-700/80 hover:border-slate-600 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 rounded-2xl p-3.5 text-xs sm:text-sm transition-all focus:outline-none shadow-inner"
+            class="w-full rounded-2xl p-3.5 text-xs sm:text-sm transition-all focus:outline-none"
+            style="background-color: var(--unmute-input-bg); color: var(--unmute-text-primary); border: 1px solid var(--unmute-input-border);"
           ></textarea>
         </div>
 
         <!-- Preferred Interaction Types -->
         <div class="space-y-2">
-          <label class="block text-xs font-semibold text-slate-300">
+          <label class="block text-xs font-semibold" style="color: var(--unmute-text-secondary);">
             What kind of interactions are you open to?
           </label>
           <div class="flex flex-wrap gap-2">
@@ -109,9 +117,10 @@
               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all select-none active:scale-95"
               :class="
                 form.interactionPreferences.includes(pref)
-                  ? 'bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-sm shadow-brand-500/30 border border-white/20'
-                  : 'bg-slate-850 hover:bg-slate-800 text-slate-300 border border-slate-750'
+                  ? 'text-white shadow-sm border border-white/20'
+                  : 'surface-raised hover:brightness-105 border border-white/5'
               "
+              :style="form.interactionPreferences.includes(pref) ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)' } : { color: 'var(--unmute-text-secondary)' }"
             >
               {{ pref }}
             </button>
@@ -119,13 +128,13 @@
         </div>
 
         <!-- Interests Selector -->
-        <div class="pt-4 border-t border-slate-800">
-          <label class="block text-xs font-semibold text-slate-300 mb-2">Interests & Hobbies</label>
+        <div class="pt-4 border-t border-white/10">
+          <label class="block text-xs font-semibold mb-2" style="color: var(--unmute-text-secondary);">Interests & Hobbies</label>
           <InterestSelector v-model="form.interestIds" />
         </div>
 
         <!-- Save Button -->
-        <div class="pt-4 border-t border-slate-800 flex justify-end">
+        <div class="pt-4 border-t border-white/10 flex justify-end">
           <UButton
             type="submit"
             variant="primary"

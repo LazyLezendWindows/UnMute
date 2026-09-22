@@ -37,16 +37,16 @@ defineEmits<{
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'glass':
-      return 'surface-glass shadow-xl';
+      return 'u-card-glass';
     case 'elevated':
-      return 'bg-slate-900/90 border border-slate-800 shadow-2xl';
+      return 'u-card-elevated';
     case 'interactive':
-      return 'bg-slate-900 border border-slate-800 hover:border-brand-500/50 hover:bg-slate-850 shadow-lg hover:shadow-2xl';
+      return 'u-card-interactive';
     case 'depth3d':
-      return 'u-card-3d bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-2xl';
+      return 'u-card-3d';
     case 'default':
     default:
-      return 'bg-slate-900/95 border border-slate-800 shadow-xl';
+      return 'u-card-default';
   }
 });
 
@@ -68,15 +68,51 @@ const paddingClass = computed(() => {
 <style scoped>
 .u-card {
   transform: translateY(0);
-  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal), border-color var(--unmute-transition-normal);
+  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal), border-color var(--unmute-transition-normal), background-color var(--unmute-transition-normal);
 }
 
-.u-card.interactive:hover {
+.u-card-default {
+  background-color: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-md);
+  color: var(--unmute-text-primary);
+}
+
+.u-card-elevated {
+  background-color: var(--unmute-surface-raised);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-lg);
+  color: var(--unmute-text-primary);
+}
+
+.u-card-glass {
+  background: var(--unmute-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-lg);
+  color: var(--unmute-text-primary);
+}
+
+.u-card-interactive {
+  background-color: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
+  color: var(--unmute-text-primary);
+}
+
+.u-card-interactive:hover {
   transform: translateY(-4px);
+  border-color: var(--unmute-primary);
+  box-shadow: var(--unmute-shadow-lg);
 }
 
 /* Subtle 3D perspective tilt on hover */
 .u-card-3d {
+  background-color: var(--unmute-surface-raised);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-3d);
+  color: var(--unmute-text-primary);
   transform-style: preserve-3d;
   perspective: 1000px;
 }
@@ -85,7 +121,7 @@ const paddingClass = computed(() => {
   .u-card-3d:hover {
     transform: perspective(1000px) translateY(-5px) rotateX(1deg) rotateY(-1deg);
     box-shadow: var(--unmute-shadow-3d-hover);
-    border-color: rgba(124, 58, 237, 0.35);
+    border-color: var(--unmute-primary);
   }
 }
 </style>

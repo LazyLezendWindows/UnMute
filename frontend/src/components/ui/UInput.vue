@@ -1,7 +1,7 @@
 <template>
   <div class="u-input-wrapper w-full space-y-1.5">
     <div v-if="label || $slots.label" class="flex items-center justify-between">
-      <label v-if="label" class="block text-xs font-semibold text-slate-300">
+      <label v-if="label" class="block text-xs font-semibold" style="color: var(--unmute-text-secondary);">
         {{ label }}
         <span v-if="required" class="text-pink-500">*</span>
       </label>
@@ -25,14 +25,12 @@
         :maxlength="maxlength"
         :min="min"
         :max="max"
-        class="u-input w-full bg-slate-850/90 text-white placeholder-slate-500 border rounded-2xl text-xs sm:text-sm transition-all focus:outline-none"
+        class="u-input w-full rounded-2xl text-xs sm:text-sm transition-all focus:outline-none"
         :class="[
           icon ? 'pl-10 pr-4' : 'px-4',
           'py-2.5 sm:py-3',
-          error
-            ? 'border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 bg-rose-500/5'
-            : 'border-slate-700/80 hover:border-slate-600 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30',
-          { 'opacity-50 cursor-not-allowed bg-slate-900/50': disabled },
+          error ? 'u-input-error' : 'u-input-normal',
+          { 'opacity-50 cursor-not-allowed': disabled },
         ]"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @blur="$emit('blur', $event)"
@@ -91,7 +89,32 @@ defineEmits<{
 
 <style scoped>
 .u-input {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--unmute-input-bg);
+  color: var(--unmute-text-primary);
+  border: 1px solid var(--unmute-input-border);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.u-input::placeholder {
+  color: var(--unmute-text-dim);
+}
+
+.u-input-normal:hover {
+  border-color: var(--unmute-glass-border-hover);
+}
+
+.u-input-normal:focus {
+  border-color: var(--unmute-primary);
+  box-shadow: 0 0 0 3px var(--unmute-primary-surface);
+}
+
+.u-input-error {
+  border-color: #f43f5e;
+  background-color: rgba(244, 63, 94, 0.05);
+}
+
+.u-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
 }
 </style>
 

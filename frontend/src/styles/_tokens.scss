@@ -1,8 +1,8 @@
 // Unmute Design Tokens
-// Central variables for tonal surfaces, 3D shadows, radii, and typography
+// Central variables for dual-tone surfaces (Dark / Light), 3D shadows, radii, and typography
 
 :root {
-  // Tonal Surface System (Depth hierarchy)
+  // --- DARK THEME (Default) ---
   --unmute-bg: #07090e;
   --unmute-surface: #0f131f;
   --unmute-surface-raised: #161c2d;
@@ -10,10 +10,10 @@
   --unmute-surface-active: #26304d;
 
   // Glassmorphic Surfaces
-  --unmute-glass-bg: rgba(15, 19, 31, 0.75);
-  --unmute-glass-surface: rgba(22, 28, 45, 0.65);
+  --unmute-glass-bg: rgba(15, 19, 31, 0.8);
+  --unmute-glass-surface: rgba(22, 28, 45, 0.7);
   --unmute-glass-border: rgba(255, 255, 255, 0.08);
-  --unmute-glass-border-hover: rgba(255, 255, 255, 0.16);
+  --unmute-glass-border-hover: rgba(255, 255, 255, 0.18);
   --unmute-glass-highlight: rgba(255, 255, 255, 0.12);
 
   // Text & Content Hierarchy
@@ -22,19 +22,9 @@
   --unmute-text-muted: #64748b;
   --unmute-text-dim: #475569;
 
-  // Brand & Emotional Accents
-  --unmute-primary: #7c3aed;
-  --unmute-primary-light: #9d68f6;
-  --unmute-primary-dark: #5b21b6;
-  --unmute-primary-surface: rgba(124, 58, 237, 0.15);
-
-  --unmute-accent-pink: #ec4899;
-  --unmute-accent-pink-light: #f472b6;
-  --unmute-accent-purple: #8b5cf6;
-  --unmute-accent-cyan: #06b6d4;
-  --unmute-accent-emerald: #10b981;
-  --unmute-accent-amber: #f59e0b;
-  --unmute-accent-rose: #f43f5e;
+  // Input background & border
+  --unmute-input-bg: #141928;
+  --unmute-input-border: #232d46;
 
   // 3D Depth & Soft Ambient Shadows
   --unmute-shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.28);
@@ -43,9 +33,20 @@
   --unmute-shadow-3d: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   --unmute-shadow-3d-hover: 0 24px 50px -6px rgba(0, 0, 0, 0.65), 0 10px 22px -3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
+  // Default Accent (Overridden dynamically by ThemeStore)
+  --unmute-primary: #7c3aed;
+  --unmute-primary-light: #9d68f6;
+  --unmute-primary-dark: #5b21b6;
+  --unmute-primary-gradient: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #ec4899 100%);
+  --unmute-primary-surface: rgba(124, 58, 237, 0.15);
   --unmute-glow-primary: 0 0 30px -4px rgba(124, 58, 237, 0.45);
-  --unmute-glow-pink: 0 0 30px -4px rgba(236, 72, 153, 0.4);
-  --unmute-glow-active: 0 0 20px -2px rgba(124, 58, 237, 0.6);
+
+  --unmute-accent-pink: #ec4899;
+  --unmute-accent-purple: #8b5cf6;
+  --unmute-accent-cyan: #06b6d4;
+  --unmute-accent-emerald: #10b981;
+  --unmute-accent-amber: #f59e0b;
+  --unmute-accent-rose: #f43f5e;
 
   // Border Radii
   --unmute-radius-xs: 6px;
@@ -56,14 +57,14 @@
   --unmute-radius-pill: 9999px;
 
   // Typography Scale
-  --font-xs: 0.75rem;    // 12px
-  --font-sm: 0.8125rem;  // 13px
-  --font-base: 0.875rem; // 14px
-  --font-md: 1rem;       // 16px
-  --font-lg: 1.125rem;   // 18px
-  --font-xl: 1.375rem;   // 22px
-  --font-2xl: 1.75rem;   // 28px
-  --font-display: 2.25rem; // 36px
+  --font-xs: 0.75rem;
+  --font-sm: 0.8125rem;
+  --font-base: 0.875rem;
+  --font-md: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.375rem;
+  --font-2xl: 1.75rem;
+  --font-display: 2.25rem;
 
   // Transitions
   --unmute-transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -71,3 +72,38 @@
   --unmute-transition-bounce: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+// --- LIGHT / WHITE THEME ---
+[data-theme="light"] {
+  --unmute-bg: #f8fafc;
+  --unmute-surface: #ffffff;
+  --unmute-surface-raised: #f1f5f9;
+  --unmute-surface-overlay: #e2e8f0;
+  --unmute-surface-active: #ede9fe;
+
+  // Glassmorphic Surfaces for Light
+  --unmute-glass-bg: rgba(255, 255, 255, 0.88);
+  --unmute-glass-surface: rgba(248, 250, 252, 0.82);
+  --unmute-glass-border: rgba(15, 23, 42, 0.08);
+  --unmute-glass-border-hover: rgba(15, 23, 42, 0.16);
+  --unmute-glass-highlight: rgba(255, 255, 255, 0.9);
+
+  // Text & Content Hierarchy for Light
+  --unmute-text-primary: #0f172a;
+  --unmute-text-secondary: #475569;
+  --unmute-text-muted: #64748b;
+  --unmute-text-dim: #94a3b8;
+
+  // Input background & border for Light
+  --unmute-input-bg: #ffffff;
+  --unmute-input-border: #cbd5e1;
+
+  // Crisp, tactile light shadows
+  --unmute-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --unmute-shadow-md: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  --unmute-shadow-lg: 0 20px 40px -6px rgba(15, 23, 42, 0.12), 0 8px 16px -3px rgba(15, 23, 42, 0.06);
+  --unmute-shadow-3d: 0 16px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --unmute-shadow-3d-hover: 0 22px 45px -5px rgba(15, 23, 42, 0.18), 0 8px 18px -3px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  --unmute-glow-primary: 0 0 25px -4px rgba(124, 58, 237, 0.3);
+  --unmute-primary-surface: rgba(124, 58, 237, 0.1);
+}
