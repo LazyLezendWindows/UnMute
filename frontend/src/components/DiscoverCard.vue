@@ -2,77 +2,77 @@
   <UCard
     variant="depth3d"
     padding="none"
-    class="w-full max-w-md mx-auto relative group select-none overflow-hidden"
+    class="w-100 max-w-md mx-auto position-relative user-select-none overflow-hidden discover-card-3d"
   >
     <!-- Top photo / image area with subtle layered depth -->
-    <div class="relative h-72 sm:h-84 w-full bg-slate-850 overflow-hidden">
+    <div class="position-relative w-100 overflow-hidden card-photo-hero">
       <img
         v-if="candidate.avatarUrl"
         :src="candidate.avatarUrl"
         :alt="candidate.displayName"
-        class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+        class="w-100 h-100 object-fit-cover card-photo-img"
       />
-      <div v-else class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950 text-slate-500">
-        <User class="w-16 h-16 stroke-[1.5]" />
-        <span class="text-xs mt-2 font-medium">No photo uploaded</span>
+      <div v-else class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-muted">
+        <User class="photo-placeholder-icon" />
+        <span class="small mt-2 fw-medium">No photo uploaded</span>
       </div>
 
       <!-- Cinematic depth gradient overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-transparent"></div>
+      <div class="position-absolute top-0 start-0 end-0 bottom-0 card-photo-overlay pointer-events-none"></div>
 
       <!-- Quick action safety button (Report / Block) -->
       <button
         type="button"
         @click="$emit('openSafety')"
-        class="absolute top-3.5 right-3.5 p-2 rounded-2xl surface-glass text-slate-300 hover:text-white transition-all shadow-md active:scale-90"
+        class="btn-safety-trigger position-absolute top-0 end-0 m-3 p-2 rounded-circle border-0 d-flex align-items-center justify-content-center"
         title="Report or Block"
       >
-        <MoreVertical class="w-4 h-4" />
+        <MoreVertical class="safety-icon-sm" />
       </button>
 
       <!-- Candidate Basic Info Overlay -->
-      <div class="absolute bottom-4 left-5 right-5">
-        <div class="flex items-center gap-2 flex-wrap">
-          <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
+      <div class="position-absolute bottom-0 start-0 end-0 p-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h2 class="font-display fs-3 fw-bolder text-white mb-0 text-shadow">
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">
-            <CheckCircle2 class="w-3 h-3 text-sky-400" />
+            <CheckCircle2 class="icon-xs" />
             <span>Verified</span>
           </UBadge>
         </div>
 
-        <div v-if="candidate.approximateLocation" class="flex items-center gap-1.5 text-xs text-slate-300 mt-1 font-medium">
-          <MapPin class="w-3.5 h-3.5 text-brand-400 shrink-0" />
+        <div v-if="candidate.approximateLocation" class="d-flex align-items-center gap-1 small text-white-50 mt-1 fw-medium">
+          <MapPin class="icon-xs text-primary" />
           <span>{{ candidate.approximateLocation }}</span>
         </div>
       </div>
     </div>
 
     <!-- Details Body -->
-    <div class="p-5 sm:p-6 space-y-4">
+    <div class="p-4 d-flex flex-column gap-3">
       <!-- Common Interests Badge (Conversation First!) -->
       <div
         v-if="candidate.commonInterestsCount > 0"
-        class="flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-r from-brand-600/15 via-purple-600/10 to-transparent border border-brand-500/25 text-brand-200 text-xs shadow-sm"
+        class="common-interests-banner d-flex align-items-center gap-2 p-3 rounded-3"
       >
-        <Sparkles class="w-4 h-4 text-brand-400 shrink-0 animate-pulse-glow" />
-        <span class="font-medium leading-relaxed">
-          Common interests: <strong class="text-white font-semibold">{{ candidate.commonInterests.join(', ') }}</strong>
+        <Sparkles class="icon-sm text-primary flex-shrink-0 animate-pulse-glow" />
+        <span class="small fw-medium">
+          Common interests: <strong class="text-white fw-bold">{{ candidate.commonInterests.join(', ') }}</strong>
         </span>
       </div>
 
       <!-- Bio / Story -->
-      <div v-if="candidate.bio" class="text-xs sm:text-sm text-slate-300 leading-relaxed bg-slate-850/60 p-3.5 rounded-2xl border border-slate-800">
-        <p class="whitespace-pre-line">{{ candidate.bio }}</p>
+      <div v-if="candidate.bio" class="candidate-bio-box p-3 rounded-3 small">
+        <p class="mb-0 text-white-50" style="white-space: pre-line;">{{ candidate.bio }}</p>
       </div>
 
       <!-- Connection Intentions / Interaction Preferences -->
       <div v-if="candidate.interactionPreferences && candidate.interactionPreferences.length > 0">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+        <span class="extra-small fw-bold text-muted text-uppercase tracking-wider d-block mb-1">
           Looking for
         </span>
-        <div class="flex flex-wrap gap-1.5">
+        <div class="d-flex flex-wrap gap-1">
           <UBadge
             v-for="pref in candidate.interactionPreferences"
             :key="pref"
@@ -86,10 +86,10 @@
 
       <!-- All Interests tags -->
       <div v-if="candidate.interests && candidate.interests.length > 0">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+        <span class="extra-small fw-bold text-muted text-uppercase tracking-wider d-block mb-1">
           Interests & Topics
         </span>
-        <div class="flex flex-wrap gap-1.5">
+        <div class="d-flex flex-wrap gap-1">
           <UBadge
             v-for="interest in candidate.interests"
             :key="interest.id"
@@ -102,15 +102,15 @@
       </div>
 
       <!-- Action Buttons (Pass & Like) with physical depth -->
-      <div class="pt-2 flex items-center gap-3">
+      <div class="d-flex align-items-center gap-3 pt-2">
         <!-- Pass Button -->
         <UButton
           variant="secondary"
           size="lg"
-          class="flex-1"
+          class="flex-fill"
           @click="$emit('pass')"
         >
-          <X class="w-4 h-4 text-slate-400 mr-2" />
+          <X class="icon-sm text-muted me-2" />
           <span>Pass</span>
         </UButton>
 
@@ -118,10 +118,10 @@
         <UButton
           variant="primary"
           size="lg"
-          class="flex-1"
+          class="flex-fill"
           @click="$emit('like')"
         >
-          <Heart class="w-4 h-4 fill-white mr-2" />
+          <Heart class="icon-sm fill-white me-2" />
           <span>Connect</span>
         </UButton>
       </div>
@@ -154,3 +154,78 @@ defineEmits<{
   (e: 'openSafety'): void;
 }>();
 </script>
+
+<style scoped lang="scss">
+.card-photo-hero {
+  height: 22rem;
+  background-color: var(--unmute-surface-raised, #161e31);
+}
+
+.card-photo-img {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  .discover-card-3d:hover & {
+    transform: scale(1.02);
+  }
+}
+
+.card-photo-overlay {
+  background: linear-gradient(to top, rgba(9, 13, 22, 0.95) 0%, rgba(9, 13, 22, 0.4) 50%, transparent 100%);
+}
+
+.photo-placeholder-icon {
+  width: 4rem;
+  height: 4rem;
+}
+
+.btn-safety-trigger {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+.safety-icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-xs {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.extra-small {
+  font-size: 0.6875rem;
+}
+
+.text-shadow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.common-interests-banner {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.08));
+  border: 1px solid var(--theme-border-glow, rgba(99, 102, 241, 0.3));
+  color: var(--theme-primary-hover, #c084fc);
+}
+
+.candidate-bio-box {
+  background-color: var(--unmute-surface-raised, #131b2e);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.06));
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="u-skeleton rounded-2xl animate-shimmer relative overflow-hidden bg-slate-800/80"
+    class="u-skeleton position-relative overflow-hidden"
     :class="[typeClass, customClass]"
     :style="customStyle"
   ></div>
@@ -26,16 +26,16 @@ const props = withDefaults(
 const typeClass = computed(() => {
   switch (props.type) {
     case 'avatar':
-      return 'w-12 h-12 rounded-2xl shrink-0';
+      return 'skeleton-avatar flex-shrink-0';
     case 'title':
-      return 'h-6 w-3/4 rounded-xl';
+      return 'skeleton-title w-75';
     case 'button':
-      return 'h-10 w-full rounded-2xl';
+      return 'skeleton-button w-100';
     case 'card':
-      return 'h-72 w-full rounded-3xl';
+      return 'skeleton-card w-100';
     case 'text':
     default:
-      return 'h-4 w-full rounded-lg';
+      return 'skeleton-text w-100';
   }
 });
 
@@ -47,16 +47,43 @@ const customStyle = computed(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .u-skeleton {
   background: linear-gradient(
     90deg,
-    rgba(30, 38, 60, 0.6) 25%,
-    rgba(45, 55, 85, 0.8) 50%,
-    rgba(30, 38, 60, 0.6) 75%
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite ease-in-out;
+  border-radius: var(--radius-md, 12px);
+}
+
+.skeleton-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg, 16px);
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  border-radius: var(--radius-sm, 10px);
+}
+
+.skeleton-button {
+  height: 2.75rem;
+  border-radius: var(--radius-md, 14px);
+}
+
+.skeleton-card {
+  height: 18rem;
+  border-radius: var(--radius-xl, 24px);
+}
+
+.skeleton-text {
+  height: 1rem;
+  border-radius: var(--radius-sm, 8px);
 }
 
 @keyframes shimmer {
@@ -68,4 +95,3 @@ const customStyle = computed(() => {
   }
 }
 </style>
-

@@ -1,16 +1,16 @@
 <template>
-  <div class="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
+  <div class="flex-grow-1 d-flex flex-column justify-content-center max-w-lg mx-auto w-100 py-3">
     <!-- Loading State: Card Skeleton with shimmer -->
-    <div v-if="discoverStore.loading" class="w-full space-y-4">
+    <div v-if="discoverStore.loading" class="w-100 d-flex flex-column gap-3">
       <USkeleton type="card" height="480px" />
-      <div class="flex gap-3">
-        <USkeleton type="button" class="flex-1" />
-        <USkeleton type="button" class="flex-1" />
+      <div class="d-flex gap-3">
+        <USkeleton type="button" class="flex-fill" />
+        <USkeleton type="button" class="flex-fill" />
       </div>
     </div>
 
     <!-- Active Discovery Card with 3D Depth -->
-    <div v-else-if="discoverStore.currentCandidate" class="w-full animate-fade-in">
+    <div v-else-if="discoverStore.currentCandidate" class="w-100 animate-fade-in">
       <DiscoverCard
         :candidate="discoverStore.currentCandidate"
         @like="handleLike"
@@ -32,7 +32,7 @@
           size="md"
           @click="discoverStore.loadFeed"
         >
-          <RefreshCw class="w-3.5 h-3.5 mr-2" />
+          <RefreshCw class="icon-sm me-2" />
           <span>Refresh Feed</span>
         </UButton>
         <UButton
@@ -98,3 +98,10 @@ function onSafetyActionCompleted() {
   discoverStore.currentIndex++;
 }
 </script>
+
+<style scoped>
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+</style>

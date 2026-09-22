@@ -5,42 +5,42 @@
     @close="close"
   >
     <template #header>
-      <div class="flex items-center gap-2 text-rose-400">
-        <ShieldAlert class="w-5 h-5" />
-        <h3 class="font-bold text-base text-white">
+      <div class="d-flex align-items-center gap-2 text-danger">
+        <ShieldAlert class="safety-icon" />
+        <h3 class="fw-bold fs-6 text-white mb-0 font-display">
           {{ mode === 'report' ? 'Report Profile' : 'Block Connection' }}
         </h3>
       </div>
     </template>
 
-    <div class="space-y-5">
+    <div class="d-flex flex-column gap-3">
       <!-- Mode selector -->
-      <div class="flex p-1 bg-slate-850 rounded-2xl border border-slate-750">
+      <div class="safety-mode-pills d-flex p-1 rounded-pill">
         <button
           type="button"
           @click="mode = 'report'"
-          class="flex-1 py-2 text-xs font-semibold rounded-xl transition-all"
-          :class="mode === 'report' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+          class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
+          :class="mode === 'report' ? 'btn-danger shadow-sm' : 'text-white-50'"
         >
           Report User
         </button>
         <button
           type="button"
           @click="mode = 'block'"
-          class="flex-1 py-2 text-xs font-semibold rounded-xl transition-all"
-          :class="mode === 'block' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+          class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
+          :class="mode === 'block' ? 'btn-warning text-dark shadow-sm' : 'text-white-50'"
         >
           Block User
         </button>
       </div>
 
       <!-- Report Form -->
-      <div v-if="mode === 'report'" class="space-y-4">
+      <div v-if="mode === 'report'" class="d-flex flex-column gap-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Reason for Report</label>
+          <label class="form-label small fw-semibold text-white-50 mb-1">Reason for Report</label>
           <select
             v-model="reportCategory"
-            class="w-full bg-slate-850 border border-slate-700/80 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+            class="form-select form-control-dark-custom w-100"
           >
             <option disabled value="">Select a category</option>
             <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
@@ -48,48 +48,48 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Details (Optional)</label>
+          <label class="form-label small fw-semibold text-white-50 mb-1">Details (Optional)</label>
           <textarea
             v-model="reportDetails"
             rows="3"
             placeholder="Tell us what happened so our moderation team can investigate..."
-            class="w-full bg-slate-850 border border-slate-700/80 rounded-2xl p-3.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            class="form-control form-control-dark-custom w-100"
           ></textarea>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="form-check d-flex align-items-center gap-2 mb-0">
           <input
             id="alsoBlock"
             type="checkbox"
             v-model="alsoBlockOnReport"
-            class="rounded-lg bg-slate-800 border-slate-750 text-rose-500 focus:ring-rose-500 w-4 h-4"
+            class="form-check-input mt-0"
           />
-          <label for="alsoBlock" class="text-xs text-slate-300 select-none">
+          <label for="alsoBlock" class="form-check-label small text-white-50 user-select-none">
             Also block this user immediately
           </label>
         </div>
       </div>
 
       <!-- Block Form -->
-      <div v-else class="space-y-3">
-        <p class="text-xs text-slate-300 leading-relaxed bg-slate-850 p-3.5 rounded-2xl border border-slate-800">
-          Blocking <strong class="text-white font-semibold">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
+      <div v-else class="d-flex flex-column gap-2">
+        <p class="small text-white-50 p-3 rounded-3 surface-raised border mb-0" style="border-color: var(--unmute-border) !important;">
+          Blocking <strong class="text-white fw-bold">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
         </p>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Reason (Optional)</label>
+          <label class="form-label small fw-semibold text-white-50 mb-1">Reason (Optional)</label>
           <input
             v-model="blockReason"
             type="text"
             placeholder="e.g. Incompatible conversation, spam, etc."
-            class="w-full bg-slate-850 border border-slate-700/80 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            class="form-control form-control-dark-custom w-100"
           />
         </div>
       </div>
 
       <!-- Feedback / Error -->
-      <p v-if="error" class="text-xs text-rose-400 bg-rose-500/10 p-3 rounded-2xl border border-rose-500/20">
+      <div v-if="error" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
         {{ error }}
-      </p>
+      </div>
     </div>
 
     <template #footer>
@@ -183,3 +183,35 @@ async function submitAction() {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.safety-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.safety-mode-pills {
+  background-color: var(--unmute-surface-raised, #161e31);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08));
+}
+
+.form-control-dark-custom {
+  background-color: var(--unmute-surface-raised, #161e31);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.12));
+  color: #ffffff;
+  border-radius: var(--radius-md, 14px);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    background-color: var(--unmute-surface-raised, #161e31);
+    border-color: var(--theme-primary, #6366f1);
+    box-shadow: 0 0 0 3px var(--theme-glow, rgba(99, 102, 241, 0.25));
+    color: #ffffff;
+  }
+
+  &::placeholder {
+    color: var(--unmute-text-muted, #64748b);
+  }
+}
+</style>

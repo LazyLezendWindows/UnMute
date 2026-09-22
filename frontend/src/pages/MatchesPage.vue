@@ -1,10 +1,10 @@
 <template>
-  <div class="space-y-6 max-w-2xl mx-auto w-full">
+  <div class="d-flex flex-column gap-4 max-w-2xl mx-auto w-100">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color: var(--unmute-text-primary);">Your Matches</h1>
-        <p class="text-xs" style="color: var(--unmute-text-muted);">People you connected with mutually</p>
+        <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">Your Matches</h1>
+        <p class="small mb-0" style="color: var(--unmute-text-muted);">People you connected with mutually</p>
       </div>
       <UBadge variant="primary" size="md">
         {{ chatStore.matches.length }} Matches
@@ -39,25 +39,25 @@
         <UCard
           variant="interactive"
           padding="md"
-          class="h-full flex flex-col justify-between group"
+          class="h-100 d-flex flex-column justify-content-between"
         >
-          <div class="flex items-start gap-3">
+          <div class="d-flex align-items-start gap-3">
             <UAvatar
               :src="match.user.avatarUrl"
               :name="match.user.displayName"
               size="lg"
             />
 
-            <div class="min-w-0 flex-1">
-              <h3 class="font-bold text-sm text-white truncate group-hover:text-brand-300 transition-colors">
+            <div class="min-w-0 flex-grow-1">
+              <h3 class="fw-bold fs-6 text-white text-truncate mb-1">
                 {{ match.user.displayName }}, {{ match.user.age }}
               </h3>
-              <p v-if="match.user.approximateLocation" class="text-[11px] text-slate-400 truncate mt-0.5">
+              <p v-if="match.user.approximateLocation" class="extra-small text-white-50 text-truncate mb-2">
                 {{ match.user.approximateLocation }}
               </p>
 
               <!-- Interests -->
-              <div v-if="match.user.interests && match.user.interests.length > 0" class="flex flex-wrap gap-1 mt-2">
+              <div v-if="match.user.interests && match.user.interests.length > 0" class="d-flex flex-wrap gap-1 mt-1">
                 <UBadge
                   v-for="int in match.user.interests.slice(0, 2)"
                   :key="int"
@@ -71,14 +71,14 @@
           </div>
 
           <!-- Chat button -->
-          <div class="pt-4 mt-auto">
+          <div class="pt-3 mt-auto">
             <UButton
               variant="secondary"
               size="sm"
               block
               @click="$router.push(`/chat/${match.conversationId}`)"
             >
-              <MessageSquare class="w-3.5 h-3.5 mr-1.5 text-brand-400" />
+              <MessageSquare class="icon-xs me-2 text-primary" />
               <span v-if="match.lastMessage">Continue Conversation</span>
               <span v-else>Say Hello</span>
             </UButton>
@@ -105,3 +105,13 @@ onMounted(() => {
   chatStore.loadMatches();
 });
 </script>
+
+<style scoped>
+.extra-small {
+  font-size: 0.75rem;
+}
+.icon-xs {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+</style>

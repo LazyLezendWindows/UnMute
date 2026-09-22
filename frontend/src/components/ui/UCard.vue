@@ -1,11 +1,14 @@
 <template>
   <div
-    class="u-card rounded-3xl transition-all relative overflow-hidden"
-    :class="[variantClass, paddingClass, { 'cursor-pointer select-none': interactive }]"
+    class="u-card rounded-3xl transition-all position-relative overflow-hidden"
+    :class="[variantClass, paddingClass, { 'cursor-pointer user-select-none': interactive }]"
     @click="$emit('click', $event)"
   >
     <!-- Optional subtle top specular highlight for 3D realism -->
-    <div class="u-card-specular pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+    <div
+      class="u-card-specular pe-none position-absolute top-0 start-0 end-0"
+      style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);"
+    ></div>
 
     <slot />
   </div>
@@ -55,12 +58,12 @@ const paddingClass = computed(() => {
     case 'none':
       return 'p-0';
     case 'sm':
-      return 'p-3 sm:p-4';
+      return 'p-2 p-sm-3';
     case 'lg':
-      return 'p-6 sm:p-8';
+      return 'p-4 p-md-5';
     case 'md':
     default:
-      return 'p-5 sm:p-6';
+      return 'p-3 p-sm-4';
   }
 });
 </script>

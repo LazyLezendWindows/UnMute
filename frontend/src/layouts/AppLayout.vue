@@ -1,18 +1,18 @@
 <template>
-  <div class="min-h-screen flex flex-col relative overflow-hidden transition-colors duration-300" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
+  <div class="min-vh-100 d-flex flex-column position-relative overflow-hidden" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
     <!-- Ambient 3D Depth Lighting & Dynamic Blobs -->
     <div
-      class="fixed top-0 left-1/4 w-96 h-96 rounded-full blur-[130px] pointer-events-none -z-10 animate-pulse-glow"
-      style="background: var(--unmute-primary); opacity: 0.14;"
+      class="position-fixed top-0 start-25 rounded-circle pointer-events-none animate-pulse-glow"
+      style="width: 24rem; height: 24rem; filter: blur(130px); z-index: 0; background: var(--unmute-primary); opacity: 0.14;"
     ></div>
     <div
-      class="fixed bottom-10 right-1/4 w-80 h-80 rounded-full blur-[110px] pointer-events-none -z-10 animate-pulse-glow"
-      style="background: var(--unmute-primary-light); opacity: 0.10; animation-delay: 1.5s;"
+      class="position-fixed bottom-0 end-25 rounded-circle pointer-events-none animate-pulse-glow"
+      style="width: 20rem; height: 20rem; filter: blur(110px); z-index: 0; background: var(--unmute-primary-light); opacity: 0.10; animation-delay: 1.5s;"
     ></div>
 
     <Navbar />
 
-    <main class="flex-1 flex flex-col container max-w-4xl px-4 py-4 md:py-6 pb-28 md:pb-10 relative z-10">
+    <main class="flex-grow-1 d-flex flex-column container max-w-4xl px-3 py-3 py-md-4 position-relative" style="z-index: 10; padding-bottom: 6rem;">
       <slot />
     </main>
 

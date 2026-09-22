@@ -1,24 +1,24 @@
 <template>
-  <div class="u-empty-state text-center py-16 px-6 max-w-md mx-auto flex flex-col items-center justify-center relative">
+  <div class="u-empty-state text-center py-5 px-3 max-w-md mx-auto d-flex flex-column align-items-center justify-content-center position-relative">
     <!-- Soft ambient glow background blob -->
-    <div class="absolute w-40 h-40 rounded-full bg-brand-500/10 blur-3xl pointer-events-none -z-10"></div>
+    <div class="empty-glow position-absolute rounded-circle pointer-events-none"></div>
 
     <!-- Icon container with subtle float -->
-    <div class="w-16 h-16 rounded-3xl bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-750 flex items-center justify-center text-brand-400 mb-4 shadow-xl animate-float">
-      <component :is="icon" v-if="icon" class="w-8 h-8 stroke-[1.75]" />
+    <div class="empty-icon-container d-flex align-items-center justify-content-center mb-3 animate-float">
+      <component :is="icon" v-if="icon" class="empty-icon" />
       <slot name="icon" v-else />
     </div>
 
     <!-- Title & Description -->
-    <h3 class="text-base sm:text-lg font-bold text-white tracking-tight mb-1.5">
+    <h3 class="fs-5 fw-bold mb-2 font-display" style="color: var(--unmute-text-primary);">
       {{ title }}
     </h3>
-    <p class="text-xs sm:text-sm text-slate-400 max-w-xs mx-auto leading-relaxed mb-6">
+    <p class="fs-6 max-w-xs mx-auto mb-4" style="color: var(--unmute-text-muted);">
       {{ description }}
     </p>
 
     <!-- Action Slot -->
-    <div v-if="$slots.action" class="flex flex-wrap items-center justify-center gap-2">
+    <div v-if="$slots.action" class="d-flex flex-wrap align-items-center justify-content-center gap-2">
       <slot name="action" />
     </div>
   </div>
@@ -32,3 +32,30 @@ defineProps<{
 }>();
 </script>
 
+<style scoped lang="scss">
+.empty-glow {
+  width: 10rem;
+  height: 10rem;
+  background: var(--theme-glow, rgba(99, 102, 241, 0.15));
+  filter: blur(48px);
+  z-index: 0;
+}
+
+.empty-icon-container {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-xl, 24px);
+  background: var(--unmute-surface-raised, #131b2e);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: var(--theme-primary, #6366f1);
+  position: relative;
+  z-index: 1;
+}
+
+.empty-icon {
+  width: 2rem;
+  height: 2rem;
+}
+</style>

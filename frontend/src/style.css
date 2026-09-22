@@ -1,19 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Mobile safe area padding for modern devices */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
 
-@layer base {
-  /* Mobile safe area padding for modern devices */
-  :root {
-    --sat: env(safe-area-inset-top, 0px);
-    --sar: env(safe-area-inset-right, 0px);
-    --sab: env(safe-area-inset-bottom, 0px);
-    --sal: env(safe-area-inset-left, 0px);
-  }
-
-  body {
-    -webkit-tap-highlight-color: transparent;
-  }
+body {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom scrollbars */

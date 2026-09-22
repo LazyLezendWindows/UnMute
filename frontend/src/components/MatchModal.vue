@@ -4,16 +4,18 @@
     max-width="sm"
     @close="dismiss"
   >
-    <div v-if="match" class="text-center space-y-5 py-2">
+    <div v-if="match" class="text-center py-2 d-flex flex-column gap-3">
       <!-- Badge -->
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30 text-xs font-bold shadow-sm shadow-brand-500/20">
-        <Sparkles class="w-3.5 h-3.5 text-brand-400 animate-spin-slow" />
-        <span>Mutual Connection</span>
+      <div>
+        <div class="match-sparkle-badge d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill fw-bold user-select-none">
+          <Sparkles class="sparkle-icon" />
+          <span>Mutual Connection</span>
+        </div>
       </div>
 
       <!-- Connected Avatars with 3D overlap -->
-      <div class="flex items-center justify-center -space-x-5 py-3">
-        <div class="relative z-10 scale-100 hover:scale-105 transition-transform">
+      <div class="d-flex align-items-center justify-content-center py-2 avatar-overlap">
+        <div class="avatar-left position-relative">
           <UAvatar
             :src="myAvatar"
             name="You"
@@ -21,7 +23,7 @@
             :border="true"
           />
         </div>
-        <div class="relative z-20 scale-105 hover:scale-110 transition-transform">
+        <div class="avatar-right position-relative">
           <UAvatar
             :src="match.matchedUser.avatarUrl"
             :name="match.matchedUser.displayName"
@@ -32,22 +34,22 @@
       </div>
 
       <!-- Title & Philosophy -->
-      <div class="space-y-1">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+      <div>
+        <h2 class="fs-4 fw-extrabold text-white mb-1 font-display">
           You and {{ match.matchedUser.displayName }} clicked!
         </h2>
-        <p class="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+        <p class="small text-white-50 mb-0 max-w-xs mx-auto">
           No awkward pickup lines needed. Connect on your shared interests without the pressure.
         </p>
       </div>
 
       <!-- Quick Conversation Starter -->
-      <div class="space-y-2.5 pt-1">
+      <div class="d-flex flex-column gap-2 pt-1">
         <input
           v-model="quickMessage"
           type="text"
           placeholder="Say hello or ask about their interests..."
-          class="w-full bg-slate-850 border border-slate-700/80 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"
+          class="form-control form-control-dark-custom w-100"
           @keyup.enter="sendAndOpen"
         />
 
@@ -62,13 +64,15 @@
       </div>
 
       <!-- Dismiss Button -->
-      <button
-        type="button"
-        @click="dismiss"
-        class="text-xs font-semibold text-slate-500 hover:text-slate-300 transition-colors pt-1"
-      >
-        Keep discovering for now
-      </button>
+      <div>
+        <button
+          type="button"
+          @click="dismiss"
+          class="btn btn-link btn-sm text-decoration-none text-muted p-0"
+        >
+          Keep discovering for now
+        </button>
+      </div>
     </div>
   </UModal>
 </template>
@@ -128,3 +132,56 @@ async function sendAndOpen() {
   router.push(`/chat/${conversationId}`);
 }
 </script>
+
+<style scoped lang="scss">
+.match-sparkle-badge {
+  font-size: 0.75rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--theme-primary, #6366f1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
+
+  .sparkle-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.avatar-overlap {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.avatar-left {
+  z-index: 1;
+  margin-right: -1.25rem;
+  transition: transform 0.2s ease;
+  &:hover { transform: scale(1.05); }
+}
+
+.avatar-right {
+  z-index: 2;
+  transition: transform 0.2s ease;
+  &:hover { transform: scale(1.08); }
+}
+
+.form-control-dark-custom {
+  background-color: var(--unmute-surface-raised, #161e31);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.12));
+  color: #ffffff;
+  border-radius: var(--radius-md, 14px);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    background-color: var(--unmute-surface-raised, #161e31);
+    border-color: var(--theme-primary, #6366f1);
+    box-shadow: 0 0 0 3px var(--theme-glow, rgba(99, 102, 241, 0.25));
+    color: #ffffff;
+  }
+
+  &::placeholder {
+    color: var(--unmute-text-muted, #64748b);
+  }
+}
+</style>

@@ -1,181 +1,197 @@
 <template>
-  <div class="max-w-xl mx-auto w-full space-y-6">
+  <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100">
     <!-- Page Header -->
     <div>
-      <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color: var(--unmute-text-primary);">
+      <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">
         Settings
       </h1>
-      <p class="text-xs" style="color: var(--unmute-text-muted);">
+      <p class="small mb-0" style="color: var(--unmute-text-muted);">
         Personalize your appearance, dynamic theme colors, and privacy preferences
       </p>
     </div>
 
     <!-- Appearance: Mode (Dark vs Light/White) -->
-    <UCard variant="elevated" padding="lg" class="space-y-4">
-      <div class="flex items-center gap-2">
-        <Sun v-if="!themeStore.isDarkMode" class="w-5 h-5 text-amber-500" />
-        <Moon v-else class="w-5 h-5" style="color: var(--unmute-primary-light);" />
-        <h2 class="font-display font-bold text-base" style="color: var(--unmute-text-primary);">
-          Appearance & Theme Mode
-        </h2>
-      </div>
+    <UCard variant="elevated" padding="lg">
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <Sun v-if="!themeStore.isDarkMode" class="icon-md text-warning" />
+          <Moon v-else class="icon-md" style="color: var(--unmute-primary-light);" />
+          <h2 class="font-display fw-bold fs-6 mb-0" style="color: var(--unmute-text-primary);">
+            Appearance & Theme Mode
+          </h2>
+        </div>
 
-      <p class="text-xs" style="color: var(--unmute-text-secondary);">
-        Choose between deep 3D obsidian dark mode, crystalline white mode, or automatic system adaptation.
-      </p>
+        <p class="small mb-2" style="color: var(--unmute-text-secondary);">
+          Choose between deep 3D obsidian dark mode, crystalline white mode, or automatic system adaptation.
+        </p>
 
-      <!-- Segmented Mode Selector with 3D tactile buttons -->
-      <div class="grid grid-cols-3 gap-2.5 p-1.5 surface-raised rounded-2xl border border-white/5 shadow-inner">
-        <button
-          type="button"
-          @click="themeStore.setMode('dark')"
-          class="flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs font-bold transition-all select-none active:translate-y-0.5"
-          :style="themeStore.mode === 'dark' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover)', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
-        >
-          <Moon class="w-4 h-4 text-purple-400" />
-          <span>Dark Mode</span>
-        </button>
+        <!-- Segmented Mode Selector with 3D tactile buttons -->
+        <div class="row g-2 p-1 surface-raised rounded-3 border" style="border-color: var(--unmute-border) !important;">
+          <div class="col-4">
+            <button
+              type="button"
+              @click="themeStore.setMode('dark')"
+              class="theme-mode-btn w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2 py-2 px-2 border-0 rounded-3 small fw-bold user-select-none"
+              :style="themeStore.mode === 'dark' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover) !important', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
+            >
+              <Moon class="icon-xs text-primary" />
+              <span>Dark Mode</span>
+            </button>
+          </div>
 
-        <button
-          type="button"
-          @click="themeStore.setMode('light')"
-          class="flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs font-bold transition-all select-none active:translate-y-0.5"
-          :style="themeStore.mode === 'light' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover)', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
-        >
-          <Sun class="w-4 h-4 text-amber-500" />
-          <span>Light (White)</span>
-        </button>
+          <div class="col-4">
+            <button
+              type="button"
+              @click="themeStore.setMode('light')"
+              class="theme-mode-btn w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2 py-2 px-2 border-0 rounded-3 small fw-bold user-select-none"
+              :style="themeStore.mode === 'light' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover) !important', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
+            >
+              <Sun class="icon-xs text-warning" />
+              <span>Light (White)</span>
+            </button>
+          </div>
 
-        <button
-          type="button"
-          @click="themeStore.setMode('system')"
-          class="flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs font-bold transition-all select-none active:translate-y-0.5"
-          :style="themeStore.mode === 'system' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover)', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
-        >
-          <Monitor class="w-4 h-4 text-sky-400" />
-          <span>System Auto</span>
-        </button>
+          <div class="col-4">
+            <button
+              type="button"
+              @click="themeStore.setMode('system')"
+              class="theme-mode-btn w-100 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2 py-2 px-2 border-0 rounded-3 small fw-bold user-select-none"
+              :style="themeStore.mode === 'system' ? { background: 'var(--unmute-surface-overlay)', color: 'var(--unmute-text-primary)', border: '1px solid var(--unmute-glass-border-hover) !important', boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)' } : { color: 'var(--unmute-text-secondary)' }"
+            >
+              <Monitor class="icon-xs text-info" />
+              <span>System Auto</span>
+            </button>
+          </div>
+        </div>
       </div>
     </UCard>
 
     <!-- Dynamic Theme Accent Colors -->
-    <UCard variant="elevated" padding="lg" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Palette class="w-5 h-5" style="color: var(--unmute-primary);" />
-          <h2 class="font-display font-bold text-base" style="color: var(--unmute-text-primary);">
-            Dynamic Accent Theme
-          </h2>
-        </div>
-        <span
-          class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-md select-none font-display tracking-wide"
-          :style="{ background: themeStore.activePreset.gradient, boxShadow: '0 2px 0 ' + themeStore.activePreset.bevel + ', ' + themeStore.activePreset.glow + ', var(--unmute-3d-specular)' }"
-        >
-          {{ themeStore.activePreset.name }}
-        </span>
-      </div>
-
-      <p class="text-xs" style="color: var(--unmute-text-secondary);">
-        Choose an electric theme preset. All buttons, 3D bottom bevels, glow borders, and tabs will instantly re-skin in real time.
-      </p>
-
-      <!-- 6-Palette 3D Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-        <button
-          v-for="preset in themeStore.presets"
-          :key="preset.id"
-          type="button"
-          @click="themeStore.setAccent(preset.id)"
-          class="p-3.5 rounded-2xl surface-raised transition-all flex flex-col items-center gap-2 text-center group relative select-none border active:translate-y-1"
-          :class="
-            themeStore.accent === preset.id
-              ? '-translate-y-1.5'
-              : 'border-white/5 hover:border-white/20'
-          "
-          :style="
-            themeStore.accent === preset.id
-              ? {
-                  borderColor: preset.primary,
-                  boxShadow: '0 5px 0 ' + preset.bevel + ', ' + preset.glow + ', var(--unmute-3d-specular)'
-                }
-              : {
-                  boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)'
-                }
-          "
-        >
-          <!-- Swatch Circle with Specular 3D highlight -->
-          <div
-            class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 relative overflow-hidden"
-            :style="{ background: preset.gradient, boxShadow: '0 3px 0 ' + preset.bevel + ', inset 0 1.5px 0 rgba(255,255,255,0.45)' }"
+    <UCard variant="elevated" padding="lg">
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <Palette class="icon-md" style="color: var(--unmute-primary);" />
+            <h2 class="font-display fw-bold fs-6 mb-0" style="color: var(--unmute-text-primary);">
+              Dynamic Accent Theme
+            </h2>
+          </div>
+          <span
+            class="badge rounded-pill text-white shadow-sm user-select-none font-display px-3 py-2"
+            :style="{ background: themeStore.activePreset.gradient, boxShadow: '0 2px 0 ' + themeStore.activePreset.bevel + ', ' + themeStore.activePreset.glow + ', var(--unmute-3d-specular)' }"
           >
-            <Check v-if="themeStore.accent === preset.id" class="w-5 h-5 text-white stroke-[3.5] drop-shadow-md" />
-          </div>
+            {{ themeStore.activePreset.name }}
+          </span>
+        </div>
 
-          <!-- Name & Subtitle -->
-          <div class="flex flex-col items-center">
-            <span
-              class="text-xs font-bold font-display transition-colors"
-              :style="{ color: themeStore.accent === preset.id ? 'var(--unmute-text-primary)' : 'var(--unmute-text-secondary)' }"
+        <p class="small mb-1" style="color: var(--unmute-text-secondary);">
+          Choose an electric theme preset. All buttons, 3D bottom bevels, glow borders, and tabs will instantly re-skin in real time.
+        </p>
+
+        <!-- 6-Palette 3D Grid using Bootstrap row & cols -->
+        <div class="row g-3 pt-2">
+          <div
+            v-for="preset in themeStore.presets"
+            :key="preset.id"
+            class="col-6 col-sm-4"
+          >
+            <button
+              type="button"
+              @click="themeStore.setAccent(preset.id)"
+              class="preset-card-btn w-100 p-3 rounded-4 surface-raised d-flex flex-column align-items-center gap-2 text-center user-select-none border"
+              :class="themeStore.accent === preset.id ? 'preset-active' : ''"
+              :style="
+                themeStore.accent === preset.id
+                  ? {
+                      borderColor: preset.primary + ' !important',
+                      boxShadow: '0 5px 0 ' + preset.bevel + ', ' + preset.glow + ', var(--unmute-3d-specular)',
+                      transform: 'translateY(-3px)'
+                    }
+                  : {
+                      borderColor: 'var(--unmute-border) !important',
+                      boxShadow: '0 3px 0 var(--unmute-glass-border), var(--unmute-3d-specular)'
+                    }
+              "
             >
-              {{ preset.name }}
-            </span>
-            <span class="text-[10px] text-slate-500 font-medium leading-tight">
-              {{ preset.subtitle }}
-            </span>
+              <!-- Swatch Circle with Specular 3D highlight -->
+              <div
+                class="swatch-circle rounded-3 d-flex align-items-center justify-content-center shadow position-relative overflow-hidden"
+                :style="{ background: preset.gradient, boxShadow: '0 3px 0 ' + preset.bevel + ', inset 0 1.5px 0 rgba(255,255,255,0.45)' }"
+              >
+                <Check v-if="themeStore.accent === preset.id" class="icon-sm text-white fw-bold" />
+              </div>
+
+              <!-- Name & Subtitle -->
+              <div class="d-flex flex-column align-items-center">
+                <span
+                  class="small fw-bold font-display"
+                  :style="{ color: themeStore.accent === preset.id ? 'var(--unmute-text-primary)' : 'var(--unmute-text-secondary)' }"
+                >
+                  {{ preset.name }}
+                </span>
+                <span class="extra-small text-muted fw-medium lh-sm">
+                  {{ preset.subtitle }}
+                </span>
+              </div>
+            </button>
           </div>
-        </button>
+        </div>
       </div>
     </UCard>
 
     <!-- Privacy & Safety Shortcuts -->
-    <UCard variant="default" padding="lg" class="space-y-3">
-      <h2 class="font-display font-bold text-base mb-2" style="color: var(--unmute-text-primary);">
-        Privacy & Account
-      </h2>
+    <UCard variant="default" padding="lg">
+      <div class="d-flex flex-column gap-3">
+        <h2 class="font-display fw-bold fs-6 mb-1" style="color: var(--unmute-text-primary);">
+          Privacy & Account
+        </h2>
 
-      <router-link
-        to="/safety"
-        class="flex items-center justify-between p-3.5 surface-raised rounded-2xl border border-white/5 hover:border-white/20 transition-colors group"
-      >
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-xl surface-glass text-amber-400">
-            <ShieldCheck class="w-4 h-4" />
+        <router-link
+          to="/safety"
+          class="d-flex align-items-center justify-content-between p-3 surface-raised rounded-4 border text-decoration-none transition-all"
+          style="border-color: var(--unmute-border) !important;"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 surface-glass text-warning">
+              <ShieldCheck class="icon-sm" />
+            </div>
+            <div>
+              <h4 class="small fw-bold mb-0" style="color: var(--unmute-text-primary);">
+                Safety & Blocked Users
+              </h4>
+              <p class="extra-small mb-0" style="color: var(--unmute-text-muted);">
+                Manage blocked connections and safety commitments
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 class="text-xs font-bold transition-colors" style="color: var(--unmute-text-primary);">
-              Safety & Blocked Users
-            </h4>
-            <p class="text-[11px]" style="color: var(--unmute-text-muted);">
-              Manage blocked connections and safety commitments
-            </p>
-          </div>
-        </div>
-        <ChevronRight class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
-      </router-link>
+          <ChevronRight class="icon-sm text-muted" />
+        </router-link>
 
-      <router-link
-        to="/profile"
-        class="flex items-center justify-between p-3.5 surface-raised rounded-2xl border border-white/5 hover:border-white/20 transition-colors group"
-      >
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-xl surface-glass" style="color: var(--unmute-primary);">
-            <User class="w-4 h-4" />
+        <router-link
+          to="/profile"
+          class="d-flex align-items-center justify-content-between p-3 surface-raised rounded-4 border text-decoration-none transition-all"
+          style="border-color: var(--unmute-border) !important;"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 surface-glass" style="color: var(--unmute-primary);">
+              <User class="icon-sm" />
+            </div>
+            <div>
+              <h4 class="small fw-bold mb-0" style="color: var(--unmute-text-primary);">
+                Edit Public Profile
+              </h4>
+              <p class="extra-small mb-0" style="color: var(--unmute-text-muted);">
+                Update your bio, approximate location, and hobbies
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 class="text-xs font-bold transition-colors" style="color: var(--unmute-text-primary);">
-              Edit Public Profile
-            </h4>
-            <p class="text-[11px]" style="color: var(--unmute-text-muted);">
-              Update your bio, approximate location, and hobbies
-            </p>
-          </div>
-        </div>
-        <ChevronRight class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
-      </router-link>
+          <ChevronRight class="icon-sm text-muted" />
+        </router-link>
+      </div>
     </UCard>
 
     <!-- App Info & Log out -->
-    <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color: var(--unmute-text-muted);">
+    <div class="pt-2 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 small" style="color: var(--unmute-text-muted);">
       <span>Unmute v1.0.0 — Connect without the pressure</span>
       <UButton
         variant="ghost"
@@ -201,7 +217,6 @@ import {
   ChevronRight,
 } from 'lucide-vue-next';
 import UCard from '../components/ui/UCard.vue';
-import UBadge from '../components/ui/UBadge.vue';
 import UButton from '../components/ui/UButton.vue';
 import { useThemeStore } from '../stores/theme';
 import { useAuthStore } from '../stores/auth';
@@ -215,3 +230,45 @@ function handleLogout() {
   router.push('/login');
 }
 </script>
+
+<style scoped lang="scss">
+.theme-mode-btn {
+  background: transparent;
+  transition: all 0.18s ease;
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.preset-card-btn {
+  background-color: var(--unmute-surface-raised, #161e31);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.swatch-circle {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.extra-small {
+  font-size: 0.6875rem;
+}
+
+.icon-xs {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-md {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+</style>

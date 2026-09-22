@@ -2,27 +2,29 @@
   <button
     :type="type"
     :disabled="disabled || loading"
-    class="u-button inline-flex items-center justify-center font-semibold transition-all relative select-none"
+    class="u-button d-inline-flex align-items-center justify-content-center fw-semibold transition-all position-relative user-select-none border-0"
     :class="[
       variantClass,
       sizeClass,
-      { 'opacity-50 cursor-not-allowed pointer-events-none': disabled || loading },
-      { 'w-full': block },
+      { 'opacity-50 pe-none': disabled || loading },
+      { 'w-100': block },
     ]"
     @click="$emit('click', $event)"
   >
     <!-- Loading spinner -->
     <span
       v-if="loading"
-      class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2 shrink-0"
+      class="spinner-border spinner-border-sm me-2"
+      role="status"
     ></span>
 
     <!-- Leading Icon -->
     <component
       :is="icon"
       v-if="icon && !loading"
-      class="shrink-0"
-      :class="size === 'sm' ? 'w-3.5 h-3.5 mr-1.5' : size === 'lg' ? 'w-5 h-5 mr-2' : 'w-4 h-4 mr-2'"
+      class="flex-shrink-0"
+      :class="size === 'sm' ? 'me-1.5' : 'me-2'"
+      :style="{ width: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem', height: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem' }"
     />
 
     <!-- Slot content -->
@@ -32,8 +34,9 @@
     <component
       :is="iconRight"
       v-if="iconRight"
-      class="shrink-0"
-      :class="size === 'sm' ? 'w-3.5 h-3.5 ml-1.5' : size === 'lg' ? 'w-5 h-5 ml-2' : 'w-4 h-4 ml-2'"
+      class="flex-shrink-0"
+      :class="size === 'sm' ? 'ms-1.5' : 'ms-2'"
+      :style="{ width: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem', height: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem' }"
     />
   </button>
 </template>
@@ -72,13 +75,13 @@ defineEmits<{
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'u-btn-primary text-white border border-white/10';
+      return 'u-btn-primary text-white';
     case 'secondary':
       return 'u-btn-secondary';
     case 'glass':
       return 'u-btn-glass';
     case 'danger':
-      return 'bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/25 border border-rose-500/30';
+      return 'btn-danger text-white';
     case 'ghost':
       return 'u-btn-ghost';
     case 'icon':
@@ -94,12 +97,12 @@ const sizeClass = computed(() => {
   }
   switch (props.size) {
     case 'sm':
-      return 'px-3 py-1.5 text-xs rounded-xl';
+      return 'px-3 py-1.5 small rounded-xl';
     case 'lg':
-      return 'px-6 py-3.5 text-sm rounded-2xl';
+      return 'px-4 py-3 rounded-2xl';
     case 'md':
     default:
-      return 'px-4 py-2.5 text-xs sm:text-sm rounded-xl';
+      return 'px-3 py-2 small rounded-xl';
   }
 });
 </script>

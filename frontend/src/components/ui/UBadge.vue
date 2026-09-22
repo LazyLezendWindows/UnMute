@@ -1,9 +1,9 @@
 <template>
   <span
-    class="u-badge inline-flex items-center gap-1 font-semibold rounded-full select-none transition-colors"
+    class="u-badge d-inline-flex align-items-center gap-1 fw-semibold rounded-pill user-select-none transition-colors"
     :class="[variantClass, sizeClass]"
   >
-    <span v-if="dot" class="w-1.5 h-1.5 rounded-full shrink-0" :class="dotClass"></span>
+    <span v-if="dot" class="rounded-circle flex-shrink-0" :class="dotClass" style="width: 0.35rem; height: 0.35rem;"></span>
     <slot />
   </span>
 </template>
@@ -34,28 +34,28 @@ const variantClass = computed(() => {
     case 'glow':
       return 'u-badge-glow text-white';
     case 'success':
-      return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm';
+      return 'bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-sm';
     case 'warning':
-      return 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm';
+      return 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-sm';
     case 'danger':
-      return 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm';
+      return 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-sm';
     case 'glass':
-      return 'surface-glass text-slate-200 border-white/10 shadow-sm';
+      return 'surface-glass text-light border border-white border-opacity-10 shadow-sm';
     case 'outline':
-      return 'bg-transparent text-slate-300 border border-slate-700';
+      return 'bg-transparent text-secondary border border-secondary';
     case 'secondary':
     default:
-      return 'surface-raised text-slate-300 border border-white/5 shadow-sm';
+      return 'surface-raised text-secondary border border-white border-opacity-10 shadow-sm';
   }
 });
 
 const sizeClass = computed(() => {
   switch (props.size) {
     case 'md':
-      return 'px-3 py-1 text-xs';
+      return 'px-2.5 py-1 small';
     case 'sm':
     default:
-      return 'px-2 py-0.5 text-[11px]';
+      return 'px-2 py-0.5';
   }
 });
 
@@ -63,15 +63,15 @@ const dotClass = computed(() => {
   switch (props.variant) {
     case 'primary':
     case 'glow':
-      return 'bg-brand-400';
+      return 'bg-primary';
     case 'success':
-      return 'bg-emerald-400';
+      return 'bg-success';
     case 'warning':
-      return 'bg-amber-400';
+      return 'bg-warning';
     case 'danger':
-      return 'bg-rose-400';
+      return 'bg-danger';
     default:
-      return 'bg-slate-400';
+      return 'bg-secondary';
   }
 });
 </script>

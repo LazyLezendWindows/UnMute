@@ -1,19 +1,22 @@
 <template>
-  <div class="relative inline-block shrink-0 select-none">
+  <div class="u-avatar-wrapper position-relative d-inline-block flex-shrink-0 user-select-none">
     <div
-      class="rounded-2xl overflow-hidden bg-slate-800 flex items-center justify-center font-bold text-white shadow-md transition-transform"
-      :class="[sizeClass, border ? 'ring-2 ring-brand-500/50' : 'border border-slate-700/60']"
+      class="u-avatar overflow-hidden d-flex align-items-center justify-content-center fw-bold text-white shadow-sm"
+      :class="[
+        `u-avatar-${size}`,
+        border ? 'u-avatar-bordered' : ''
+      ]"
     >
       <img
         v-if="src && !hasError"
         :src="src"
         :alt="name || 'Avatar'"
-        class="w-full h-full object-cover"
+        class="w-100 h-100 object-fit-cover"
         @error="hasError = true"
       />
       <div
         v-else
-        class="w-full h-full flex items-center justify-center bg-gradient-to-tr from-brand-700 via-purple-600 to-pink-600"
+        class="w-100 h-100 d-flex align-items-center justify-content-center u-avatar-gradient"
       >
         <span>{{ initials }}</span>
       </div>
@@ -22,10 +25,10 @@
     <!-- Optional Online / Active status badge with pulse glow -->
     <span
       v-if="online !== undefined"
-      class="absolute -top-0.5 -right-0.5 rounded-full ring-2 ring-slate-900 shadow-sm"
+      class="u-avatar-status position-absolute rounded-circle"
       :class="[
-        onlineSizeClass,
-        online ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-slate-500',
+        `status-${size}`,
+        online ? 'status-online' : 'status-offline'
       ]"
     ></span>
   </div>
@@ -60,39 +63,76 @@ const initials = computed(() => {
   }
   return props.name.slice(0, 2).toUpperCase();
 });
-
-const sizeClass = computed(() => {
-  switch (props.size) {
-    case 'xs':
-      return 'w-6 h-6 text-[10px] rounded-lg';
-    case 'sm':
-      return 'w-8 h-8 text-xs rounded-xl';
-    case 'lg':
-      return 'w-14 h-14 text-base rounded-2xl';
-    case 'xl':
-      return 'w-20 h-20 text-xl rounded-3xl';
-    case '2xl':
-      return 'w-28 h-28 text-3xl rounded-3xl';
-    case 'md':
-    default:
-      return 'w-10 h-10 text-sm rounded-xl';
-  }
-});
-
-const onlineSizeClass = computed(() => {
-  switch (props.size) {
-    case 'xs':
-      return 'w-2 h-2';
-    case 'sm':
-      return 'w-2.5 h-2.5';
-    case 'lg':
-    case 'xl':
-    case '2xl':
-      return 'w-3.5 h-3.5';
-    case 'md':
-    default:
-      return 'w-3 h-3';
-  }
-});
 </script>
 
+<style scoped lang="scss">
+.u-avatar {
+  background-color: var(--unmute-surface-raised, #1e293b);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08));
+  transition: transform var(--transition-bounce, 0.2s cubic-bezier(0.34, 1.56, 0.64, 1));
+
+  &.u-avatar-bordered {
+    box-shadow: 0 0 0 2px var(--theme-primary, #6366f1);
+  }
+}
+
+.u-avatar-gradient {
+  background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-primary-hover, #a855f7));
+}
+
+.u-avatar-xs {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+  border-radius: var(--radius-sm, 8px);
+}
+.u-avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.75rem;
+  border-radius: var(--radius-md, 12px);
+}
+.u-avatar-md {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-md, 14px);
+}
+.u-avatar-lg {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1rem;
+  border-radius: var(--radius-lg, 18px);
+}
+.u-avatar-xl {
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.25rem;
+  border-radius: var(--radius-xl, 24px);
+}
+.u-avatar-2xl {
+  width: 7rem;
+  height: 7rem;
+  font-size: 1.75rem;
+  border-radius: var(--radius-2xl, 30px);
+}
+
+.u-avatar-status {
+  top: -2px;
+  right: -2px;
+  border: 2px solid var(--unmute-bg, #090d16);
+
+  &.status-online {
+    background-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+  &.status-offline {
+    background-color: #64748b;
+  }
+
+  &.status-xs { width: 0.5rem; height: 0.5rem; }
+  &.status-sm { width: 0.625rem; height: 0.625rem; }
+  &.status-md { width: 0.75rem; height: 0.75rem; }
+  &.status-lg, &.status-xl, &.status-2xl { width: 0.875rem; height: 0.875rem; }
+}
+</style>

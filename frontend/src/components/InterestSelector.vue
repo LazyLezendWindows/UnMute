@@ -1,24 +1,20 @@
 <template>
-  <div class="space-y-3">
-    <div class="flex items-center justify-between">
-      <span class="text-xs text-slate-400 font-semibold">
+  <div class="d-flex flex-column gap-2">
+    <div class="d-flex align-items-center justify-content-between">
+      <span class="small fw-semibold" style="color: var(--unmute-text-muted);">
         Select up to 10 interests ({{ modelValue.length }}/10 selected)
       </span>
     </div>
 
     <!-- Interactive chip grid with tactile press depth -->
-    <div class="flex flex-wrap gap-2">
+    <div class="d-flex flex-wrap gap-2">
       <button
         v-for="interest in allInterests"
         :key="interest.id"
         type="button"
         @click="toggleInterest(interest.id)"
-        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all select-none active:scale-95"
-        :class="
-          isSelected(interest.id)
-            ? 'bg-gradient-to-r from-brand-600 via-purple-600 to-pink-600 text-white shadow-md shadow-brand-500/30 border border-white/20 -translate-y-0.5'
-            : 'bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-750'
-        "
+        class="u-chip-btn d-inline-flex align-items-center px-3 py-2 border-0 user-select-none"
+        :class="{ 'chip-selected': isSelected(interest.id) }"
       >
         <span>{{ interest.name }}</span>
       </button>
@@ -67,3 +63,35 @@ function toggleInterest(id: string) {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.u-chip-btn {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: var(--radius-md, 14px);
+  background-color: var(--unmute-surface-raised, #161e31);
+  color: var(--unmute-text-secondary, #94a3b8);
+  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08)) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:hover {
+    background-color: var(--unmute-surface-active, #1e293b);
+    color: var(--unmute-text-primary, #ffffff);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(1px) scale(0.97);
+  }
+
+  &.chip-selected {
+    background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-primary-hover, #a855f7));
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px var(--theme-glow, rgba(99, 102, 241, 0.35)),
+                0 2px 0 var(--theme-primary-dark, #4338ca);
+    transform: translateY(-1px);
+  }
+}
+</style>
