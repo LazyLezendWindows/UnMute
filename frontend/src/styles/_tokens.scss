@@ -2,61 +2,61 @@
 // Complete 3D Depth System: Bevels, Specular Highlights, Tactile Extrusions, and Dual-Tone Palettes
 
 :root {
-  // --- DEFAULT: LIGHT / WHITE THEME ---
-  --unmute-bg: #f4f6fb;
+  // --- ELYSE RESIDENCE: SIGNATURE LUXURY LIGHT THEME ---
+  --unmute-bg: #f5f5f3;
   --unmute-surface: #ffffff;
-  --unmute-surface-raised: #f8fafd;
-  --unmute-surface-overlay: #eef2f9;
-  --unmute-surface-active: #e4ebf8;
+  --unmute-surface-raised: #faf9f6;
+  --unmute-surface-overlay: #efefea;
+  --unmute-surface-active: #e8e7e2;
 
-  // Glassmorphic Surfaces for Light with Crystal Refraction
-  --unmute-glass-bg: rgba(255, 255, 255, 0.94);
-  --unmute-glass-surface: rgba(248, 250, 253, 0.92);
-  --unmute-glass-border: rgba(15, 23, 42, 0.08);
-  --unmute-glass-border-hover: rgba(15, 23, 42, 0.18);
+  // Glassmorphic Surfaces with Architectural Crystal Clarity
+  --unmute-glass-bg: rgba(255, 255, 255, 0.92);
+  --unmute-glass-surface: rgba(250, 249, 246, 0.90);
+  --unmute-glass-border: rgba(10, 10, 10, 0.08);
+  --unmute-glass-border-hover: rgba(10, 10, 10, 0.20);
   --unmute-glass-highlight: rgba(255, 255, 255, 0.98);
 
-  // 3D Specular & Bevel Tokens for Light
-  --unmute-3d-specular: inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(15, 23, 42, 0.05);
-  --unmute-3d-card-rim: inset 0 1.5px 0 0 rgba(255, 255, 255, 1), inset 0 -1.5px 0 0 rgba(15, 23, 42, 0.04);
+  // 3D Specular & Architectural Bevel Tokens
+  --unmute-3d-specular: inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(10, 10, 10, 0.06);
+  --unmute-3d-card-rim: inset 0 1.5px 0 0 #ffffff, inset 0 -1.5px 0 0 rgba(10, 10, 10, 0.04);
 
-  // Text & Content Hierarchy for Light
-  --unmute-text-primary: #0f172a;
-  --unmute-text-secondary: #334155;
-  --unmute-text-muted: #64748b;
-  --unmute-text-dim: #94a3b8;
+  // Elyse Residence High-Contrast Editorial Text Hierarchy
+  --unmute-text-primary: #0a0a0a;
+  --unmute-text-secondary: #463729;
+  --unmute-text-muted: #6e6d6b;
+  --unmute-text-dim: #9e9d9a;
 
-  // Input background & border for Light
+  // Input background & hairline border
   --unmute-input-bg: #ffffff;
-  --unmute-input-border: #cbd5e1;
+  --unmute-input-border: #deddd9;
 
-  // Crisp, tactile light 3D shadows matching cards
-  --unmute-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
-  --unmute-shadow-md: 0 8px 24px -3px rgba(15, 23, 42, 0.07), 0 3px 8px -2px rgba(15, 23, 42, 0.03);
-  --unmute-shadow-lg: 0 18px 36px -5px rgba(15, 23, 42, 0.09), 0 6px 14px -3px rgba(15, 23, 42, 0.04);
-  --unmute-shadow-3d: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04), inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
-  --unmute-shadow-3d-hover: 0 22px 42px -6px rgba(15, 23, 42, 0.13), 0 8px 18px -3px rgba(15, 23, 42, 0.06), inset 0 2px 0 #ffffff;
+  // Refined architectural shadows (Soft ambient + crisp tactile occlusion)
+  --unmute-shadow-sm: 0 2px 8px rgba(10, 10, 10, 0.04);
+  --unmute-shadow-md: 0 10px 28px -4px rgba(10, 10, 10, 0.06), 0 3px 8px -2px rgba(10, 10, 10, 0.02);
+  --unmute-shadow-lg: 0 20px 42px -6px rgba(10, 10, 10, 0.08), 0 8px 16px -3px rgba(10, 10, 10, 0.03);
+  --unmute-shadow-3d: 0 14px 34px -4px rgba(10, 10, 10, 0.07), 0 4px 12px -2px rgba(10, 10, 10, 0.03), inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
+  --unmute-shadow-3d-hover: 0 24px 48px -6px rgba(10, 10, 10, 0.12), 0 8px 20px -3px rgba(10, 10, 10, 0.05), inset 0 2px 0 #ffffff;
 
-  // 3D Button Tactile Extrusion for Light
-  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 8px 18px rgba(15, 23, 42, 0.16);
-  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(15, 23, 42, 0.12);
+  // Tactile 3D Button Extrusion
+  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 8px 20px rgba(10, 10, 10, 0.15);
+  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(10, 10, 10, 0.10);
 
-  // Dynamic Accent Defaults (Cyberpunk Neon)
-  --unmute-primary: #8b5cf6;
-  --unmute-primary-light: #a855f7;
-  --unmute-primary-dark: #7c3aed;
-  --unmute-primary-bevel: #5b21b6;
-  --unmute-primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%);
-  --unmute-primary-surface: rgba(139, 92, 246, 0.1);
-  --unmute-glow-primary: 0 8px 25px -3px rgba(139, 92, 246, 0.35);
+  // Dynamic Accent Defaults: Elyse Luxury Obsidian & Champagne Bronze
+  --unmute-primary: #1a1817;
+  --unmute-primary-light: #463729;
+  --unmute-primary-dark: #0a0a0a;
+  --unmute-primary-bevel: #000000;
+  --unmute-primary-gradient: linear-gradient(135deg, #1a1817 0%, #383431 55%, #c5a880 100%);
+  --unmute-primary-surface: rgba(26, 24, 23, 0.08);
+  --unmute-glow-primary: 0 8px 25px -4px rgba(26, 24, 23, 0.25);
 
-  // Border Radii
+  // Border Radii (Refined architectural curve)
   --unmute-radius-xs: 8px;
   --unmute-radius-sm: 12px;
   --unmute-radius-md: 18px;
-  --unmute-radius-lg: 26px;
-  --unmute-radius-xl: 36px;
+  --unmute-radius-lg: 24px;
+  --unmute-radius-xl: 32px;
   --unmute-radius-pill: 9999px;
 
   // Typography Scale
@@ -75,80 +75,80 @@
   --unmute-transition-bounce: 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-// Explicit light theme selector
+// Explicit light theme selector (Elyse Residence)
 [data-theme="light"] {
-  --unmute-bg: #f4f6fb;
+  --unmute-bg: #f5f5f3;
   --unmute-surface: #ffffff;
-  --unmute-surface-raised: #f8fafd;
-  --unmute-surface-overlay: #eef2f9;
-  --unmute-surface-active: #e4ebf8;
+  --unmute-surface-raised: #faf9f6;
+  --unmute-surface-overlay: #efefea;
+  --unmute-surface-active: #e8e7e2;
 
-  --unmute-glass-bg: rgba(255, 255, 255, 0.94);
-  --unmute-glass-surface: rgba(248, 250, 253, 0.92);
-  --unmute-glass-border: rgba(15, 23, 42, 0.08);
-  --unmute-glass-border-hover: rgba(15, 23, 42, 0.18);
+  --unmute-glass-bg: rgba(255, 255, 255, 0.92);
+  --unmute-glass-surface: rgba(250, 249, 246, 0.90);
+  --unmute-glass-border: rgba(10, 10, 10, 0.08);
+  --unmute-glass-border-hover: rgba(10, 10, 10, 0.20);
   --unmute-glass-highlight: rgba(255, 255, 255, 0.98);
 
-  --unmute-3d-specular: inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(15, 23, 42, 0.05);
-  --unmute-3d-card-rim: inset 0 1.5px 0 0 rgba(255, 255, 255, 1), inset 0 -1.5px 0 0 rgba(15, 23, 42, 0.04);
+  --unmute-3d-specular: inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(10, 10, 10, 0.06);
+  --unmute-3d-card-rim: inset 0 1.5px 0 0 #ffffff, inset 0 -1.5px 0 0 rgba(10, 10, 10, 0.04);
 
-  --unmute-text-primary: #0f172a;
-  --unmute-text-secondary: #334155;
-  --unmute-text-muted: #64748b;
-  --unmute-text-dim: #94a3b8;
+  --unmute-text-primary: #0a0a0a;
+  --unmute-text-secondary: #463729;
+  --unmute-text-muted: #6e6d6b;
+  --unmute-text-dim: #9e9d9a;
 
   --unmute-input-bg: #ffffff;
-  --unmute-input-border: #cbd5e1;
+  --unmute-input-border: #deddd9;
 
-  --unmute-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
-  --unmute-shadow-md: 0 8px 24px -3px rgba(15, 23, 42, 0.07), 0 3px 8px -2px rgba(15, 23, 42, 0.03);
-  --unmute-shadow-lg: 0 18px 36px -5px rgba(15, 23, 42, 0.09), 0 6px 14px -3px rgba(15, 23, 42, 0.04);
-  --unmute-shadow-3d: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04), inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
-  --unmute-shadow-3d-hover: 0 22px 42px -6px rgba(15, 23, 42, 0.13), 0 8px 18px -3px rgba(15, 23, 42, 0.06), inset 0 2px 0 #ffffff;
+  --unmute-shadow-sm: 0 2px 8px rgba(10, 10, 10, 0.04);
+  --unmute-shadow-md: 0 10px 28px -4px rgba(10, 10, 10, 0.06), 0 3px 8px -2px rgba(10, 10, 10, 0.02);
+  --unmute-shadow-lg: 0 20px 42px -6px rgba(10, 10, 10, 0.08), 0 8px 16px -3px rgba(10, 10, 10, 0.03);
+  --unmute-shadow-3d: 0 14px 34px -4px rgba(10, 10, 10, 0.07), 0 4px 12px -2px rgba(10, 10, 10, 0.03), inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
+  --unmute-shadow-3d-hover: 0 24px 48px -6px rgba(10, 10, 10, 0.12), 0 8px 20px -3px rgba(10, 10, 10, 0.05), inset 0 2px 0 #ffffff;
 
-  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 8px 18px rgba(15, 23, 42, 0.16);
-  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(15, 23, 42, 0.12);
+  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 8px 20px rgba(10, 10, 10, 0.15);
+  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(10, 10, 10, 0.10);
 
-  --unmute-glow-primary: 0 8px 25px -3px rgba(139, 92, 246, 0.35);
-  --unmute-primary-surface: rgba(139, 92, 246, 0.1);
+  --unmute-glow-primary: 0 8px 25px -4px rgba(26, 24, 23, 0.25);
+  --unmute-primary-surface: rgba(26, 24, 23, 0.08);
 }
 
-// --- DARK THEME OPTION ---
+// --- ELYSE RESIDENCE: LUXURY NOCTURNE THEME ---
 [data-theme="dark"] {
-  --unmute-bg: #06080e;
-  --unmute-surface: #0e121e;
-  --unmute-surface-raised: #151b2c;
-  --unmute-surface-overlay: #1d253c;
-  --unmute-surface-active: #273150;
+  --unmute-bg: #0c0d0e;
+  --unmute-surface: #141619;
+  --unmute-surface-raised: #1a1d21;
+  --unmute-surface-overlay: #23272d;
+  --unmute-surface-active: #2e333b;
 
-  --unmute-glass-bg: rgba(14, 18, 30, 0.82);
-  --unmute-glass-surface: rgba(21, 27, 44, 0.72);
-  --unmute-glass-border: rgba(255, 255, 255, 0.1);
+  --unmute-glass-bg: rgba(20, 22, 25, 0.88);
+  --unmute-glass-surface: rgba(26, 29, 33, 0.82);
+  --unmute-glass-border: rgba(255, 255, 255, 0.09);
   --unmute-glass-border-hover: rgba(255, 255, 255, 0.22);
   --unmute-glass-highlight: rgba(255, 255, 255, 0.18);
 
   --unmute-3d-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.4);
-  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 0 rgba(0, 0, 0, 0.35);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.5);
+  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 0 rgba(0, 0, 0, 0.4);
 
-  --unmute-text-primary: #f8fafc;
-  --unmute-text-secondary: #94a3b8;
-  --unmute-text-muted: #64748b;
-  --unmute-text-dim: #475569;
+  --unmute-text-primary: #f5f5f3;
+  --unmute-text-secondary: #c5a880;
+  --unmute-text-muted: #8e8d8a;
+  --unmute-text-dim: #5c5b58;
 
-  --unmute-input-bg: #0b0e18;
-  --unmute-input-border: #1f273d;
+  --unmute-input-bg: #101214;
+  --unmute-input-border: #26292f;
 
-  --unmute-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --unmute-shadow-md: 0 8px 24px -2px rgba(0, 0, 0, 0.45), 0 3px 8px -1px rgba(0, 0, 0, 0.3);
-  --unmute-shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 14px -2px rgba(0, 0, 0, 0.35);
-  --unmute-shadow-3d: 0 16px 32px -4px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.4), inset 0 1.5px 0 rgba(255, 255, 255, 0.14);
-  --unmute-shadow-3d-hover: 0 24px 48px -6px rgba(0, 0, 0, 0.7), 0 8px 20px -3px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.25);
+  --unmute-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --unmute-shadow-md: 0 10px 28px -3px rgba(0, 0, 0, 0.5), 0 3px 8px -1px rgba(0, 0, 0, 0.35);
+  --unmute-shadow-lg: 0 20px 42px -5px rgba(0, 0, 0, 0.65), 0 8px 18px -2px rgba(0, 0, 0, 0.45);
+  --unmute-shadow-3d: 0 16px 36px -4px rgba(0, 0, 0, 0.65), 0 4px 14px -2px rgba(0, 0, 0, 0.45), inset 0 1.5px 0 rgba(255, 255, 255, 0.12);
+  --unmute-shadow-3d-hover: 0 26px 52px -6px rgba(0, 0, 0, 0.75), 0 10px 22px -3px rgba(0, 0, 0, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.22);
 
-  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 10px 22px rgba(0, 0, 0, 0.4);
-  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 4px 10px rgba(0, 0, 0, 0.3);
+  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 10px 22px rgba(0, 0, 0, 0.45);
+  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 4px 10px rgba(0, 0, 0, 0.35);
 
-  --unmute-primary-surface: rgba(139, 92, 246, 0.16);
-  --unmute-glow-primary: 0 8px 30px -4px rgba(217, 70, 239, 0.55);
+  --unmute-primary-surface: rgba(197, 168, 128, 0.12);
+  --unmute-glow-primary: 0 8px 30px -4px rgba(197, 168, 128, 0.4);
 }

@@ -1,41 +1,71 @@
 <template>
   <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
-    <!-- Ambient 3D Depth Blobs -->
-    <div class="position-absolute ambient-blob-top rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary); opacity: 0.12;"></div>
-    <div class="position-absolute ambient-blob-bottom rounded-circle pointer-events-none animate-pulse-glow" style="background: var(--unmute-primary-light); opacity: 0.10; animation-delay: 1.5s;"></div>
+    <!-- Subtle Architectural Ambient Halos -->
+    <div class="position-absolute ambient-halo-top rounded-circle pointer-events-none" style="background: radial-gradient(circle, var(--unmute-primary-surface) 0%, transparent 70%);"></div>
+    <div class="position-absolute ambient-halo-bottom rounded-circle pointer-events-none" style="background: radial-gradient(circle, var(--unmute-primary-surface) 0%, transparent 70%);"></div>
 
     <div class="w-100 max-w-md position-relative" style="z-index: 10;">
-      <UCard variant="glass" padding="lg" class="shadow-2xl">
+      <UCard variant="elevated" padding="lg" class="shadow-2xl elyse-auth-card">
         <div class="d-flex flex-column gap-4">
-          <!-- Title -->
-          <div class="text-center">
+          <!-- Header -->
+          <div class="text-center pt-2">
             <div
-              class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-2 animate-float"
-              style="background: var(--unmute-primary-gradient); box-shadow: 0 4px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);"
+              class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-3"
+              style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-btn-3d-shadow), var(--unmute-3d-specular);"
             >
               <i class="ri-voiceprint-fill text-white fs-2"></i>
             </div>
-            <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">
+            <h1 class="brand-heading fs-2 fw-bold tracking-tight mb-1" style="color: var(--unmute-text-primary);">
               Join Unmute
             </h1>
-            <p class="small fw-medium mb-0" style="color: var(--unmute-text-muted);">
-              Discover people based on shared interests & conversation
+            <p class="small mb-0" style="color: var(--unmute-text-muted); font-family: 'Outfit', sans-serif;">
+              Meet meaningful people through shared passions
             </p>
           </div>
 
           <!-- Error Alert -->
-          <div v-if="error" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
-            {{ error }}
+          <div v-if="error" class="alert alert-danger py-2 px-3 small rounded-3 mb-0 d-flex align-items-center gap-2">
+            <i class="ri-error-warning-line fs-5 flex-shrink-0"></i>
+            <span>{{ error }}</span>
           </div>
 
-          <!-- Form -->
+          <!-- Google 1-Click Registration Button -->
+          <div class="d-flex flex-column gap-2">
+            <button
+              type="button"
+              class="btn-google-auth w-100 d-flex align-items-center justify-content-center gap-3 py-2.5 px-4 rounded-3 user-select-none"
+              :disabled="loading"
+              @click="handleGoogleSignIn"
+            >
+              <svg class="google-icon" width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              <span class="fw-semibold small" style="color: var(--unmute-text-primary);">
+                Sign up with Google
+              </span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="d-flex align-items-center gap-3">
+            <hr class="flex-grow-1 my-0 opacity-25" />
+            <span class="extra-small text-uppercase tracking-widest fw-semibold" style="color: var(--unmute-text-dim);">
+              or register with email
+            </span>
+            <hr class="flex-grow-1 my-0 opacity-25" />
+          </div>
+
+          <!-- Registration Form -->
           <form @submit.prevent="handleRegister" class="d-flex flex-column gap-3">
             <UInput
               v-model="displayName"
-              label="Display Name"
+              label="Preferred Name"
               type="text"
               required
-              placeholder="e.g. Alex"
+              placeholder="e.g. Julian"
             />
 
             <UInput
@@ -43,7 +73,7 @@
               label="Email address"
               type="email"
               required
-              placeholder="alex@example.com"
+              placeholder="julian@residence.com"
             />
 
             <UInput
@@ -52,7 +82,7 @@
               type="date"
               required
               :max="maxDateFor18"
-              hint="Only your age is shown publicly, never your full date of birth (18+ only)"
+              hint="Only your age is visible to peers (Strict 18+ policy)"
             />
 
             <UInput
@@ -72,35 +102,89 @@
                 block
                 :loading="loading"
               >
-                Continue to Profile Setup
+                Create Account
               </UButton>
             </div>
           </form>
 
-          <!-- Terms / Safety note -->
-          <p class="extra-small text-muted text-center lh-base mb-0">
-            By joining Unmute, you confirm that you are at least 18 years old and agree to treat all members with respect.
+          <!-- Safe Community Pledge -->
+          <p class="extra-small text-center lh-base mb-0" style="color: var(--unmute-text-muted);">
+            By joining, you confirm you are 18+ and adhere to the Unmute Community Respect Guidelines.
           </p>
 
           <!-- Switch to Login -->
-          <div class="text-center small text-muted pt-1">
-            Already have an account?
-            <router-link to="/login" class="fw-bold ms-1 text-decoration-none" style="color: var(--unmute-primary);">
+          <div class="text-center small pt-1" style="color: var(--unmute-text-muted);">
+            Already a member?
+            <router-link to="/login" class="fw-bold ms-1 text-decoration-none" style="color: var(--unmute-text-primary); text-decoration: underline !important;">
               Log in
             </router-link>
           </div>
         </div>
       </UCard>
     </div>
+
+    <!-- Google 18+ Age Verification Modal -->
+    <UModal
+      :isOpen="showDobModal"
+      title="Verify Age to Complete Registration"
+      maxWidth="sm"
+      :closeOnBackdrop="false"
+      @close="showDobModal = false"
+    >
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3 surface-raised border" style="border-color: var(--unmute-glass-border) !important;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle p-2">
+            <i class="ri-google-fill fs-4" style="color: var(--unmute-primary);"></i>
+          </div>
+          <div class="small">
+            <div class="fw-bold" style="color: var(--unmute-text-primary);">{{ pendingGoogleData.displayName || 'Google Account' }}</div>
+            <div class="text-muted text-truncate" style="max-width: 220px;">{{ pendingGoogleData.email }}</div>
+          </div>
+        </div>
+
+        <p class="small mb-0" style="color: var(--unmute-text-secondary); line-height: 1.5;">
+          Unmute is an exclusive adult community for individuals 18 years of age and older. Please confirm your date of birth to proceed:
+        </p>
+
+        <UInput
+          v-model="googleDob"
+          label="Date of Birth"
+          type="date"
+          required
+          :max="maxDateFor18"
+          hint="Only your age is displayed publicly"
+        />
+
+        <div v-if="dobError" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
+          {{ dobError }}
+        </div>
+      </div>
+
+      <template #footer>
+        <UButton variant="secondary" size="md" @click="showDobModal = false">
+          Cancel
+        </UButton>
+        <UButton
+          variant="primary"
+          size="md"
+          :loading="loading"
+          :disabled="!googleDob"
+          @click="confirmGoogleDob"
+        >
+          Confirm & Begin
+        </UButton>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
 import UInput from '../components/ui/UInput.vue';
 import UButton from '../components/ui/UButton.vue';
+import UModal from '../components/ui/UModal.vue';
 import { useAuthStore } from '../stores/auth';
 
 const router = useRouter();
@@ -113,12 +197,132 @@ const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+// Google Registration Modal
+const showDobModal = ref(false);
+const googleDob = ref('');
+const dobError = ref<string | null>(null);
+const pendingGoogleData = ref({
+  credential: '',
+  googleId: '',
+  email: '',
+  displayName: '',
+  avatarUrl: '',
+});
+
 // Calculate max date eligible for 18 years old
 const maxDateFor18 = computed(() => {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 18);
   return d.toISOString().split('T')[0];
 });
+
+onMounted(() => {
+  initGoogleAuth();
+});
+
+function initGoogleAuth() {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && clientId) {
+    try {
+      (window as any).google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredentialResponse,
+      });
+    } catch (err) {
+      console.warn('Google Identity initialization error:', err);
+    }
+  }
+}
+
+async function handleGoogleCredentialResponse(response: any) {
+  if (!response?.credential) return;
+  await processGoogleAuth({ credential: response.credential });
+}
+
+async function handleGoogleSignIn() {
+  error.value = null;
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  
+  if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && clientId) {
+    (window as any).google.accounts.id.prompt();
+    return;
+  }
+
+  // Seamless Google OAuth demo signup
+  const defaultGoogleEmail = 'elena.roche@gmail.com';
+  const promptEmail = window.prompt(
+    'Enter your Google account email to register instantly via Google:',
+    defaultGoogleEmail
+  );
+  if (!promptEmail) return;
+
+  const demoGoogleId = 'goog_' + btoa(promptEmail.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+  const demoName = promptEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  await processGoogleAuth({
+    googleId: demoGoogleId,
+    email: promptEmail.trim(),
+    displayName: demoName,
+    avatarUrl: `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${encodeURIComponent(promptEmail)}`,
+  });
+}
+
+async function processGoogleAuth(payload: {
+  credential?: string;
+  googleId?: string;
+  email?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  dateOfBirth?: string;
+}) {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await authStore.loginWithGoogle(payload);
+    if (res.requiresDob) {
+      pendingGoogleData.value = {
+        credential: payload.credential || '',
+        googleId: res.googleId || payload.googleId || '',
+        email: res.email || payload.email || '',
+        displayName: res.displayName || payload.displayName || '',
+        avatarUrl: res.avatarUrl || payload.avatarUrl || '',
+      };
+      googleDob.value = '2000-01-01';
+      showDobModal.value = true;
+      return;
+    }
+
+    if (res.isNewUser) {
+      router.push('/profile');
+    } else {
+      router.push('/discover');
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Google signup failed';
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function confirmGoogleDob() {
+  if (!googleDob.value) {
+    dobError.value = 'Please select your date of birth.';
+    return;
+  }
+  dobError.value = null;
+  loading.value = true;
+  try {
+    await processGoogleAuth({
+      ...pendingGoogleData.value,
+      dateOfBirth: googleDob.value,
+    });
+    showDobModal.value = false;
+  } catch (err: any) {
+    dobError.value = err.message || 'Age verification failed';
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function handleRegister() {
   loading.value = true;
@@ -140,26 +344,56 @@ async function handleRegister() {
 </script>
 
 <style scoped lang="scss">
-.ambient-blob-top {
-  top: -5rem;
-  right: -5rem;
-  width: 24rem;
-  height: 24rem;
-  filter: blur(120px);
+.ambient-halo-top {
+  top: -10rem;
+  right: -10rem;
+  width: 32rem;
+  height: 32rem;
+  filter: blur(80px);
+  opacity: 0.8;
 }
 
-.ambient-blob-bottom {
-  bottom: -5rem;
-  left: -5rem;
-  width: 24rem;
-  height: 24rem;
-  filter: blur(120px);
+.ambient-halo-bottom {
+  bottom: -10rem;
+  left: -10rem;
+  width: 32rem;
+  height: 32rem;
+  filter: blur(80px);
+  opacity: 0.8;
+}
+
+.elyse-auth-card {
+  border: 1px solid var(--unmute-glass-border, rgba(10, 10, 10, 0.08)) !important;
+  background-color: var(--unmute-surface, #ffffff) !important;
+  border-radius: var(--unmute-radius-xl, 32px);
 }
 
 .auth-logo-badge {
-  width: 3.75rem;
-  height: 3.75rem;
-  border-radius: var(--unmute-radius-lg, 20px);
+  width: 4rem;
+  height: 4rem;
+  border-radius: 20px;
+}
+
+.brand-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.btn-google-auth {
+  background-color: var(--unmute-surface, #ffffff);
+  border: 1px solid var(--unmute-input-border, #deddd9);
+  box-shadow: var(--unmute-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: all var(--unmute-transition-fast);
+
+  &:hover {
+    background-color: var(--unmute-surface-raised, #faf9f6);
+    border-color: var(--unmute-glass-border-hover, rgba(10, 10, 10, 0.2));
+    box-shadow: var(--unmute-shadow-md);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
 }
 
 .extra-small {

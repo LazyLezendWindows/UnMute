@@ -27,6 +27,18 @@ export class AuthController {
     }
   }
 
+  static async googleAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AuthService.googleAuth(req.body);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async logout(_req: Request, res: Response): Promise<void> {
     // JWT tokens are stateless; client clears token
     res.status(200).json({

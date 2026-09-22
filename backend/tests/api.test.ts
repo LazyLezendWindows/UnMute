@@ -102,6 +102,69 @@ describe('Unmute API End-to-End Test Suite', () => {
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
     });
+
+    it('should return requiresDob when new Google user authenticates without date of birth', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({
+          email: 'googleuser@example.com',
+          googleId: 'google-sub-123456',
+          displayName: 'Google User',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.requiresDob).toBe(true);
+      expect(res.body.data.email).toBe('googleuser@example.com');
+    });
+
+    it('should reject Google registration if dateOfBirth is under 18', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({
+          email: 'underage-google@example.com',
+          googleId: 'google-sub-underage',
+          displayName: 'Underage Google',
+          dateOfBirth: '2012-05-15',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('should successfully register a new user via Google auth with 18+ dateOfBirth', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({
+          email: 'googleuser@example.com',
+          googleId: 'google-sub-123456',
+          displayName: 'Google Member',
+          dateOfBirth: '1996-04-12',
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.token).toBeDefined();
+      expect(res.body.data.isNewUser).toBe(true);
+      expect(res.body.data.user.email).toBe('googleuser@example.com');
+      expect(res.body.data.user.profile.isVerified).toBe(true);
+    });
+
+    it('should authenticate existing Google user directly without requiring dateOfBirth again', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({
+          googleId: 'google-sub-123456',
+          email: 'googleuser@example.com',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.token).toBeDefined();
+      expect(res.body.data.isNewUser).toBe(false);
+      expect(res.body.data.user.email).toBe('googleuser@example.com');
+    });
   });
 
   describe('Profile & Interests', () => {

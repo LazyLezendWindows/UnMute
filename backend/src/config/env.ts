@@ -10,6 +10,7 @@ export const config = {
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   minAge: parseInt(process.env.MIN_AGE || '18', 10),
   jwtExpiresIn: '7d',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   // MariaDB configuration
   mariadb: {
     host: process.env.MARIADB_HOST || '127.0.0.1',

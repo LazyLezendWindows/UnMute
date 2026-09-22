@@ -33,7 +33,7 @@
       <!-- Candidate Basic Info Overlay -->
       <div class="position-absolute bottom-0 start-0 end-0 p-4">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <h2 class="font-display fs-3 fw-bolder text-white mb-0 text-shadow">
+          <h2 class="fs-3 fw-bold text-white mb-0 text-shadow" style="font-family: 'Playfair Display', Georgia, serif; letter-spacing: -0.015em;">
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">

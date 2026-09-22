@@ -25,5 +25,21 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+export const googleAuthSchema = z.object({
+  credential: z.string().optional(),
+  email: z.string().email('Please enter a valid email address').optional(),
+  displayName: z.string().trim().max(100).optional(),
+  avatarUrl: z.string().optional(),
+  googleId: z.string().optional(),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+    .refine((dob) => isAtLeast18YearsOld(dob), {
+      message: 'You must be at least 18 years of age to join Unmute',
+    })
+    .optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

@@ -88,6 +88,48 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithGoogle(payload: {
+    credential?: string;
+    googleId?: string;
+    email?: string;
+    displayName?: string;
+    avatarUrl?: string;
+    dateOfBirth?: string;
+  }) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await api.post('/auth/google', payload);
+      const result = res.data.data;
+      if (result.requiresDob) {
+        return {
+          requiresDob: true,
+          email: result.email,
+          googleId: result.googleId,
+          displayName: result.displayName,
+          avatarUrl: result.avatarUrl,
+        };
+      }
+      token.value = result.token;
+      user.value = result.user;
+      if (token.value) {
+        localStorage.setItem('unmute_token', token.value);
+        connectSocket(token.value);
+      }
+      return {
+        requiresDob: false,
+        isNewUser: result.isNewUser,
+        user: result.user,
+        token: result.token,
+      };
+    } catch (err: any) {
+      error.value = err.message || 'Google authentication failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function logout() {
     token.value = null;
     user.value = null;
@@ -104,6 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     register,
     login,
+    loginWithGoogle,
     fetchMe,
     updateProfile,
     logout,

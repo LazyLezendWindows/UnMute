@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-export type AccentColor = 'cyberpunk' | 'aurora' | 'ember' | 'matrix' | 'luxe' | 'sapphire';
+export type AccentColor = 'elyse' | 'cyberpunk' | 'aurora' | 'ember' | 'matrix' | 'luxe' | 'sapphire';
 
 export interface AccentPreset {
   id: AccentColor;
@@ -19,6 +19,19 @@ export interface AccentPreset {
 }
 
 export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
+  elyse: {
+    id: 'elyse',
+    name: 'Elyse Residence',
+    subtitle: 'Obsidian Charcoal & Champagne Bronze',
+    primary: '#1a1817',
+    light: '#463729',
+    dark: '#0a0a0a',
+    bevel: '#000000',
+    gradient: 'linear-gradient(135deg, #1a1817 0%, #383431 55%, #c5a880 100%)',
+    glow: '0 8px 25px -4px rgba(26, 24, 23, 0.25)',
+    surface: 'rgba(26, 24, 23, 0.08)',
+    preview: '#c5a880',
+  },
   cyberpunk: {
     id: 'cyberpunk',
     name: 'Cyberpunk Neon',
@@ -101,13 +114,13 @@ export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
 
 export const useThemeStore = defineStore('theme', () => {
   const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'light';
-  const rawAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'cyberpunk';
-  const initialAccent: AccentColor = ACCENT_PRESETS[rawAccent] ? rawAccent : 'cyberpunk';
+  const rawAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'elyse';
+  const initialAccent: AccentColor = ACCENT_PRESETS[rawAccent] ? rawAccent : 'elyse';
 
   const mode = ref<ThemeMode>(savedMode);
   const accent = ref<AccentColor>(initialAccent);
 
-  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS.cyberpunk);
+  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS.elyse);
 
   const isDarkMode = computed(() => {
     if (mode.value === 'system') {
