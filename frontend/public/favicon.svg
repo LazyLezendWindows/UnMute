@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="unmute-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#0f172a" />
+  <!-- Wave / Unmute Symbol -->
+  <path d="M30 40V60M43 30V70M57 20V80M70 35V65" stroke="url(#unmute-grad)" stroke-width="8" stroke-linecap="round" />
+</svg>
