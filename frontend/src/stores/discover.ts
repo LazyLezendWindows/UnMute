@@ -157,21 +157,13 @@ export const useDiscoverStore = defineStore('discover', () => {
   const passCurrent = () => interactWithCurrent('pass');
 
   async function blockUser(targetUserId: string, reason = '') {
-    try {
-      await api.post('/safety/block', { targetUserId, reason });
-      // Remove from feed if present
-      feed.value = feed.value.filter((u) => u.id !== targetUserId);
-    } catch (err: any) {
-      throw err;
-    }
+    await api.post('/safety/block', { targetUserId, reason });
+    // Remove from feed if present
+    feed.value = feed.value.filter((u) => u.id !== targetUserId);
   }
 
   async function reportUser(reportedUserId: string, category: string, details = '') {
-    try {
-      await api.post('/safety/reports', { reportedUserId, category, details });
-    } catch (err: any) {
-      throw err;
-    }
+    await api.post('/safety/reports', { reportedUserId, category, details });
   }
 
   function dismissMatchModal() {

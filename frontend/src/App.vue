@@ -3,6 +3,7 @@
     <router-view />
   </component>
   <UToast />
+  <OfflineBanner />
 </template>
 
 <script setup lang="ts">
@@ -10,6 +11,7 @@ import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppLayout from './layouts/AppLayout.vue';
 import UToast from './components/ui/UToast.vue';
+import OfflineBanner from './components/layout/OfflineBanner.vue';
 import { useAuthStore } from './stores/auth';
 
 const route = useRoute();

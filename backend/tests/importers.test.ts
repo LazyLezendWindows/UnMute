@@ -38,7 +38,7 @@ describe('Reference data importers', () => {
 
   describe('LGD places', () => {
     // An LGD village download: BOM, quoted fields, "(In English)" headers, ALL-CAPS names.
-    const villages = `﻿"State Code","State Name (In English)","District Code","District Name (In English)","Sub-District Code","Sub-District Name (In English)","Village Code","Village Name (In English)"
+    const villages = `\uFEFF"State Code","State Name (In English)","District Code","District Name (In English)","Sub-District Code","Sub-District Name (In English)","Village Code","Village Name (In English)"
 36,Telangana,999001,Sangareddy,999101,Patancheru,999201,ISNAPUR
 36,Telangana,999001,Sangareddy,999101,Patancheru,999202,"MUTHANGI, NEW"
 36,Telangana,999001,Sangareddy,999102,Zaheerabad,999203,KOHIR

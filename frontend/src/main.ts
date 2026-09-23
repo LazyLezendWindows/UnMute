@@ -18,3 +18,9 @@ themeStore.initTheme();
 
 app.mount('#app');
 
+
+// Offline app shell for the web/PWA only; Capacitor apps load their bundled files directly.
+import { Capacitor } from '@capacitor/core';
+if (!Capacitor.isNativePlatform() && 'serviceWorker' in navigator) {
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+}

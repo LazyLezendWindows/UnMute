@@ -15,6 +15,16 @@ if (isProduction && corsOrigins.length === 0) {
   throw new Error('CORS_ORIGIN must be set in production');
 }
 
+/**
+ * `lax` (default) suits a web app served from the API's own site. The Capacitor app runs on its own
+ * origin (https://localhost, capacitor://localhost), so it needs `none`, which browsers only accept
+ * together with Secure, i.e. over HTTPS.
+ */
+const cookieSameSite = (process.env.SESSION_COOKIE_SAMESITE || 'lax').toLowerCase();
+if (cookieSameSite !== 'lax' && cookieSameSite !== 'none') {
+  throw new Error('SESSION_COOKIE_SAMESITE must be "lax" or "none"');
+}
+
 export const config = {
   env,
   isProduction,
@@ -29,6 +39,9 @@ export const config = {
     // The __Host- prefix makes browsers require Secure, Path=/ and no Domain for the cookie.
     cookieName: isProduction ? '__Host-unmute_session' : 'unmute_session',
     ttlDays: parseInt(process.env.SESSION_TTL_DAYS || '30', 10),
+    sameSite: cookieSameSite as 'lax' | 'none',
+    // SameSite=None cookies are rejected by browsers unless Secure.
+    secure: isProduction || cookieSameSite === 'none',
   },
   /** Seed demo accounts on an empty database (never in production). */
   seedDemoUsers: !isProduction && process.env.SEED_DEMO_USERS === 'true',

@@ -1,9 +1,9 @@
 <template>
   <div class="u-input-wrapper w-100 d-flex flex-column gap-1">
     <div v-if="label || $slots.label" class="d-flex align-items-center justify-content-between">
-      <label v-if="label" class="form-label small fw-semibold mb-0 u-text-secondary">
+      <label v-if="label" :for="inputId" class="form-label small fw-semibold mb-0 u-text-secondary">
         {{ label }}
-        <span v-if="required" class="text-danger">*</span>
+        <span v-if="required" class="text-danger" aria-hidden="true">*</span>
       </label>
       <slot name="label-right" />
     </div>
@@ -15,7 +15,7 @@
       </div>
 
       <input
-        :id="id"
+        :id="inputId"
         :type="type"
         :value="modelValue"
         :placeholder="placeholder"
@@ -25,6 +25,8 @@
         :maxlength="maxlength"
         :min="min"
         :max="max"
+        :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="error ? errorId : hint ? hintId : undefined"
         class="u-input w-100 rounded-2xl py-2 small transition-all"
         :class="[
           icon ? 'ps-5 pe-3' : 'px-3',
@@ -43,19 +45,21 @@
     </div>
 
     <!-- Error message -->
-    <p v-if="error" class="small text-danger fw-medium d-flex align-items-center gap-1 mb-0 animate-fade-in">
+    <p v-if="error" :id="errorId" class="small text-danger fw-medium d-flex align-items-center gap-1 mb-0 animate-fade-in">
       <span>{{ error }}</span>
     </p>
 
     <!-- Hint message -->
-    <p v-else-if="hint" class="u-input-hint small text-muted mb-0">
+    <p v-else-if="hint" :id="hintId" class="u-input-hint small u-text-muted mb-0">
       {{ hint }}
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { computed, useId } from 'vue';
+
+const props = withDefaults(
   defineProps<{
     modelValue?: string | number;
     label?: string;
@@ -78,6 +82,12 @@ withDefaults(
     required: false,
   }
 );
+
+// Labels, hints and errors are tied to the input so assistive tech announces them.
+const autoId = useId();
+const inputId = computed(() => props.id || `${autoId}-input`);
+const hintId = `${autoId}-hint`;
+const errorId = `${autoId}-error`;
 
 defineEmits<{
   (e: 'update:modelValue', value: string): void;

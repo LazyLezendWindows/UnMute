@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 /** API error carrying the HTTP status so callers can distinguish auth failures from other errors. */
 export class ApiError extends Error {
@@ -15,7 +16,7 @@ export function onUnauthorized(handler: () => void): void {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: API_BASE_URL,
   // The session lives in an HttpOnly cookie set by the backend; JS never sees the token.
   withCredentials: true,
   headers: {

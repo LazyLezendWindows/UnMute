@@ -3,12 +3,17 @@ import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
+// Where the dev server proxies /api and /socket.io (the e2e suite runs its own backend).
+const apiProxyTarget = process.env.API_PROXY_TARGET || 'http://localhost:5000';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registered from main.ts, and only on the web: native builds already ship their assets.
+      injectRegister: null,
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'Unmute - Connect without the pressure',
@@ -33,12 +38,17 @@ export default defineConfig({
             src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'maskable',
           },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
+        // Deep links open the cached app shell offline, but API and realtime traffic must always
+        // reach the network: personal data is never cached by the service worker.
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//, /^\/health$/],
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -89,11 +99,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: apiProxyTarget,
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://localhost:5000',
+        target: apiProxyTarget,
         ws: true,
       },
     },

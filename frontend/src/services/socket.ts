@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_ORIGIN } from '../config';
 
 let socket: Socket | null = null;
 
@@ -12,7 +13,7 @@ export function connectSocket(): Socket {
     return socket;
   }
 
-  socket = io(window.location.origin, {
+  socket = io(SOCKET_ORIGIN, {
     withCredentials: true,
     reconnection: true,
     reconnectionAttempts: 5,

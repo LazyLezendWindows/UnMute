@@ -186,13 +186,30 @@ npm run import:data -- institutions path/to/colleges.csv [--kind college]
 
 Use `npm run import:data:prod -- …` against the compiled build. Header names are matched loosely (e.g. `State Name (In English)` or `statename`); each importer's accepted columns are documented at the top of `backend/src/importers/`. LGD itself has no coordinates, so an imported village borrows its sub-district's or district's where one is known (the sample districts have them); members whose area has no coordinates at all still appear in area, PIN code and college filters, but not in distance filters. The PIN code import averages post-office coordinates per PIN code, so setting your area by PIN code usually gives accurate distances, and "Near me" always does. Sample districts are named, not coded, so an LGD import adopts matching names; a district whose official name differs (e.g. `Mumbai` vs `Mumbai City`) remains alongside the imported one.
 
-### Running Automated Tests
+### Running Automated Tests & Lint
 
 ```bash
-npm run test
+npm run lint        # ESLint, backend + frontend
+npm test            # backend API/integration tests + frontend unit tests (Vitest)
+npm run test:e2e    # Playwright end-to-end smoke tests (needs MariaDB running)
 ```
 
-Tests run against a separate `unmute_test_db` database (created automatically) and refuse to run against any database not named `*_test_db`.
+Backend tests run against a separate `unmute_test_db` database (created automatically) and refuse to run against any database not named `*_test_db`. The end-to-end suite starts its own backend (port 5100, database `unmute_e2e_db`, dropped and recreated each run) and Vite (port 5174), and drives the installed Google Chrome; set `PW_CHANNEL=` after `npx playwright install chromium` to use Playwright's browser instead.
+
+### PWA & Native Apps (Capacitor)
+
+The web build is an installable PWA: the app shell is cached for offline start, while `/api` and `/socket.io` always go to the network (personal data is never cached), and an offline banner appears when the connection drops.
+
+Android and iOS apps wrap the same build with Capacitor (`frontend/capacitor.config.ts`):
+
+```bash
+cd frontend
+VITE_API_URL=https://api.example.com/api/v1 npm run cap:sync   # build + copy into native projects
+npx cap add android    # first time only (needs Android Studio); likewise `npx cap add ios` on macOS
+npm run cap:android    # open in Android Studio
+```
+
+The native apps run on their own origin, so the backend must be served over HTTPS with `SESSION_COOKIE_SAMESITE=none` and `CORS_ORIGIN` including `https://localhost` (Android) and `capacitor://localhost` (iOS). Google Identity Services does not run inside native WebViews; native Google sign-in needs a Capacitor Google-auth plugin that returns an ID token to `POST /auth/google` (not yet added).
 
 ### Production Build
 

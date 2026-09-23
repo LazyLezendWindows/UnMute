@@ -53,8 +53,8 @@ export class SessionService {
   static setCookie(res: Response, token: string, expiresAt: Date): void {
     res.cookie(config.session.cookieName, token, {
       httpOnly: true,
-      secure: config.isProduction,
-      sameSite: 'lax',
+      secure: config.session.secure,
+      sameSite: config.session.sameSite,
       path: '/',
       expires: expiresAt,
     });
@@ -63,8 +63,8 @@ export class SessionService {
   static clearCookie(res: Response): void {
     res.clearCookie(config.session.cookieName, {
       httpOnly: true,
-      secure: config.isProduction,
-      sameSite: 'lax',
+      secure: config.session.secure,
+      sameSite: config.session.sameSite,
       path: '/',
     });
   }

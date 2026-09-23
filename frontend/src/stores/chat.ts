@@ -94,8 +94,6 @@ export const useChatStore = defineStore('chat', () => {
         conv.lastMessageAt = msg.createdAt;
       }
       return msg;
-    } catch (err: any) {
-      throw err;
     } finally {
       sending.value = false;
     }
