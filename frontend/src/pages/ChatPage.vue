@@ -1,5 +1,6 @@
 <template>
   <div
+    :class="{ 'in-thread': activeConversationId }"
     class="chat-layout-container flex-grow-1 d-flex flex-column flex-md-row surface-raised rounded-4 overflow-hidden max-w-4xl mx-auto w-100 position-relative border u-border-glass"
   >
     <!-- Conversations Sidebar (Desktop or Mobile when no active conversation) -->
@@ -334,9 +335,19 @@ function formatMessageTime(iso: string): string {
 <style scoped lang="scss">
 .chat-layout-container {
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  height: calc(100vh - 8.5rem);
+  // Mobile conversation list: header, top padding and the bottom-nav clearance.
+  height: calc(100vh - 11rem - env(safe-area-inset-bottom, 0px));
+
+  // Mobile open conversation: the bottom nav is hidden, the composer sits at the bottom.
+  &.in-thread {
+    height: calc(100vh - 8.5rem);
+  }
+
   @media (min-width: 768px) {
-    height: calc(100vh - 10rem);
+    &,
+    &.in-thread {
+      height: calc(100vh - 10rem);
+    }
   }
 }
 

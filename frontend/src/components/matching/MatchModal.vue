@@ -137,7 +137,7 @@ async function sendAndOpen() {
 .match-sparkle-badge {
   font-size: 0.75rem;
   background: var(--unmute-primary-surface, rgba(139, 92, 246, 0.12));
-  color: var(--unmute-primary, #8b5cf6);
+  color: var(--unmute-accent-text, #8b5cf6);
   border: 1px solid var(--unmute-glass-border);
   box-shadow: var(--unmute-shadow-sm);
 

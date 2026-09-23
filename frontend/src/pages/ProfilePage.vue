@@ -114,7 +114,7 @@
                 :class="
                   form.interactionPreferences.includes(pref)
                     ? 'pref-selected'
-                    : 'surface-raised text-white-50'
+                    : 'surface-raised u-text-secondary'
                 "
               >
                 {{ pref }}

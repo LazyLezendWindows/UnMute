@@ -32,6 +32,8 @@
   // Input background & hairline border
   --unmute-input-bg: #ffffff;
   --unmute-input-border: #deddd9;
+  // General-purpose hairline border; referenced by components and utilities.
+  --unmute-border: var(--unmute-glass-border);
 
   // Refined architectural shadows (Soft ambient + crisp tactile occlusion)
   --unmute-shadow-sm: 0 2px 8px rgba(10, 10, 10, 0.04);
@@ -51,6 +53,8 @@
   --unmute-primary-bevel: #000000;
   --unmute-primary-gradient: linear-gradient(135deg, #1a1817 0%, #383431 55%, #c5a880 100%);
   --unmute-primary-surface: rgba(26, 24, 23, 0.08);
+  // Accent as a foreground colour; the theme store swaps in a readable value for dark mode.
+  --unmute-accent-text: var(--unmute-primary);
   --unmute-glow-primary: 0 8px 25px -4px rgba(26, 24, 23, 0.25);
 
   // Border Radii (Refined architectural curve)

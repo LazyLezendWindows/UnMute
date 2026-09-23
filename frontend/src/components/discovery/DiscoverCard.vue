@@ -216,7 +216,7 @@ defineEmits<{
 .common-interests-banner {
   background: var(--unmute-primary-surface, rgba(139, 92, 246, 0.08));
   border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
-  color: var(--unmute-primary, #7c3aed);
+  color: var(--unmute-accent-text, #7c3aed);
 }
 
 .candidate-bio-box {

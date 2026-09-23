@@ -145,6 +145,9 @@ export const useThemeStore = defineStore('theme', () => {
     root.style.setProperty('--unmute-primary-gradient', preset.gradient);
     root.style.setProperty('--unmute-primary-surface', preset.surface);
     root.style.setProperty('--unmute-glow-primary', preset.glow);
+    // Accent used as text/icon colour: dark presets (e.g. Elyse obsidian) are unreadable on
+    // dark surfaces, so dark mode uses the preset's bright preview colour instead.
+    root.style.setProperty('--unmute-accent-text', isDarkMode.value ? preset.preview : preset.primary);
 
     // 3. Persist
     localStorage.setItem('unmute_theme_mode', mode.value);

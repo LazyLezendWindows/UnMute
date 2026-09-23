@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="bottom-nav d-md-none position-fixed start-0 end-0 bottom-0 m-3 z-3 surface-glass rounded-4 border px-3 py-2 d-flex justify-content-around align-items-center user-select-none bottom-nav-3d u-border-glass"
+    class="bottom-nav d-md-none position-fixed start-0 end-0 bottom-0 m-3 surface-glass rounded-4 border px-3 py-2 d-flex justify-content-around align-items-center user-select-none bottom-nav-3d u-border-glass"
   >
     <router-link
       v-for="item in mobileItems"
@@ -44,6 +44,7 @@ function iconClass(item: NavItem): string {
 
 <style scoped lang="scss">
 .bottom-nav {
+  // Above page content (main is z-index 10) so it is always visible and tappable.
   z-index: 1030;
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
 }
@@ -52,7 +53,7 @@ function iconClass(item: NavItem): string {
   color: var(--unmute-text-muted);
 
   &.is-active {
-    color: var(--unmute-primary);
+    color: var(--unmute-accent-text);
   }
 }
 

@@ -68,7 +68,7 @@ const ICONS: Record<ToastTone, string> = {
 
 .u-toast-info {
   border-left-color: var(--unmute-primary);
-  .u-toast-icon { color: var(--unmute-primary); }
+  .u-toast-icon { color: var(--unmute-accent-text); }
 }
 
 .u-toast-icon {

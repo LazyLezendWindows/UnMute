@@ -10,11 +10,11 @@
 
     <Navbar />
 
-    <main class="app-main flex-grow-1 d-flex flex-column container max-w-4xl px-3 py-3 py-md-4 position-relative">
+    <main :class="{ 'has-bottom-nav': showBottomNav }" class="app-main flex-grow-1 d-flex flex-column container max-w-4xl px-3 pt-3 pt-md-4 position-relative">
       <slot />
     </main>
 
-    <BottomNav />
+    <BottomNav v-if="showBottomNav" />
 
     <!-- Global Mutual Match Celebration Modal -->
     <MatchModal
@@ -28,9 +28,15 @@
 import Navbar from '../components/layout/Navbar.vue';
 import BottomNav from '../components/layout/BottomNav.vue';
 import MatchModal from '../components/matching/MatchModal.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { useDiscoverStore } from '../stores/discover';
 
+const route = useRoute();
 const discoverStore = useDiscoverStore();
+
+// Inside an open conversation the message composer owns the bottom of the screen.
+const showBottomNav = computed(() => !(route.name === 'chat' && route.params.id));
 </script>
 
 <style scoped lang="scss">
@@ -57,8 +63,18 @@ const discoverStore = useDiscoverStore();
 
 .app-main {
   z-index: 10;
-  // Clearance for the mobile bottom nav. Currently overridden by Bootstrap's !important
-  // py-3 / py-md-4 utilities (as the original inline style was); see follow-up.
-  padding-bottom: 6rem;
+  padding-bottom: 1rem;
+
+  // Clearance for the fixed mobile bottom nav (and the home indicator); desktop has no bottom nav.
+  &.has-bottom-nav {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    &,
+    &.has-bottom-nav {
+      padding-bottom: 1.5rem;
+    }
+  }
 }
 </style>

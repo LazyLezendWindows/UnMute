@@ -102,7 +102,7 @@
 @include inline-strength(u-text-secondary) { color: var(--unmute-text-secondary); }
 @include inline-strength(u-text-muted) { color: var(--unmute-text-muted); }
 @include inline-strength(u-text-dim) { color: var(--unmute-text-dim); }
-@include inline-strength(u-text-accent) { color: var(--unmute-primary); }
+@include inline-strength(u-text-accent) { color: var(--unmute-accent-text); }
 @include inline-strength(u-text-accent-soft) { color: var(--unmute-primary-light); }
 @include inline-strength(u-pre-line) { white-space: pre-line; }
 @include inline-strength(u-font-editorial) {
@@ -118,7 +118,6 @@
 
 // Borders
 @include inline-strength(u-border-glass) { border-color: var(--unmute-glass-border) !important; }
-// NOTE: --unmute-border is not defined in the token set (renders as currentColor); kept for parity.
 @include inline-strength(u-border-default) { border-color: var(--unmute-border) !important; }
 
 // Surfaces

@@ -40,12 +40,12 @@ const variantClass = computed(() => {
     case 'danger':
       return 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-sm';
     case 'glass':
-      return 'surface-glass text-light border border-white border-opacity-10 shadow-sm';
+      return 'surface-glass u-text-secondary border u-border-glass shadow-sm';
     case 'outline':
       return 'bg-transparent text-secondary border border-secondary';
     case 'secondary':
     default:
-      return 'surface-raised text-secondary border border-white border-opacity-10 shadow-sm';
+      return 'surface-raised text-secondary border u-border-glass shadow-sm';
   }
 });
 
