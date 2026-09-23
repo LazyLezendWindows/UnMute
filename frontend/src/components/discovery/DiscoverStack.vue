@@ -155,6 +155,7 @@ function fling(direction: 'left' | 'right') {
   if (flying.value) return;
   // Report first: the store advances synchronously, so the next card replaces this one before the
   // reset below could flash it back into the centre.
+  if ('vibrate' in navigator) navigator.vibrate(direction === 'right' ? [8, 40, 12] : 8);
   const done = () => {
     if (direction === 'right') emit('like');
     else emit('pass');

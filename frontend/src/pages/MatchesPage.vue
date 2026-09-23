@@ -29,9 +29,10 @@
     <!-- Gallery of mutual matches: photo-forward glass tiles -->
     <div v-else class="match-gallery">
       <article
-        v-for="match in chatStore.matches"
+        v-for="(match, index) in chatStore.matches"
         :key="match.matchId"
-        class="match-tile glass-pane"
+        class="match-tile glass-pane enter-rise"
+        :style="{ '--i': Math.min(index, 8) }"
         role="button"
         tabindex="0"
         :aria-label="`Open chat with ${match.user.displayName}`"

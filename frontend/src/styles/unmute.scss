@@ -76,6 +76,16 @@ h1, h2, h3, h4, .font-display, .brand-heading {
   background: var(--unmute-glass-strong);
 }
 
+// People who ask the system for less transparency get solid panes (also the cheapest to draw).
+@media (prefers-reduced-transparency: reduce) {
+  .glass-pane,
+  .surface-glass {
+    background: var(--unmute-surface-raised);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 // Chrome text (logo, hero headings)
 .text-chrome {
   background: var(--unmute-chrome-text);

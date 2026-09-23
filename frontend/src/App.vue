@@ -1,6 +1,10 @@
 <template>
   <component :is="layout">
-    <router-view />
+    <router-view v-slot="{ Component, route: current }">
+      <Transition name="page" mode="out-in">
+        <component :is="Component" :key="current.name" />
+      </Transition>
+    </router-view>
   </component>
   <UToast />
   <OfflineBanner />

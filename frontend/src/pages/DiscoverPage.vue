@@ -36,7 +36,7 @@
 
       <!-- The deck -->
       <div v-else-if="discoverStore.currentCandidate" class="discover-grid animate-fade-in">
-        <div class="deck-column">
+        <div class="deck-column enter-rise" style="--i: 0">
           <DiscoverStack
             ref="stack"
             :top="discoverStore.currentCandidate"
@@ -58,7 +58,7 @@
           <p class="deck-hint d-none d-md-block mb-0">Drag the card, or use ← →</p>
         </div>
 
-        <CandidateDetails :candidate="discoverStore.currentCandidate" />
+        <CandidateDetails class="enter-rise" style="--i: 1" :candidate="discoverStore.currentCandidate" />
       </div>
 
       <!-- The feed could not load: say so rather than pretending no one is left -->

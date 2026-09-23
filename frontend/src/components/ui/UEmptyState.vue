@@ -4,7 +4,7 @@
     <div class="empty-glow position-absolute rounded-circle pointer-events-none"></div>
 
     <!-- Icon container with subtle float -->
-    <div class="empty-icon-container d-flex align-items-center justify-content-center mb-3 animate-float">
+    <div class="empty-icon-container d-flex align-items-center justify-content-center mb-3 enter-rise">
       <component :is="icon" v-if="icon" class="empty-icon" />
       <slot name="icon" v-else />
     </div>

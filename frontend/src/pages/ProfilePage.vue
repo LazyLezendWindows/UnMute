@@ -14,7 +14,7 @@
 
     <div class="profile-grid">
       <!-- Identity: how others see you, and what would make the profile stronger -->
-      <aside class="identity glass-pane">
+      <aside class="identity glass-pane enter-rise" style="--i: 0">
         <div class="identity-avatar">
           <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="xl" />
         </div>
@@ -62,7 +62,7 @@
         </p>
       </aside>
 
-      <div class="d-flex flex-column gap-4 min-w-0">
+      <div class="d-flex flex-column gap-4 min-w-0 enter-rise" style="--i: 1">
         <!-- Feedback Message -->
         <div v-if="errorMsg" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
           {{ errorMsg }}

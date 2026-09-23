@@ -2,6 +2,13 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
+/**
+ * How much the 3D backdrop may move. `auto` animates only while the person is interacting and
+ * holds still on low battery, data saver or reduced motion; `calm` is always a still frame;
+ * `off` skips WebGL entirely.
+ */
+export type MotionPreference = 'auto' | 'full' | 'calm' | 'off';
+const MOTION_PREFERENCES: MotionPreference[] = ['auto', 'full', 'calm', 'off'];
 export type AccentColor = 'iris' | 'aqua' | 'rose' | 'mint' | 'amber' | 'graphite';
 
 export interface AccentPreset {
@@ -111,6 +118,17 @@ export const useThemeStore = defineStore('theme', () => {
   const initialAccent: AccentColor = rawAccent && ACCENT_PRESETS[rawAccent] ? rawAccent : DEFAULT_ACCENT;
 
   const mode = ref<ThemeMode>(savedMode);
+  const savedMotion = localStorage.getItem('unmute_motion') as MotionPreference;
+  const motion = ref<MotionPreference>(MOTION_PREFERENCES.includes(savedMotion) ? savedMotion : 'auto');
+
+  function setMotion(value: MotionPreference) {
+    motion.value = value;
+    try {
+      localStorage.setItem('unmute_motion', value);
+    } catch {
+      // Not persisting is fine; the choice still applies for this visit.
+    }
+  }
   const accent = ref<AccentColor>(initialAccent);
 
   const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS[DEFAULT_ACCENT]);
@@ -177,6 +195,8 @@ export const useThemeStore = defineStore('theme', () => {
   return {
     mode,
     accent,
+    motion,
+    setMotion,
     isDarkMode,
     activePreset,
     presets: ACCENT_PRESETS,
