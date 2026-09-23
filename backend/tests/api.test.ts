@@ -1,366 +1,297 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { initDatabase, getDatabase } from '../src/config/database';
-import { seedInterests } from '../src/utils/seed';
+import { getDatabase } from '../src/config/database';
+import { AppError } from '../src/middleware/errorHandler';
+import { fakeGoogleCredential, resetTestDatabase } from './helpers';
+
+// Google's signature verification needs Google-issued tokens, so only the verifier is replaced.
+vi.mock('../src/services/auth/googleIdentity', () => ({
+  verifyGoogleCredential: vi.fn(async (credential: string) => {
+    const [prefix, subject, email, flag] = credential.split(':');
+    if (prefix !== 'google-test-credential' || !subject || !email) {
+      throw new AppError('Google sign-in could not be verified. Please try again.', 401);
+    }
+    return { subject, email, emailVerified: flag !== 'unverified', name: 'Google Member', picture: '' };
+  }),
+}));
 
 const app = createApp();
+const COOKIE = 'unmute_session';
 
-describe('Unmute API End-to-End Test Suite', () => {
+function sessionCookie(res: request.Response): string | undefined {
+  const cookies = ([] as string[]).concat(res.headers['set-cookie'] || []);
+  return cookies.find((c) => c.startsWith(`${COOKIE}=`));
+}
+
+async function registerAgent(email: string, displayName: string, dateOfBirth = '1997-03-10') {
+  const agent = request.agent(app);
+  const res = await agent.post('/api/v1/auth/register').send({ email, password: 'Password123!', displayName, dateOfBirth });
+  expect(res.status).toBe(201);
+  return { agent, id: res.body.data.user.id as string };
+}
+
+describe('Unmute API', () => {
   beforeAll(async () => {
-    await initDatabase();
-    const db = getDatabase();
-    try {
-      await db.exec('SET FOREIGN_KEY_CHECKS = 0;');
-    } catch {}
-    await db.exec('DELETE FROM messages;');
-    await db.exec('DELETE FROM conversations;');
-    await db.exec('DELETE FROM matches;');
-    await db.exec('DELETE FROM likes;');
-    await db.exec('DELETE FROM passes;');
-    await db.exec('DELETE FROM blocks;');
-    await db.exec('DELETE FROM reports;');
-    await db.exec('DELETE FROM user_interests;');
-    await db.exec('DELETE FROM profiles;');
-    await db.exec('DELETE FROM users;');
-    try {
-      await db.exec('SET FOREIGN_KEY_CHECKS = 1;');
-    } catch {}
-    await seedInterests();
+    await resetTestDatabase();
   });
 
-  describe('Age Policy & Authentication', () => {
-    it('should reject registration if date_of_birth is under 18 years old', async () => {
-      // Underage user (e.g., born in 2012)
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'underage@example.com',
-          password: 'Password123!',
-          displayName: 'Underage User',
-          dateOfBirth: '2012-05-15',
-        });
-
+  describe('Email registration, login and sessions', () => {
+    it('rejects registration under 18', async () => {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: 'underage@example.com',
+        password: 'Password123!',
+        displayName: 'Underage User',
+        dateOfBirth: '2012-05-15',
+      });
       expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
       expect(res.body.error).toMatch(/18 years of age/);
     });
 
-    it('should successfully register a valid 18+ user', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'alice@example.com',
-          password: 'Password123!',
-          displayName: 'Alice',
-          dateOfBirth: '1998-06-20',
-        });
-
+    it('registers an 18+ user with an HttpOnly session cookie and no token in the body', async () => {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: 'Alice@Example.com',
+        password: 'Password123!',
+        displayName: 'Alice',
+        dateOfBirth: '1998-06-20',
+      });
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.token).toBeDefined();
+      expect(res.body.data.token).toBeUndefined();
       expect(res.body.data.user.email).toBe('alice@example.com');
-      expect(res.body.data.user.profile.displayName).toBe('Alice');
       expect(res.body.data.user.profile.age).toBeGreaterThanOrEqual(18);
+
+      const cookie = sessionCookie(res);
+      expect(cookie).toBeDefined();
+      expect(cookie).toMatch(/HttpOnly/i);
+      expect(cookie).toMatch(/SameSite=Lax/i);
     });
 
-    it('should reject duplicate email registration', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'alice@example.com',
-          password: 'AnotherPassword!',
-          displayName: 'Alice Clone',
-          dateOfBirth: '1995-01-01',
-        });
-
+    it('rejects duplicate email registration', async () => {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: 'alice@example.com',
+        password: 'AnotherPassword!',
+        displayName: 'Alice Clone',
+        dateOfBirth: '1995-01-01',
+      });
       expect(res.status).toBe(409);
-      expect(res.body.success).toBe(false);
     });
 
-    it('should authenticate user and return token on valid login', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'alice@example.com',
-          password: 'Password123!',
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.token).toBeDefined();
-    });
-
-    it('should reject invalid login credentials', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'alice@example.com',
-          password: 'WrongPassword!',
-        });
-
+    it('rejects invalid login credentials without setting a cookie', async () => {
+      const res = await request(app).post('/api/v1/auth/login').send({ email: 'alice@example.com', password: 'WrongPassword!' });
       expect(res.status).toBe(401);
-      expect(res.body.success).toBe(false);
+      expect(sessionCookie(res)).toBeUndefined();
     });
 
-    it('should return requiresDob when new Google user authenticates without date of birth', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/google')
-        .send({
-          email: 'googleuser@example.com',
-          googleId: 'google-sub-123456',
-          displayName: 'Google User',
-        });
+    it('restores the session, then revokes it server-side on logout', async () => {
+      const agent = request.agent(app);
+      const login = await agent.post('/api/v1/auth/login').send({ email: 'alice@example.com', password: 'Password123!' });
+      expect(login.status).toBe(200);
+      const rawCookie = sessionCookie(login)!.split(';')[0];
 
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.requiresDob).toBe(true);
-      expect(res.body.data.email).toBe('googleuser@example.com');
+      const session = await agent.get('/api/v1/auth/session');
+      expect(session.body.data.authenticated).toBe(true);
+      expect(session.body.data.user.email).toBe('alice@example.com');
+
+      expect((await agent.post('/api/v1/auth/logout')).status).toBe(200);
+
+      // Replaying the old cookie must fail: the session is revoked in the database, not just client-side.
+      const replay = await request(app).get('/api/v1/auth/me').set('Cookie', rawCookie);
+      expect(replay.status).toBe(401);
+      const replaySession = await request(app).get('/api/v1/auth/session').set('Cookie', rawCookie);
+      expect(replaySession.body.data.authenticated).toBe(false);
     });
 
-    it('should reject Google registration if dateOfBirth is under 18', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/google')
-        .send({
-          email: 'underage-google@example.com',
-          googleId: 'google-sub-underage',
-          displayName: 'Underage Google',
-          dateOfBirth: '2012-05-15',
-        });
+    it('reports anonymous visitors as unauthenticated and protects endpoints', async () => {
+      const session = await request(app).get('/api/v1/auth/session');
+      expect(session.status).toBe(200);
+      expect(session.body.data).toEqual({ authenticated: false, user: null });
 
-      expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
+      expect((await request(app).get('/api/v1/users/me')).status).toBe(401);
+      expect((await request(app).get('/api/v1/users/me').set('Cookie', `${COOKIE}=forged-token`)).status).toBe(401);
+      expect((await request(app).get('/api/v1/users/me').set('Authorization', 'Bearer anything')).status).toBe(401);
     });
 
-    it('should successfully register a new user via Google auth with 18+ dateOfBirth', async () => {
+    it('rejects state-changing requests from untrusted origins', async () => {
       const res = await request(app)
-        .post('/api/v1/auth/google')
-        .send({
-          email: 'googleuser@example.com',
-          googleId: 'google-sub-123456',
-          displayName: 'Google Member',
-          dateOfBirth: '1996-04-12',
-          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.token).toBeDefined();
-      expect(res.body.data.isNewUser).toBe(true);
-      expect(res.body.data.user.email).toBe('googleuser@example.com');
-      expect(res.body.data.user.profile.isVerified).toBe(true);
-    });
-
-    it('should authenticate existing Google user directly without requiring dateOfBirth again', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/google')
-        .send({
-          googleId: 'google-sub-123456',
-          email: 'googleuser@example.com',
-        });
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.token).toBeDefined();
-      expect(res.body.data.isNewUser).toBe(false);
-      expect(res.body.data.user.email).toBe('googleuser@example.com');
+        .post('/api/v1/auth/login')
+        .set('Origin', 'https://evil.example')
+        .send({ email: 'alice@example.com', password: 'Password123!' });
+      expect(res.status).toBe(403);
+      expect(sessionCookie(res)).toBeUndefined();
     });
   });
 
-  describe('Profile & Interests', () => {
-    let aliceToken = '';
-
-    beforeAll(async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email: 'alice@example.com', password: 'Password123!' });
-      aliceToken = res.body.data.token;
+  describe('Google sign-in', () => {
+    it('rejects client-asserted identity without a verified credential', async () => {
+      const res = await request(app).post('/api/v1/auth/google').send({ email: 'alice@example.com', googleId: 'attacker' });
+      expect(res.status).toBe(400);
+      expect(sessionCookie(res)).toBeUndefined();
     });
 
-    it('should get authenticated user profile via /users/me', async () => {
+    it('rejects extra identity fields even alongside a credential', async () => {
       const res = await request(app)
-        .get('/api/v1/users/me')
-        .set('Authorization', `Bearer ${aliceToken}`);
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-x', 'x@gmail.com'), email: 'alice@example.com' });
+      expect(res.status).toBe(400);
+    });
 
+    it('rejects credentials that fail verification', async () => {
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: 'not-a-valid-google-id-token' });
+      expect(res.status).toBe(401);
+      expect(sessionCookie(res)).toBeUndefined();
+    });
+
+    it('asks a new Google user for a date of birth before creating anything', async () => {
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-new', 'new@gmail.com') });
+      expect(res.status).toBe(200);
+      expect(res.body.data.requiresDob).toBe(true);
+      expect(res.body.data.profile.email).toBe('new@gmail.com');
+      expect(sessionCookie(res)).toBeUndefined();
+
+      const user = await getDatabase().get('SELECT id FROM users WHERE email = ?', ['new@gmail.com']);
+      expect(user).toBeNull();
+    });
+
+    it('rejects an under-18 date of birth', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-new', 'new@gmail.com'), dateOfBirth: '2012-05-15' });
+      expect(res.status).toBe(400);
+    });
+
+    it('creates the account and a session once an 18+ date of birth is supplied', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-new', 'new@gmail.com'), dateOfBirth: '1996-04-12' });
+      expect(res.status).toBe(200);
+      expect(res.body.data.isNewUser).toBe(true);
+      expect(res.body.data.user.email).toBe('new@gmail.com');
+      // Signing in with Google is not identity verification.
+      expect(res.body.data.user.profile.isVerified).toBe(false);
+      expect(sessionCookie(res)).toBeDefined();
+
+      const link = await getDatabase().get(
+        "SELECT user_id FROM auth_accounts WHERE provider = 'google' AND provider_account_id = ?",
+        ['sub-new']
+      );
+      expect(link.user_id).toBe(res.body.data.user.id);
+    });
+
+    it('signs a returning Google user in by subject without asking for a date of birth again', async () => {
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-new', 'new@gmail.com') });
+      expect(res.status).toBe(200);
+      expect(res.body.data.requiresDob).toBe(false);
+      expect(res.body.data.isNewUser).toBe(false);
+      expect(sessionCookie(res)).toBeDefined();
+    });
+
+    it('links a verified Google email to the existing account with that email', async () => {
+      const alice = await getDatabase().get('SELECT id FROM users WHERE email = ?', ['alice@example.com']);
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-alice', 'alice@example.com') });
+      expect(res.status).toBe(200);
+      expect(res.body.data.isNewUser).toBe(false);
+      expect(res.body.data.user.id).toBe(alice.id);
+    });
+
+    it('refuses email-based linking or signup when Google has not verified the email', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-unverified', 'alice@example.com', false), dateOfBirth: '1990-01-01' });
+      expect(res.status).toBe(403);
+      expect(sessionCookie(res)).toBeUndefined();
+    });
+  });
+
+  describe('Profile & interests', () => {
+    let alice: request.Agent;
+
+    beforeAll(async () => {
+      alice = request.agent(app);
+      await alice.post('/api/v1/auth/login').send({ email: 'alice@example.com', password: 'Password123!' });
+    });
+
+    it('gets the authenticated user profile', async () => {
+      const res = await alice.get('/api/v1/users/me');
       expect(res.status).toBe(200);
       expect(res.body.data.displayName).toBe('Alice');
     });
 
-    it('should update profile and sync interests', async () => {
-      const interestsRes = await request(app)
-        .get('/api/v1/users/interests')
-        .set('Authorization', `Bearer ${aliceToken}`);
-
+    it('updates the profile and syncs interests', async () => {
+      const interestsRes = await alice.get('/api/v1/users/interests');
       const interestIds = interestsRes.body.data.slice(0, 3).map((i: any) => i.id);
 
-      const updateRes = await request(app)
-        .patch('/api/v1/users/me')
-        .set('Authorization', `Bearer ${aliceToken}`)
-        .send({
-          bio: 'Connecting through books and philosophy.',
-          approximateLocation: 'Hyderabad',
-          interactionPreferences: ['Deep conversations', 'Book/Movie discussions'],
-          interestIds,
-        });
-
-      expect(updateRes.status).toBe(200);
-      expect(updateRes.body.data.bio).toBe('Connecting through books and philosophy.');
-      expect(updateRes.body.data.approximateLocation).toBe('Hyderabad');
-      expect(updateRes.body.data.interests.length).toBe(3);
+      const res = await alice.patch('/api/v1/users/me').send({
+        bio: 'Connecting through books and philosophy.',
+        approximateLocation: 'Hyderabad',
+        interactionPreferences: ['Deep conversations', 'Book/Movie discussions'],
+        interestIds,
+      });
+      expect(res.status).toBe(200);
+      expect(res.body.data.bio).toBe('Connecting through books and philosophy.');
+      expect(res.body.data.interests.length).toBe(3);
     });
   });
 
-  describe('Discovery, Matching Engine & Real-Time Chat', () => {
-    let userAToken = '';
-    let userAId = '';
-    let userBToken = '';
-    let userBId = '';
+  describe('Discovery, matching & chat', () => {
+    let a: { agent: request.Agent; id: string };
+    let b: { agent: request.Agent; id: string };
 
     beforeAll(async () => {
-      // Register User A
-      const resA = await request(app).post('/api/v1/auth/register').send({
-        email: 'usera@example.com',
-        password: 'Password123!',
-        displayName: 'User A',
-        dateOfBirth: '1997-03-10',
-      });
-      userAToken = resA.body.data.token;
-      userAId = resA.body.data.user.id;
-
-      // Register User B
-      const resB = await request(app).post('/api/v1/auth/register').send({
-        email: 'userb@example.com',
-        password: 'Password123!',
-        displayName: 'User B',
-        dateOfBirth: '1999-08-25',
-      });
-      userBToken = resB.body.data.token;
-      userBId = resB.body.data.user.id;
+      a = await registerAgent('usera@example.com', 'User A');
+      b = await registerAgent('userb@example.com', 'User B', '1999-08-25');
     });
 
-    it('should find User B in User A discovery feed', async () => {
-      const res = await request(app)
-        .get('/api/v1/discover')
-        .set('Authorization', `Bearer ${userAToken}`);
-
+    it('finds User B in User A discovery feed', async () => {
+      const res = await a.agent.get('/api/v1/discover');
       expect(res.status).toBe(200);
-      const userBInFeed = res.body.data.find((u: any) => u.id === userBId);
-      expect(userBInFeed).toBeDefined();
-      expect(userBInFeed.displayName).toBe('User B');
+      expect(res.body.data.find((u: any) => u.id === b.id)?.displayName).toBe('User B');
     });
 
-    it('should return matched: false when User A likes User B first', async () => {
-      const res = await request(app)
-        .post('/api/v1/interactions/like')
-        .set('Authorization', `Bearer ${userAToken}`)
-        .send({ targetUserId: userBId });
+    it('creates a match and conversation only on a mutual like, then allows chat', async () => {
+      const first = await a.agent.post('/api/v1/interactions/like').send({ targetUserId: b.id });
+      expect(first.body.data.matched).toBe(false);
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.matched).toBe(false);
-    });
+      const second = await b.agent.post('/api/v1/interactions/like').send({ targetUserId: a.id });
+      expect(second.body.data.matched).toBe(true);
+      const conversationId = second.body.data.conversationId;
 
-    it('should return matched: true and create a conversation when User B likes User A back', async () => {
-      const res = await request(app)
-        .post('/api/v1/interactions/like')
-        .set('Authorization', `Bearer ${userBToken}`)
-        .send({ targetUserId: userAId });
+      const matches = await a.agent.get('/api/v1/matches');
+      expect(matches.body.data.some((m: any) => m.conversationId === conversationId)).toBe(true);
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.matched).toBe(true);
-      expect(res.body.data.conversationId).toBeDefined();
+      const sent = await a.agent.post(`/api/v1/conversations/${conversationId}/messages`).send({ content: 'Hello User B!' });
+      expect(sent.status).toBe(201);
+      expect(sent.body.data.senderId).toBe(a.id);
 
-      const conversationId = res.body.data.conversationId;
-
-      // Verify conversation exists in User A's matches
-      const matchesRes = await request(app)
-        .get('/api/v1/matches')
-        .set('Authorization', `Bearer ${userAToken}`);
-
-      expect(matchesRes.status).toBe(200);
-      expect(matchesRes.body.data.some((m: any) => m.conversationId === conversationId)).toBe(true);
-
-      // Verify User A can send a chat message
-      const sendMsgRes = await request(app)
-        .post(`/api/v1/conversations/${conversationId}/messages`)
-        .set('Authorization', `Bearer ${userAToken}`)
-        .send({ content: 'Hello User B, nice to connect!' });
-
-      expect(sendMsgRes.status).toBe(201);
-      expect(sendMsgRes.body.data.content).toBe('Hello User B, nice to connect!');
-
-      // Verify User B receives and reads the message
-      const getMsgsRes = await request(app)
-        .get(`/api/v1/conversations/${conversationId}/messages`)
-        .set('Authorization', `Bearer ${userBToken}`);
-
-      expect(getMsgsRes.status).toBe(200);
-      expect(getMsgsRes.body.data.messages.length).toBe(1);
-      expect(getMsgsRes.body.data.messages[0].content).toBe('Hello User B, nice to connect!');
+      const read = await b.agent.get(`/api/v1/conversations/${conversationId}/messages`);
+      expect(read.body.data.messages.map((m: any) => m.content)).toEqual(['Hello User B!']);
     });
   });
 
-  describe('Safety: Blocking & Reporting', () => {
-    let blockerToken = '';
-    let blockerId = '';
-    let targetId = '';
+  describe('Safety: blocking & reporting', () => {
+    let blocker: { agent: request.Agent; id: string };
+    let target: { agent: request.Agent; id: string };
 
     beforeAll(async () => {
-      const res1 = await request(app).post('/api/v1/auth/register').send({
-        email: 'blocker@example.com',
-        password: 'Password123!',
-        displayName: 'Blocker User',
-        dateOfBirth: '1995-10-10',
-      });
-      blockerToken = res1.body.data.token;
-      blockerId = res1.body.data.user.id;
-
-      const res2 = await request(app).post('/api/v1/auth/register').send({
-        email: 'target@example.com',
-        password: 'Password123!',
-        displayName: 'Target User',
-        dateOfBirth: '1996-05-15',
-      });
-      targetId = res2.body.data.user.id;
+      blocker = await registerAgent('blocker@example.com', 'Blocker User', '1995-10-10');
+      target = await registerAgent('target@example.com', 'Target User', '1996-05-15');
     });
 
-    it('should submit a safety report', async () => {
-      const res = await request(app)
+    it('submits a safety report', async () => {
+      const res = await blocker.agent
         .post('/api/v1/safety/reports')
-        .set('Authorization', `Bearer ${blockerToken}`)
-        .send({
-          reportedUserId: targetId,
-          category: 'Spam',
-          details: 'Sending unwanted repetitive links',
-        });
-
+        .send({ reportedUserId: target.id, category: 'Spam', details: 'Sending unwanted repetitive links' });
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
     });
 
-    it('should block the target user and exclude them from discovery', async () => {
-      const blockRes = await request(app)
-        .post('/api/v1/safety/block')
-        .set('Authorization', `Bearer ${blockerToken}`)
-        .send({ targetUserId: targetId, reason: 'Spamming' });
-
+    it('blocks the target and excludes them from discovery and likes', async () => {
+      const blockRes = await blocker.agent.post('/api/v1/safety/block').send({ targetUserId: target.id, reason: 'Spamming' });
       expect(blockRes.status).toBe(200);
-      expect(blockRes.body.data.success).toBe(true);
 
-      // Verify target is excluded from discovery
-      const feedRes = await request(app)
-        .get('/api/v1/discover')
-        .set('Authorization', `Bearer ${blockerToken}`);
+      const feed = await blocker.agent.get('/api/v1/discover');
+      expect(feed.body.data.some((u: any) => u.id === target.id)).toBe(false);
 
-      const found = feedRes.body.data.some((u: any) => u.id === targetId);
-      expect(found).toBe(false);
-
-      // Verify target cannot like the blocker
-      const likeRes = await request(app)
-        .post('/api/v1/interactions/like')
-        .set('Authorization', `Bearer ${blockerToken}`)
-        .send({ targetUserId: targetId });
-
-      expect(likeRes.status).toBe(403);
+      const like = await target.agent.post('/api/v1/interactions/like').send({ targetUserId: blocker.id });
+      expect(like.status).toBe(403);
     });
   });
 });

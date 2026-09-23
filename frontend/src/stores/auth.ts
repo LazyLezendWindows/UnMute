@@ -1,35 +1,74 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { api } from '../services/api';
+import { api, onUnauthorized } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
+import { useGoogleIdentity } from '../composables/useGoogleIdentity';
 import { User, Profile } from '../types';
 
+/**
+ * UNKNOWN: nothing checked yet. CHECKING_SESSION: asking the backend.
+ * The backend's answer is the only thing that moves the app to AUTHENTICATED.
+ */
+export type AuthStatus = 'UNKNOWN' | 'CHECKING_SESSION' | 'AUTHENTICATED' | 'UNAUTHENTICATED';
+
+export type GoogleAuthOutcome =
+  | { requiresDob: true; profile: { email: string; displayName: string; avatarUrl: string } }
+  | { requiresDob: false; isNewUser: boolean };
+
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('unmute_token'));
+  const status = ref<AuthStatus>('UNKNOWN');
   const user = ref<User | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  const isAuthenticated = computed(() => Boolean(token.value));
+  const isAuthenticated = computed(() => status.value === 'AUTHENTICATED');
   const profile = computed<Profile | null>(() => user.value?.profile || null);
 
-  async function register(data: {
-    email: string;
-    password: string;
-    displayName: string;
-    dateOfBirth: string;
-  }) {
+  let sessionCheck: Promise<void> | null = null;
+
+  function setAuthenticated(nextUser: User) {
+    user.value = nextUser;
+    status.value = 'AUTHENTICATED';
+    connectSocket();
+  }
+
+  function setUnauthenticated() {
+    user.value = null;
+    status.value = 'UNAUTHENTICATED';
+    disconnectSocket();
+  }
+
+  onUnauthorized(() => {
+    if (status.value === 'AUTHENTICATED') setUnauthenticated();
+  });
+
+  /** Restores the session from the HttpOnly cookie once; concurrent callers share the same request. */
+  function ensureSession(): Promise<void> {
+    if (status.value === 'AUTHENTICATED' || status.value === 'UNAUTHENTICATED') {
+      return Promise.resolve();
+    }
+    if (!sessionCheck) {
+      status.value = 'CHECKING_SESSION';
+      sessionCheck = api
+        .get('/auth/session')
+        .then((res) => {
+          const { authenticated, user: sessionUser } = res.data.data;
+          if (authenticated) setAuthenticated(sessionUser);
+          else setUnauthenticated();
+        })
+        .catch(() => setUnauthenticated())
+        .finally(() => {
+          sessionCheck = null;
+        });
+    }
+    return sessionCheck;
+  }
+
+  async function run<T>(action: () => Promise<T>): Promise<T> {
     loading.value = true;
     error.value = null;
     try {
-      const res = await api.post('/auth/register', data);
-      token.value = res.data.data.token;
-      user.value = res.data.data.user;
-      if (token.value) {
-        localStorage.setItem('unmute_token', token.value);
-        connectSocket(token.value);
-      }
-      return res.data.data;
+      return await action();
     } catch (err: any) {
       error.value = err.message;
       throw err;
@@ -38,112 +77,66 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(credentials: { email: string; password: string }) {
-    loading.value = true;
-    error.value = null;
-    try {
+  function register(data: { email: string; password: string; displayName: string; dateOfBirth: string }) {
+    return run(async () => {
+      const res = await api.post('/auth/register', data);
+      setAuthenticated(res.data.data.user);
+    });
+  }
+
+  function login(credentials: { email: string; password: string }) {
+    return run(async () => {
       const res = await api.post('/auth/login', credentials);
-      token.value = res.data.data.token;
-      user.value = res.data.data.user;
-      if (token.value) {
-        localStorage.setItem('unmute_token', token.value);
-        connectSocket(token.value);
+      setAuthenticated(res.data.data.user);
+    });
+  }
+
+  /** Sends the Google ID token to the backend, which verifies it; include `dateOfBirth` to finish a new signup. */
+  function loginWithGoogle(payload: { credential: string; dateOfBirth?: string }): Promise<GoogleAuthOutcome> {
+    return run(async () => {
+      const res = await api.post('/auth/google', payload);
+      const result = res.data.data;
+      if (result.requiresDob) {
+        return { requiresDob: true, profile: result.profile };
       }
-      return res.data.data;
-    } catch (err: any) {
-      error.value = err.message;
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+      setAuthenticated(result.user);
+      return { requiresDob: false, isNewUser: result.isNewUser };
+    });
   }
 
   async function fetchMe() {
-    if (!token.value) return null;
-    try {
-      const res = await api.get('/auth/me');
-      user.value = res.data.data;
-      connectSocket(token.value);
-      return user.value;
-    } catch {
-      logout();
-      return null;
-    }
+    const res = await api.get('/auth/me');
+    user.value = res.data.data;
+    return user.value;
   }
 
-  async function updateProfile(data: Partial<Profile> & { interestIds?: string[] }) {
-    loading.value = true;
-    error.value = null;
-    try {
+  function updateProfile(data: Partial<Profile> & { interestIds?: string[] }) {
+    return run(async () => {
       const res = await api.patch('/users/me', data);
       if (user.value) {
         user.value.profile = res.data.data;
       }
       return res.data.data;
-    } catch (err: any) {
-      error.value = err.message;
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+    });
   }
 
-  async function loginWithGoogle(payload: {
-    credential?: string;
-    googleId?: string;
-    email?: string;
-    displayName?: string;
-    avatarUrl?: string;
-    dateOfBirth?: string;
-  }) {
-    loading.value = true;
-    error.value = null;
+  async function logout() {
     try {
-      const res = await api.post('/auth/google', payload);
-      const result = res.data.data;
-      if (result.requiresDob) {
-        return {
-          requiresDob: true,
-          email: result.email,
-          googleId: result.googleId,
-          displayName: result.displayName,
-          avatarUrl: result.avatarUrl,
-        };
-      }
-      token.value = result.token;
-      user.value = result.user;
-      if (token.value) {
-        localStorage.setItem('unmute_token', token.value);
-        connectSocket(token.value);
-      }
-      return {
-        requiresDob: false,
-        isNewUser: result.isNewUser,
-        user: result.user,
-        token: result.token,
-      };
-    } catch (err: any) {
-      error.value = err.message || 'Google authentication failed';
-      throw err;
+      await api.post('/auth/logout');
     } finally {
-      loading.value = false;
+      useGoogleIdentity().disableAutoSelect();
+      setUnauthenticated();
     }
-  }
-
-  function logout() {
-    token.value = null;
-    user.value = null;
-    localStorage.removeItem('unmute_token');
-    disconnectSocket();
   }
 
   return {
-    token,
+    status,
     user,
     profile,
     loading,
     error,
     isAuthenticated,
+    ensureSession,
     register,
     login,
     loginWithGoogle,

@@ -1,325 +1,148 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { getDatabase } from '../config/database';
+import { getDatabase, IDatabase } from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { calculateAge, isAtLeast18YearsOld } from '../utils/age';
-import { generateToken } from '../utils/token';
+import { verifyGoogleCredential } from './auth/googleIdentity';
 import { RegisterInput, LoginInput, GoogleAuthInput } from '../validators/authValidator';
 
-export class AuthService {
-  static async register(input: RegisterInput) {
-    const db = getDatabase();
+export type GoogleAuthResult =
+  | { requiresDob: true; profile: { email: string; displayName: string; avatarUrl: string } }
+  | { requiresDob: false; isNewUser: boolean; userId: string };
 
-    // Enforce 18+ server-side
+async function createUserWithProfile(
+  tx: IDatabase,
+  input: { email: string; passwordHash: string | null; displayName: string; dateOfBirth: string; avatarUrl?: string }
+): Promise<string> {
+  const userId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  await tx.run(
+    'INSERT INTO users (id, email, password_hash, is_active, created_at) VALUES (?, ?, ?, 1, ?)',
+    [userId, input.email, input.passwordHash, now]
+  );
+  await tx.run(
+    `INSERT INTO profiles (
+       id, user_id, display_name, date_of_birth, bio, approximate_location,
+       avatar_url, interaction_preferences, is_verified, created_at, updated_at
+     ) VALUES (?, ?, ?, ?, '', '', ?, '[]', 0, ?, ?)`,
+    [crypto.randomUUID(), userId, input.displayName, input.dateOfBirth, input.avatarUrl || '', now, now]
+  );
+  return userId;
+}
+
+async function linkGoogleAccount(tx: IDatabase, userId: string, subject: string): Promise<void> {
+  const now = new Date().toISOString();
+  await tx.run(
+    `INSERT INTO auth_accounts (id, user_id, provider, provider_account_id, created_at, updated_at)
+     VALUES (?, ?, 'google', ?, ?, ?)`,
+    [crypto.randomUUID(), userId, subject, now, now]
+  );
+}
+
+export class AuthService {
+  /** Registers an email/password account and returns the new user's ID. */
+  static async register(input: RegisterInput): Promise<string> {
     if (!isAtLeast18YearsOld(input.dateOfBirth)) {
       throw new AppError('You must be at least 18 years of age to join Unmute', 400);
     }
 
-    // Check if email already exists
-    const existingUser = await db.get(
-      'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
-      [input.email]
-    );
+    const email = input.email.toLowerCase();
+    const db = getDatabase();
+    const existingUser = await db.get('SELECT id FROM users WHERE email = ?', [email]);
     if (existingUser) {
       throw new AppError('An account with this email address already exists', 409);
     }
 
-    const userId = crypto.randomUUID();
-    const profileId = crypto.randomUUID();
-    const now = new Date().toISOString();
     const passwordHash = await bcrypt.hash(input.password, 12);
-
-    // Create user
-    await db.run(
-      'INSERT INTO users (id, email, password_hash, is_active, created_at) VALUES ($1, $2, $3, 1, $4)',
-      [userId, input.email.toLowerCase(), passwordHash, now]
+    return db.transaction((tx) =>
+      createUserWithProfile(tx, { email, passwordHash, displayName: input.displayName, dateOfBirth: input.dateOfBirth })
     );
-
-    // Create default profile
-    await db.run(
-      `INSERT INTO profiles (
-        id, user_id, display_name, date_of_birth, bio, approximate_location,
-        avatar_url, interaction_preferences, is_verified, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, '', '', '', '[]', 0, $5, $5)`,
-      [profileId, userId, input.displayName, input.dateOfBirth, now]
-    );
-
-    const token = generateToken({ userId, email: input.email.toLowerCase() });
-
-    return {
-      token,
-      user: {
-        id: userId,
-        email: input.email.toLowerCase(),
-        profile: {
-          id: profileId,
-          displayName: input.displayName,
-          dateOfBirth: input.dateOfBirth,
-          age: calculateAge(input.dateOfBirth),
-          bio: '',
-          approximateLocation: '',
-          avatarUrl: '',
-          interactionPreferences: [],
-          interests: [],
-          isVerified: false,
-        },
-      },
-    };
   }
 
-  static async login(input: LoginInput) {
-    const db = getDatabase();
-
-    const user = await db.get(
-      'SELECT id, email, password_hash, is_active FROM users WHERE LOWER(email) = LOWER($1)',
-      [input.email]
+  /** Verifies email/password credentials and returns the user's ID. */
+  static async login(input: LoginInput): Promise<string> {
+    const user = await getDatabase().get(
+      'SELECT id, password_hash, is_active FROM users WHERE email = ?',
+      [input.email.toLowerCase()]
     );
 
     if (!user || !user.is_active) {
       throw new AppError('Invalid email or password', 401);
     }
-
     if (!user.password_hash) {
-      throw new AppError('This account was created using Google. Please sign in with Google.', 400);
+      throw new AppError('This account uses Google sign-in. Please continue with Google.', 400);
     }
-
-    const isValid = await bcrypt.compare(input.password, user.password_hash);
-    if (!isValid) {
+    if (!(await bcrypt.compare(input.password, user.password_hash))) {
       throw new AppError('Invalid email or password', 401);
     }
-
-    const profile = await db.get(
-      `SELECT id, display_name, date_of_birth, bio, approximate_location,
-              avatar_url, interaction_preferences, is_verified
-       FROM profiles WHERE user_id = $1`,
-      [user.id]
-    );
-
-    const interests = await db.query(
-      `SELECT i.id, i.name, i.category, i.icon
-       FROM user_interests ui
-       JOIN interests i ON ui.interest_id = i.id
-       WHERE ui.user_id = $1`,
-      [user.id]
-    );
-
-    const token = generateToken({ userId: user.id, email: user.email });
-
-    let interactionPrefs = [];
-    try {
-      interactionPrefs = JSON.parse(profile?.interaction_preferences || '[]');
-    } catch {
-      interactionPrefs = [];
-    }
-
-    return {
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        profile: profile
-          ? {
-              id: profile.id,
-              displayName: profile.display_name,
-              dateOfBirth: profile.date_of_birth,
-              age: calculateAge(profile.date_of_birth),
-              bio: profile.bio || '',
-              approximateLocation: profile.approximate_location || '',
-              avatarUrl: profile.avatar_url || '',
-              interactionPreferences: interactionPrefs,
-              interests,
-              isVerified: Boolean(profile.is_verified),
-            }
-          : null,
-      },
-    };
+    return user.id;
   }
 
-  static async googleAuth(input: GoogleAuthInput) {
+  /**
+   * Signs in with a Google ID token. Identity comes exclusively from the verified token.
+   * New users must supply a date of birth (18+); the client re-sends the same credential with it.
+   */
+  static async googleAuth(input: GoogleAuthInput): Promise<GoogleAuthResult> {
+    const identity = await verifyGoogleCredential(input.credential);
     const db = getDatabase();
 
-    let googleId = input.googleId;
-    let email = input.email;
-    let displayName = input.displayName;
-    let avatarUrl = input.avatarUrl;
-
-    // Verify and decode Google JWT credential if provided
-    if (input.credential) {
-      // 1. Attempt verification with Google's official tokeninfo API
-      try {
-        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(input.credential)}`);
-        if (googleRes.ok) {
-          const googleData = await googleRes.json();
-          googleId = googleData.sub || googleId;
-          email = googleData.email || email;
-          displayName = googleData.name || displayName;
-          avatarUrl = googleData.picture || avatarUrl;
-        }
-      } catch {
-        // Offline / network failure - fall back to JWT structure decoding
-      }
-
-      // 2. Decode JWT payload if email not resolved by tokeninfo
-      if (!email && input.credential.includes('.')) {
-        try {
-          const parts = input.credential.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-            googleId = payload.sub || googleId;
-            email = payload.email || email;
-            displayName = payload.name || displayName;
-            avatarUrl = payload.picture || avatarUrl;
-          }
-        } catch (e) {
-          console.warn('[GoogleAuth] Failed to parse credential payload:', e);
-        }
-      }
+    // 1. Returning Google user, matched by the stable Google subject.
+    const linked = await db.get(
+      `SELECT u.id, u.is_active FROM auth_accounts a
+       JOIN users u ON u.id = a.user_id
+       WHERE a.provider = 'google' AND a.provider_account_id = ?`,
+      [identity.subject]
+    );
+    if (linked) {
+      if (!linked.is_active) throw new AppError('Your account has been deactivated', 403);
+      return { requiresDob: false, isNewUser: false, userId: linked.id };
     }
 
-    if (!email) {
-      throw new AppError('Valid Google account or email is required for Google authentication', 400);
+    // Email-based linking and account creation rely on Google having verified the address.
+    if (!identity.emailVerified) {
+      throw new AppError('Your Google email address is not verified', 403);
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // 1. Check if user exists by google_id or by email
-    let user = null;
-    if (googleId) {
-      user = await db.get(
-        'SELECT id, email, google_id, is_active FROM users WHERE google_id = $1',
-        [googleId]
-      );
+    // 2. Existing Unmute account with the same email: link Google to it.
+    const existing = await db.get('SELECT id, is_active FROM users WHERE email = ?', [identity.email]);
+    if (existing) {
+      if (!existing.is_active) throw new AppError('Your account has been deactivated', 403);
+      await linkGoogleAccount(db, existing.id, identity.subject);
+      console.info(`[Auth] Linked Google account to existing user ${existing.id}`);
+      return { requiresDob: false, isNewUser: false, userId: existing.id };
     }
 
-    if (!user) {
-      user = await db.get(
-        'SELECT id, email, google_id, is_active FROM users WHERE LOWER(email) = $1',
-        [normalizedEmail]
-      );
-    }
-
-    // 2. If user exists: link google_id if needed, and log in
-    if (user) {
-      if (!user.is_active) {
-        throw new AppError('Your account has been deactivated', 403);
-      }
-
-      if (googleId && !user.google_id) {
-        await db.run('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
-      }
-
-      const profile = await db.get(
-        `SELECT id, display_name, date_of_birth, bio, approximate_location,
-                avatar_url, interaction_preferences, is_verified
-         FROM profiles WHERE user_id = $1`,
-        [user.id]
-      );
-
-      const interests = await db.query(
-        `SELECT i.id, i.name, i.category, i.icon
-         FROM user_interests ui
-         JOIN interests i ON ui.interest_id = i.id
-         WHERE ui.user_id = $1`,
-        [user.id]
-      );
-
-      let interactionPrefs = [];
-      try {
-        interactionPrefs = JSON.parse(profile?.interaction_preferences || '[]');
-      } catch {
-        interactionPrefs = [];
-      }
-
-      const token = generateToken({ userId: user.id, email: user.email });
-
-      return {
-        token,
-        isNewUser: false,
-        user: {
-          id: user.id,
-          email: user.email,
-          profile: profile
-            ? {
-                id: profile.id,
-                displayName: profile.display_name,
-                dateOfBirth: profile.date_of_birth,
-                age: calculateAge(profile.date_of_birth),
-                bio: profile.bio || '',
-                approximateLocation: profile.approximate_location || '',
-                avatarUrl: profile.avatar_url || avatarUrl || '',
-                interactionPreferences: interactionPrefs,
-                interests,
-                isVerified: Boolean(profile.is_verified),
-              }
-            : null,
-        },
-      };
-    }
-
-    // 3. New User Registration via Google:
-    // Check Date of Birth for 18+ policy enforcement
+    // 3. New user: the 18+ policy requires a date of birth before an account is created.
     if (!input.dateOfBirth) {
       return {
         requiresDob: true,
-        email: normalizedEmail,
-        googleId: googleId || '',
-        displayName: displayName || 'New Member',
-        avatarUrl: avatarUrl || '',
+        profile: { email: identity.email, displayName: identity.name, avatarUrl: identity.picture },
       };
     }
-
     if (!isAtLeast18YearsOld(input.dateOfBirth)) {
       throw new AppError('You must be at least 18 years of age to join Unmute', 400);
     }
 
-    const userId = crypto.randomUUID();
-    const profileId = crypto.randomUUID();
-    const now = new Date().toISOString();
-    const cleanName = displayName || normalizedEmail.split('@')[0];
-
-    // Create user with nullable password and google_id
-    await db.run(
-      'INSERT INTO users (id, email, google_id, password_hash, is_active, created_at) VALUES ($1, $2, $3, NULL, 1, $4)',
-      [userId, normalizedEmail, googleId || null, now]
-    );
-
-    // Create verified profile
-    await db.run(
-      `INSERT INTO profiles (
-        id, user_id, display_name, date_of_birth, bio, approximate_location,
-        avatar_url, interaction_preferences, is_verified, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, '', '', $5, '[]', 1, $6, $6)`,
-      [profileId, userId, cleanName, input.dateOfBirth, avatarUrl || '', now]
-    );
-
-    const token = generateToken({ userId, email: normalizedEmail });
-
-    return {
-      token,
-      isNewUser: true,
-      user: {
-        id: userId,
-        email: normalizedEmail,
-        profile: {
-          id: profileId,
-          displayName: cleanName,
-          dateOfBirth: input.dateOfBirth,
-          age: calculateAge(input.dateOfBirth),
-          bio: '',
-          approximateLocation: '',
-          avatarUrl: avatarUrl || '',
-          interactionPreferences: [],
-          interests: [],
-          isVerified: true,
-        },
-      },
-    };
+    const userId = await db.transaction(async (tx) => {
+      const id = await createUserWithProfile(tx, {
+        email: identity.email,
+        passwordHash: null,
+        displayName: (identity.name || identity.email.split('@')[0]).slice(0, 50),
+        dateOfBirth: input.dateOfBirth!,
+        avatarUrl: identity.picture,
+      });
+      await linkGoogleAccount(tx, id, identity.subject);
+      return id;
+    });
+    console.info(`[Auth] Created account ${userId} via Google`);
+    return { requiresDob: false, isNewUser: true, userId };
   }
 
   static async getCurrentUser(userId: string) {
     const db = getDatabase();
 
-    const user = await db.get('SELECT id, email, is_active FROM users WHERE id = $1', [userId]);
+    const user = await db.get('SELECT id, email, is_active FROM users WHERE id = ?', [userId]);
     if (!user || !user.is_active) {
       throw new AppError('User not found or inactive', 404);
     }
@@ -327,7 +150,7 @@ export class AuthService {
     const profile = await db.get(
       `SELECT id, display_name, date_of_birth, bio, approximate_location,
               avatar_url, interaction_preferences, is_verified
-       FROM profiles WHERE user_id = $1`,
+       FROM profiles WHERE user_id = ?`,
       [userId]
     );
 
@@ -335,7 +158,7 @@ export class AuthService {
       `SELECT i.id, i.name, i.category, i.icon
        FROM user_interests ui
        JOIN interests i ON ui.interest_id = i.id
-       WHERE ui.user_id = $1`,
+       WHERE ui.user_id = ?`,
       [userId]
     );
 

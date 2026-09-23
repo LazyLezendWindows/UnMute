@@ -6,20 +6,17 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-export function connectSocket(token: string): Socket {
-  if (socket?.connected) {
+/** Connects the realtime channel; the server authenticates it with the HttpOnly session cookie. */
+export function connectSocket(): Socket {
+  if (socket) {
     return socket;
   }
 
   socket = io(window.location.origin, {
-    auth: { token },
+    withCredentials: true,
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-  });
-
-  socket.on('connect', () => {
-    console.log('[Socket] Connected to real-time server');
   });
 
   socket.on('connect_error', (err) => {

@@ -6,10 +6,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: () => {
-        const token = localStorage.getItem('unmute_token');
-        return token ? '/discover' : '/login';
-      },
+      // Unauthenticated visitors are sent on to /login by the guard below.
+      redirect: '/discover',
     },
     {
       path: '/login',
@@ -62,26 +60,18 @@ const router = createRouter({
   ],
 });
 
-// Navigation Guards
-router.beforeEach(async (to, _from, next) => {
+// Navigation guard: wait for the backend's session answer before rendering any route (no auth flicker).
+router.beforeEach(async (to) => {
   const authStore = useAuthStore();
-  const token = localStorage.getItem('unmute_token');
-
-  if (token && !authStore.user) {
-    try {
-      await authStore.fetchMe();
-    } catch {
-      localStorage.removeItem('unmute_token');
-    }
-  }
+  await authStore.ensureSession();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login');
-  } else if (to.meta.guestOnly && authStore.isAuthenticated) {
-    next('/discover');
-  } else {
-    next();
+    return { path: '/login', query: to.fullPath !== '/discover' ? { redirect: to.fullPath } : undefined };
   }
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    return '/discover';
+  }
+  return true;
 });
 
 export default router;

@@ -7,12 +7,17 @@ import { seedInterests, seedDemoUsersIfEmpty } from './utils/seed';
 
 async function bootstrap() {
   try {
-    // 1. Initialize database schema
+    // 1. Apply pending database migrations
     await initDatabase();
 
-    // 2. Seed basic interests & demo data if database is fresh
+    // 2. Seed reference data; demo accounts only when explicitly enabled in development
     await seedInterests();
-    await seedDemoUsersIfEmpty();
+    if (config.seedDemoUsers) {
+      await seedDemoUsersIfEmpty();
+    }
+    if (!config.googleClientId) {
+      console.warn('[Unmute] GOOGLE_CLIENT_ID is not set; Google sign-in will be unavailable.');
+    }
 
     // 3. Create app and HTTP server
     const app = createApp();

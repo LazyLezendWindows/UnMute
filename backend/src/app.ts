@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { config } from './config/env';
 import { apiRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
+import { requireTrustedOrigin } from './middleware/originCheck';
 import apiRouter from './routes';
 
 export function createApp(): Express {
@@ -12,14 +13,14 @@ export function createApp(): Express {
   // Security Headers
   app.use(
     helmet({
-      contentSecurityPolicy: config.env === 'production' ? undefined : false,
+      contentSecurityPolicy: config.isProduction ? undefined : false,
     })
   );
 
   // CORS
   app.use(
     cors({
-      origin: config.corsOrigin,
+      origin: config.corsOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
@@ -30,8 +31,9 @@ export function createApp(): Express {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-  // General rate limiter
+  // General rate limiter and CSRF origin check for cookie-authenticated requests
   app.use('/api', apiRateLimiter);
+  app.use('/api', requireTrustedOrigin);
 
   // Health check
   app.get('/health', (_req: Request, res: Response) => {

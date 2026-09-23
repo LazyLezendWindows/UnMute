@@ -11,6 +11,7 @@ router.post('/register', authRateLimiter, validateBody(registerSchema), AuthCont
 router.post('/login', authRateLimiter, validateBody(loginSchema), AuthController.login);
 router.post('/google', authRateLimiter, validateBody(googleAuthSchema), AuthController.googleAuth);
 router.post('/logout', AuthController.logout);
+router.get('/session', AuthController.session);
 router.get('/me', requireAuth, AuthController.me);
 
 export default router;

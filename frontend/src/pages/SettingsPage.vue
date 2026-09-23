@@ -215,8 +215,8 @@ const router = useRouter();
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
 
-function handleLogout() {
-  authStore.logout();
+async function handleLogout() {
+  await authStore.logout();
   router.push('/login');
 }
 </script>

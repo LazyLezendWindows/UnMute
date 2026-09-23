@@ -66,6 +66,21 @@ export class ChatService {
     );
   }
 
+  /** True if `userId` belongs to the conversation and neither participant has blocked the other. */
+  static async canAccessConversation(conversationId: string, userId: string): Promise<boolean> {
+    const row = await getDatabase().get(
+      `SELECT c.id FROM conversations c
+       WHERE c.id = ? AND (c.user_a_id = ? OR c.user_b_id = ?)
+         AND NOT EXISTS (
+           SELECT 1 FROM blocks b
+           WHERE (b.blocker_id = c.user_a_id AND b.blocked_id = c.user_b_id)
+              OR (b.blocker_id = c.user_b_id AND b.blocked_id = c.user_a_id)
+         )`,
+      [conversationId, userId, userId]
+    );
+    return Boolean(row);
+  }
+
   static async getMessages(conversationId: string, userId: string, limit = 50, offset = 0) {
     const db = getDatabase();
 

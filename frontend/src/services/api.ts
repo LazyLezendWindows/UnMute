@@ -1,36 +1,41 @@
 import axios from 'axios';
 
+/** API error carrying the HTTP status so callers can distinguish auth failures from other errors. */
+export class ApiError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+  }
+}
+
+let unauthorizedHandler: (() => void) | null = null;
+
+/** Registered by the auth store so an expired/revoked session anywhere resets auth state. */
+export function onUnauthorized(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  // The session lives in an HttpOnly cookie set by the backend; JS never sees the token.
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Attach JWT token from localStorage if present
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('unmute_token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Standardize error message extraction
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const status: number | undefined = error.response?.status;
     const message =
       error.response?.data?.error ||
       error.response?.data?.message ||
-      error.message ||
-      'An unexpected error occurred';
+      (error.response ? 'An unexpected error occurred' : 'Unable to reach Unmute. Check your connection.');
 
-    // If unauthorized, clear local session
-    if (error.response?.status === 401) {
-      localStorage.removeItem('unmute_token');
+    if (status === 401 && !String(error.config?.url || '').startsWith('/auth/')) {
+      unauthorizedHandler?.();
     }
 
-    return Promise.reject(new Error(message));
+    return Promise.reject(new ApiError(message, status));
   }
 );

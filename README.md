@@ -35,7 +35,7 @@ Unmute
 │       ├── Layered: Routes → Controllers → Services → Models
 │       ├── Real-time Socket.io Server
 │       ├── Zod Input Validation & 18+ Server-side Check
-│       └── JWT Authentication & Rate Limiting
+│       └── Server-side sessions (HttpOnly cookie), Google ID-token verification & Rate Limiting
 │
 ├── Database
 │   └── MariaDB (InnoDB, relational schemas, foreign keys)
@@ -63,7 +63,8 @@ Unmute
 | `messages` | Chat messages with timestamps and status (`sent`, `delivered`, `read`) |
 | `blocks` | Immediate mutual suppression across discovery, matches, and messaging |
 | `reports` | Categorized moderation reports (harassment, spam, fake profile, etc.) |
-| `sessions` | Session tokens for authentication |
+| `auth_accounts` | Links a user to external identity providers (e.g. Google `sub`) |
+| `sessions` | Server-side sessions (SHA-256 of the cookie token, expiry, revocation) |
 
 ---
 
@@ -72,7 +73,9 @@ Unmute
 ### Authentication & Profiles
 * `POST /api/v1/auth/register` — Register user (strictly validates age $\ge$ 18 from DOB)
 * `POST /api/v1/auth/login` — Login with email and password
-* `POST /api/v1/auth/logout` — Logout current session
+* `POST /api/v1/auth/google` — Sign in with a Google ID token (verified server-side; new users confirm date of birth)
+* `POST /api/v1/auth/logout` — Revoke the current session and clear the cookie
+* `GET  /api/v1/auth/session` — Restore the session from the cookie (`authenticated: true|false`)
 * `GET  /api/v1/auth/me` — Get authenticated user details
 * `GET  /api/v1/users/me` — Get user profile & interests
 * `PATCH /api/v1/users/me` — Update bio, location, avatar, interaction preferences & interests
@@ -135,12 +138,24 @@ npm run dev
 
 The frontend application opens at `http://localhost:5173`.
 
+### Google Sign-In
+
+1. In Google Cloud Console create an OAuth 2.0 **Web application** client and add `http://localhost:5173` to *Authorized JavaScript origins*.
+2. Set the client ID in `backend/.env` as `GOOGLE_CLIENT_ID` and in `frontend/.env` as `VITE_GOOGLE_CLIENT_ID` (see the `.env.example` files).
+
+The browser only ever passes Google's signed ID token to the backend, which verifies its signature and audience before creating an Unmute session.
+
+### Database Migrations
+
+Schema changes live in `backend/migrations/NNN_name.sql` and are applied automatically, in order, on server start (tracked in `schema_migrations`). Never edit an applied migration; add a new one.
+
 ### Running Automated Tests
 
 ```bash
-# Run Vitest test suite on MariaDB
 npm run test
 ```
+
+Tests run against a separate `unmute_test_db` database (created automatically) and refuse to run against any database not named `*_test_db`.
 
 ### Production Build
 
@@ -150,13 +165,6 @@ npm run build
 
 ---
 
-## 6. Demo Accounts
+## 6. Demo Accounts (development only)
 
-The database comes pre-seeded with diverse conversation-first profiles:
-
-* `aanya.sharma@example.com` (Pass: `UnmutePassword123!`)
-* `rohit.verma@example.com` (Pass: `UnmutePassword123!`)
-* `meera.iyer@example.com` (Pass: `UnmutePassword123!`)
-* `kabir.patel@example.com` (Pass: `UnmutePassword123!`)
-* `priya.nair@example.com` (Pass: `UnmutePassword123!`)
-
+Demo profiles are no longer seeded automatically. To seed them into an empty development database, set `SEED_DEMO_USERS=true` in `backend/.env` (ignored when `NODE_ENV=production`).

@@ -1,170 +1,98 @@
-import fs from 'fs';
-import path from 'path';
-import mysql, { Pool } from 'mysql2/promise';
-import Database from 'better-sqlite3';
+import mysql, { Pool, PoolConnection } from 'mysql2/promise';
 import { config } from './env';
+import { mariaConnectionOptions } from './connection';
+import { runMigrations } from './migrate';
 
 export interface IDatabase {
   query<T = any>(sql: string, params?: any[]): Promise<T[]>;
   get<T = any>(sql: string, params?: any[]): Promise<T | null>;
   run(sql: string, params?: any[]): Promise<{ changes: number }>;
   exec(sql: string): Promise<void>;
+  /** Runs `fn` inside a transaction on a single connection; commits on success, rolls back on error. */
+  transaction<T>(fn: (tx: IDatabase) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 
-class MariaDatabase implements IDatabase {
-  private pool: Pool;
-
-  constructor() {
-    const opts: mysql.PoolOptions = {
-      user: config.mariadb.user,
-      password: config.mariadb.password,
-      database: config.mariadb.database,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      multipleStatements: true,
-    };
-
-    if (fs.existsSync(config.mariadb.socketPath)) {
-      opts.socketPath = config.mariadb.socketPath;
-    } else {
-      opts.host = config.mariadb.host;
-      opts.port = config.mariadb.port;
-    }
-
-    this.pool = mysql.createPool(opts);
+// Supports both `?` and `$1`-style placeholders; `$n` is rewritten to positional `?`.
+function prepareParams(sql: string, params: any[]): { normalizedSql: string; boundParams: any[] } {
+  if (!/\$\d+/.test(sql)) {
+    return { normalizedSql: sql, boundParams: params };
   }
-
-  private prepareParams(sql: string, params: any[]): { normalizedSql: string; boundParams: any[] } {
-    if (!/\$\d+/.test(sql)) {
-      return { normalizedSql: sql, boundParams: params };
-    }
-    const boundParams: any[] = [];
-    const normalizedSql = sql.replace(/\$(\d+)/g, (_, idx) => {
-      const paramIndex = parseInt(idx, 10) - 1;
-      boundParams.push(params[paramIndex]);
-      return '?';
-    });
-    return { normalizedSql, boundParams };
-  }
-
-  async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const { normalizedSql, boundParams } = this.prepareParams(sql, params);
-    const [rows] = await this.pool.query(normalizedSql, boundParams);
-    return (rows as unknown) as T[];
-  }
-
-  async get<T = any>(sql: string, params: any[] = []): Promise<T | null> {
-    const { normalizedSql, boundParams } = this.prepareParams(sql, params);
-    const [rows] = await this.pool.query(normalizedSql, boundParams);
-    const arr = (rows as unknown) as T[];
-    return arr.length > 0 ? arr[0] : null;
-  }
-
-  async run(sql: string, params: any[] = []): Promise<{ changes: number }> {
-    const { normalizedSql, boundParams } = this.prepareParams(sql, params);
-    const [result] = await this.pool.execute(normalizedSql, boundParams);
-    const res = result as mysql.ResultSetHeader;
-    return { changes: res.affectedRows || 0 };
-  }
-
-  async exec(sql: string): Promise<void> {
-    await this.pool.query(sql);
-  }
-
-  async close(): Promise<void> {
-    await this.pool.end();
-  }
+  const boundParams: any[] = [];
+  const normalizedSql = sql.replace(/\$(\d+)/g, (_, idx) => {
+    boundParams.push(params[parseInt(idx, 10) - 1]);
+    return '?';
+  });
+  return { normalizedSql, boundParams };
 }
 
-class SQLiteDatabase implements IDatabase {
-  private db: Database.Database;
-
-  constructor(filePath: string) {
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    this.db = new Database(filePath);
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('foreign_keys = ON');
-  }
-
-  private prepare(sql: string, params: any[]): { stmt: Database.Statement; boundParams: any[] } {
-    const boundParams: any[] = [];
-    if (/\$\d+/.test(sql)) {
-      const normalized = sql.replace(/\$(\d+)/g, (_, idx) => {
-        const paramIndex = parseInt(idx, 10) - 1;
-        boundParams.push(params[paramIndex]);
-        return '?';
-      });
-      return { stmt: this.db.prepare(normalized), boundParams };
-    }
-    return { stmt: this.db.prepare(sql), boundParams: params };
-  }
+class MariaDatabase implements IDatabase {
+  constructor(private readonly executor: Pool | PoolConnection) {}
 
   async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const { stmt, boundParams } = this.prepare(sql, params);
-    return stmt.all(...boundParams) as T[];
+    const { normalizedSql, boundParams } = prepareParams(sql, params);
+    const [rows] = await this.executor.query(normalizedSql, boundParams);
+    return rows as unknown as T[];
   }
 
   async get<T = any>(sql: string, params: any[] = []): Promise<T | null> {
-    const { stmt, boundParams } = this.prepare(sql, params);
-    const result = stmt.get(...boundParams);
-    return (result as T) || null;
+    const rows = await this.query<T>(sql, params);
+    return rows.length > 0 ? rows[0] : null;
   }
 
   async run(sql: string, params: any[] = []): Promise<{ changes: number }> {
-    const { stmt, boundParams } = this.prepare(sql, params);
-    const info = stmt.run(...boundParams);
-    return { changes: info.changes };
+    const { normalizedSql, boundParams } = prepareParams(sql, params);
+    const [result] = await this.executor.execute(normalizedSql, boundParams);
+    return { changes: (result as mysql.ResultSetHeader).affectedRows || 0 };
   }
 
   async exec(sql: string): Promise<void> {
-    this.db.exec(sql);
+    await this.executor.query(sql);
+  }
+
+  async transaction<T>(fn: (tx: IDatabase) => Promise<T>): Promise<T> {
+    if (!('getConnection' in this.executor)) {
+      // Already inside a transaction: reuse it.
+      return fn(this);
+    }
+    const conn = await this.executor.getConnection();
+    try {
+      await conn.beginTransaction();
+      const result = await fn(new MariaDatabase(conn));
+      await conn.commit();
+      return result;
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
   }
 
   async close(): Promise<void> {
-    this.db.close();
+    if ('getConnection' in this.executor) {
+      await this.executor.end();
+    }
   }
 }
 
 let dbInstance: IDatabase | null = null;
-let isMariaDBActive = false;
 
 export function getDatabase(): IDatabase {
   if (!dbInstance) {
-    try {
-      console.log(`[DB] Connecting to MariaDB (${config.mariadb.database})...`);
-      dbInstance = new MariaDatabase();
-      isMariaDBActive = true;
-    } catch (err) {
-      console.warn('[DB] MariaDB connection failed, falling back to local SQLite:', err);
-      const dbPath = path.resolve(__dirname, '../../data/unmute.sqlite');
-      dbInstance = new SQLiteDatabase(dbPath);
-      isMariaDBActive = false;
-    }
+    const pool = mysql.createPool({
+      ...mariaConnectionOptions(),
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+    dbInstance = new MariaDatabase(pool);
   }
   return dbInstance;
 }
 
 export async function initDatabase(): Promise<void> {
-  const db = getDatabase();
-  try {
-    if (isMariaDBActive) {
-      const schemaPath = path.resolve(__dirname, '../models/schema_mariadb.sql');
-      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-      await db.exec(schemaSQL);
-      console.log('[DB] MariaDB schema initialized successfully (unmute_db)');
-    } else {
-      const schemaPath = path.resolve(__dirname, '../models/schema.sql');
-      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-      await db.exec(schemaSQL);
-      console.log('[DB] SQLite schema initialized successfully');
-    }
-  } catch (err) {
-    console.error('[DB] Schema initialization error:', err);
-    throw err;
-  }
+  console.log(`[DB] Connecting to MariaDB (${config.mariadb.database})...`);
+  await runMigrations();
+  await getDatabase().get('SELECT 1 AS ok');
 }
