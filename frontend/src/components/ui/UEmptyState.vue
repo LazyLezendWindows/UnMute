@@ -10,10 +10,10 @@
     </div>
 
     <!-- Title & Description -->
-    <h3 class="fs-5 fw-bold mb-2 font-display" style="color: var(--unmute-text-primary);">
+    <h3 class="fs-5 fw-bold mb-2 font-display u-text-primary">
       {{ title }}
     </h3>
-    <p class="fs-6 max-w-xs mx-auto mb-4" style="color: var(--unmute-text-muted);">
+    <p class="fs-6 max-w-xs mx-auto mb-4 u-text-muted">
       {{ description }}
     </p>
 

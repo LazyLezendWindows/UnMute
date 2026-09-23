@@ -3,7 +3,7 @@
     class="u-badge d-inline-flex align-items-center gap-1 fw-semibold rounded-pill user-select-none transition-colors"
     :class="[variantClass, sizeClass]"
   >
-    <span v-if="dot" class="rounded-circle flex-shrink-0" :class="dotClass" style="width: 0.35rem; height: 0.35rem;"></span>
+    <span v-if="dot" class="u-badge-dot rounded-circle flex-shrink-0" :class="dotClass"></span>
     <slot />
   </span>
 </template>
@@ -91,6 +91,11 @@ const dotClass = computed(() => {
 .u-badge-glow {
   background: var(--unmute-primary-gradient);
   box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.u-badge-dot {
+  width: 0.35rem;
+  height: 0.35rem;
 }
 </style>
 

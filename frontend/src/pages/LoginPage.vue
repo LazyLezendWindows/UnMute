@@ -1,24 +1,23 @@
 <template>
-  <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
+  <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors u-page">
     <!-- Subtle Architectural Ambient Halos -->
-    <div class="position-absolute ambient-halo-top rounded-circle pointer-events-none" style="background: radial-gradient(circle, var(--unmute-primary-surface) 0%, transparent 70%);"></div>
-    <div class="position-absolute ambient-halo-bottom rounded-circle pointer-events-none" style="background: radial-gradient(circle, var(--unmute-primary-surface) 0%, transparent 70%);"></div>
+    <div class="position-absolute ambient-halo-top rounded-circle pointer-events-none u-ambient-halo"></div>
+    <div class="position-absolute ambient-halo-bottom rounded-circle pointer-events-none u-ambient-halo"></div>
 
-    <div class="w-100 max-w-md position-relative" style="z-index: 10;">
+    <div class="w-100 max-w-md position-relative z-10">
       <UCard variant="elevated" padding="lg" class="shadow-2xl elyse-auth-card">
         <div class="d-flex flex-column gap-4">
           <!-- Editorial Brand Header -->
           <div class="text-center pt-2">
             <div
-              class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-3"
-              style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-btn-3d-shadow), var(--unmute-3d-specular);"
+              class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-3 u-fill-primary-3d"
             >
               <i class="ri-voiceprint-fill text-white fs-2"></i>
             </div>
-            <h1 class="brand-heading fs-2 fw-bold tracking-tight mb-1" style="color: var(--unmute-text-primary);">
+            <h1 class="brand-heading fs-2 fw-bold tracking-tight mb-1 u-text-primary">
               Welcome to Unmute
             </h1>
-            <p class="small mb-0" style="color: var(--unmute-text-muted); font-family: 'Outfit', sans-serif;">
+            <p class="small mb-0 u-text-muted font-sans">
               A refined, conversation-first sanctuary
             </p>
           </div>
@@ -34,7 +33,7 @@
           <!-- Divider -->
           <div class="d-flex align-items-center gap-3">
             <hr class="flex-grow-1 my-0 opacity-25" />
-            <span class="extra-small text-uppercase tracking-widest fw-semibold" style="color: var(--unmute-text-dim);">
+            <span class="extra-small text-uppercase tracking-widest fw-semibold u-text-dim">
               or with email
             </span>
             <hr class="flex-grow-1 my-0 opacity-25" />
@@ -72,9 +71,9 @@
           </form>
 
           <!-- Switch to Register -->
-          <div class="text-center small pt-1" style="color: var(--unmute-text-muted);">
+          <div class="text-center small pt-1 u-text-muted">
             Don't have an account?
-            <router-link to="/register" class="fw-bold ms-1 text-decoration-none" style="color: var(--unmute-text-primary); text-decoration: underline !important;">
+            <router-link to="/register" class="fw-bold ms-1 text-decoration-none u-link-strong">
               Create account
             </router-link>
           </div>

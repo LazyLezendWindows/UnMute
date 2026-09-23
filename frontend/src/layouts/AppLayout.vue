@@ -1,18 +1,16 @@
 <template>
-  <div class="min-vh-100 d-flex flex-column position-relative overflow-hidden" style="background-color: var(--unmute-bg); color: var(--unmute-text-primary);">
+  <div class="min-vh-100 d-flex flex-column position-relative overflow-hidden u-page">
     <!-- Ambient 3D Depth Lighting & Dynamic Blobs -->
     <div
-      class="position-fixed top-0 start-25 rounded-circle pointer-events-none animate-pulse-glow"
-      style="width: 24rem; height: 24rem; filter: blur(130px); z-index: 0; background: var(--unmute-primary); opacity: 0.14;"
+      class="ambient-blob ambient-blob-primary position-fixed top-0 start-25 rounded-circle pointer-events-none animate-pulse-glow"
     ></div>
     <div
-      class="position-fixed bottom-0 end-25 rounded-circle pointer-events-none animate-pulse-glow"
-      style="width: 20rem; height: 20rem; filter: blur(110px); z-index: 0; background: var(--unmute-primary-light); opacity: 0.10; animation-delay: 1.5s;"
+      class="ambient-blob ambient-blob-secondary position-fixed bottom-0 end-25 rounded-circle pointer-events-none animate-pulse-glow"
     ></div>
 
     <Navbar />
 
-    <main class="flex-grow-1 d-flex flex-column container max-w-4xl px-3 py-3 py-md-4 position-relative" style="z-index: 10; padding-bottom: 6rem;">
+    <main class="app-main flex-grow-1 d-flex flex-column container max-w-4xl px-3 py-3 py-md-4 position-relative">
       <slot />
     </main>
 
@@ -34,3 +32,33 @@ import { useDiscoverStore } from '../stores/discover';
 
 const discoverStore = useDiscoverStore();
 </script>
+
+<style scoped lang="scss">
+.ambient-blob {
+  z-index: 0;
+}
+
+.ambient-blob-primary {
+  width: 24rem;
+  height: 24rem;
+  filter: blur(130px);
+  background: var(--unmute-primary);
+  opacity: 0.14;
+}
+
+.ambient-blob-secondary {
+  width: 20rem;
+  height: 20rem;
+  filter: blur(110px);
+  background: var(--unmute-primary-light);
+  opacity: 0.1;
+  animation-delay: 1.5s;
+}
+
+.app-main {
+  z-index: 10;
+  // Clearance for the mobile bottom nav. Currently overridden by Bootstrap's !important
+  // py-3 / py-md-4 utilities (as the original inline style was); see follow-up.
+  padding-bottom: 6rem;
+}
+</style>

@@ -17,7 +17,7 @@
         <!-- Header -->
         <div v-if="title || $slots.header" class="u-modal-header px-4 py-3 d-flex align-items-center justify-content-between">
           <slot name="header">
-            <h3 class="fw-bold mb-0 fs-6 font-display" style="color: var(--unmute-text-primary);">{{ title }}</h3>
+            <h3 class="fw-bold mb-0 fs-6 font-display u-text-primary">{{ title }}</h3>
           </slot>
           <button
             type="button"
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Body -->
-        <div class="u-modal-body p-4" style="color: var(--unmute-text-primary);">
+        <div class="u-modal-body p-4 u-text-primary">
           <slot />
         </div>
 

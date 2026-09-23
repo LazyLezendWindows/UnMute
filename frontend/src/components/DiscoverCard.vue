@@ -33,7 +33,7 @@
       <!-- Candidate Basic Info Overlay -->
       <div class="position-absolute bottom-0 start-0 end-0 p-4">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <h2 class="fs-3 fw-bold text-white mb-0 text-shadow" style="font-family: 'Playfair Display', Georgia, serif; letter-spacing: -0.015em;">
+          <h2 class="fs-3 fw-bold text-white mb-0 text-shadow u-font-editorial">
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">
@@ -58,18 +58,18 @@
       >
         <i class="ri-sparkling-fill icon-sm text-primary flex-shrink-0 animate-pulse-glow"></i>
         <span class="small fw-medium">
-          Common interests: <strong class="fw-bold" style="color: var(--unmute-text-primary);">{{ candidate.commonInterests.join(', ') }}</strong>
+          Common interests: <strong class="fw-bold u-text-primary">{{ candidate.commonInterests.join(', ') }}</strong>
         </span>
       </div>
 
       <!-- Bio / Story -->
       <div v-if="candidate.bio" class="candidate-bio-box p-3 rounded-3 small">
-        <p class="mb-0 lh-base" style="white-space: pre-line; color: var(--unmute-text-secondary);">{{ candidate.bio }}</p>
+        <p class="mb-0 lh-base u-pre-line u-text-secondary">{{ candidate.bio }}</p>
       </div>
 
       <!-- Connection Intentions / Interaction Preferences -->
       <div v-if="candidate.interactionPreferences && candidate.interactionPreferences.length > 0">
-        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1" style="color: var(--unmute-text-muted);">
+        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1 u-text-muted">
           Looking for
         </span>
         <div class="d-flex flex-wrap gap-1">
@@ -86,7 +86,7 @@
 
       <!-- All Interests tags -->
       <div v-if="candidate.interests && candidate.interests.length > 0">
-        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1" style="color: var(--unmute-text-muted);">
+        <span class="extra-small fw-bold text-uppercase tracking-wider d-block mb-1 u-text-muted">
           Interests & Topics
         </span>
         <div class="d-flex flex-wrap gap-1">

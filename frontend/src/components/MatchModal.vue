@@ -35,10 +35,10 @@
 
       <!-- Title & Philosophy -->
       <div>
-        <h2 class="fs-4 fw-extrabold mb-1 font-display" style="color: var(--unmute-text-primary);">
+        <h2 class="fs-4 fw-extrabold mb-1 font-display u-text-primary">
           You and {{ match.matchedUser.displayName }} clicked!
         </h2>
-        <p class="small mb-0 max-w-xs mx-auto" style="color: var(--unmute-text-secondary);">
+        <p class="small mb-0 max-w-xs mx-auto u-text-secondary">
           No awkward pickup lines needed. Connect on your shared interests without the pressure.
         </p>
       </div>
@@ -68,8 +68,7 @@
         <button
           type="button"
           @click="dismiss"
-          class="btn btn-link btn-sm text-decoration-none p-0"
-          style="color: var(--unmute-text-muted);"
+          class="btn btn-link btn-sm text-decoration-none p-0 u-text-muted"
         >
           Keep discovering for now
         </button>

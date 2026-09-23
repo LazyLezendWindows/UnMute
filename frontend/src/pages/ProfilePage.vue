@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h1 class="fs-4 fw-bolder tracking-tight mb-1 font-display" style="color: var(--unmute-text-primary);">Your Profile</h1>
-        <p class="small mb-0" style="color: var(--unmute-text-muted);">Share your interests and intentions without the pressure</p>
+        <h1 class="fs-4 fw-bolder tracking-tight mb-1 font-display u-text-primary">Your Profile</h1>
+        <p class="small mb-0 u-text-muted">Share your interests and intentions without the pressure</p>
       </div>
       <div class="d-flex align-items-center gap-2">
         <router-link to="/settings">
@@ -36,7 +36,7 @@
       <UCard variant="elevated" padding="lg">
         <div class="d-flex flex-column gap-4">
           <!-- Avatar Section with UAvatar -->
-          <div class="d-flex align-items-center gap-3 p-3 rounded-4 surface-raised border" style="border-color: var(--unmute-border) !important;">
+          <div class="d-flex align-items-center gap-3 p-3 rounded-4 surface-raised border u-border-default">
             <UAvatar
               :src="form.avatarUrl"
               :name="form.displayName || 'User'"
@@ -89,24 +89,23 @@
           <!-- Bio / About You -->
           <div>
             <div class="d-flex align-items-center justify-content-between mb-1">
-              <label class="form-label small fw-semibold mb-0" style="color: var(--unmute-text-secondary);">
+              <label class="form-label small fw-semibold mb-0 u-text-secondary">
                 About You & Conversation Prompts
               </label>
-              <span class="extra-small" style="color: var(--unmute-text-dim);">{{ (form.bio || '').length }}/500</span>
+              <span class="extra-small u-text-dim">{{ (form.bio || '').length }}/500</span>
             </div>
             <textarea
               v-model="form.bio"
               rows="3"
               maxlength="500"
               placeholder="What kind of topics spark your curiosity? Favorite books, coffee habits, creative projects..."
-              class="form-control rounded-3 p-3 small"
-              style="background-color: var(--unmute-input-bg); color: var(--unmute-text-primary); border: 1px solid var(--unmute-input-border);"
+              class="form-control rounded-3 p-3 small u-input-surface"
             ></textarea>
           </div>
 
           <!-- Preferred Interaction Types -->
           <div>
-            <label class="form-label small fw-semibold mb-2" style="color: var(--unmute-text-secondary);">
+            <label class="form-label small fw-semibold mb-2 u-text-secondary">
               What kind of interactions are you open to?
             </label>
             <div class="d-flex flex-wrap gap-2">
@@ -121,7 +120,6 @@
                     ? 'pref-selected'
                     : 'surface-raised text-white-50'
                 "
-                :style="form.interactionPreferences.includes(pref) ? { background: 'var(--unmute-primary-gradient)', boxShadow: 'var(--unmute-glow-primary)', color: '#ffffff' } : {}"
               >
                 {{ pref }}
               </button>
@@ -129,13 +127,13 @@
           </div>
 
           <!-- Interests Selector -->
-          <div class="pt-3 border-top" style="border-color: var(--unmute-border) !important;">
-            <label class="form-label small fw-semibold mb-2" style="color: var(--unmute-text-secondary);">Interests & Hobbies</label>
+          <div class="pt-3 border-top u-border-default">
+            <label class="form-label small fw-semibold mb-2 u-text-secondary">Interests & Hobbies</label>
             <InterestSelector v-model="form.interestIds" />
           </div>
 
           <!-- Save Button -->
-          <div class="pt-3 border-top d-flex justify-content-end" style="border-color: var(--unmute-border) !important;">
+          <div class="pt-3 border-top d-flex justify-content-end u-border-default">
             <UButton
               type="submit"
               variant="primary"
@@ -250,6 +248,9 @@ async function handleLogout() {
   }
 
   &.pref-selected {
+    background: var(--unmute-primary-gradient);
+    box-shadow: var(--unmute-glow-primary);
+    color: #ffffff;
     border-color: rgba(255, 255, 255, 0.25) !important;
   }
 }

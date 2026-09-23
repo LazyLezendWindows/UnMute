@@ -7,7 +7,6 @@
     <!-- Subtle top specular highlight for 3D realism -->
     <div
       class="u-card-specular pe-none position-absolute top-0 start-0 end-0"
-      style="height: 1.5px; background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight, rgba(255,255,255,0.85)), transparent);"
     ></div>
 
     <slot />
@@ -127,5 +126,10 @@ const paddingClass = computed(() => {
     box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
     border-color: var(--unmute-primary);
   }
+}
+
+.u-card-specular {
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight, rgba(255, 255, 255, 0.85)), transparent);
 }
 </style>

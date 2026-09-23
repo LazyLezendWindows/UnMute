@@ -1,7 +1,7 @@
 <template>
   <div class="u-input-wrapper w-100 d-flex flex-column gap-1">
     <div v-if="label || $slots.label" class="d-flex align-items-center justify-content-between">
-      <label v-if="label" class="form-label small fw-semibold mb-0" style="color: var(--unmute-text-secondary);">
+      <label v-if="label" class="form-label small fw-semibold mb-0 u-text-secondary">
         {{ label }}
         <span v-if="required" class="text-danger">*</span>
       </label>
@@ -11,7 +11,7 @@
     <div class="position-relative d-flex align-items-center">
       <!-- Prefix Icon -->
       <div v-if="icon" class="position-absolute start-0 ms-3 pe-none d-flex align-items-center justify-content-center text-muted">
-        <component :is="icon" style="width: 1rem; height: 1rem;" />
+        <component :is="icon" class="u-input-icon" />
       </div>
 
       <input
@@ -48,7 +48,7 @@
     </p>
 
     <!-- Hint message -->
-    <p v-else-if="hint" class="small text-muted mb-0" style="font-size: 0.72rem;">
+    <p v-else-if="hint" class="u-input-hint small text-muted mb-0">
       {{ hint }}
     </p>
   </div>
@@ -114,6 +114,15 @@ defineEmits<{
 
 .u-input-error:focus {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3.5px rgba(244, 63, 94, 0.25);
+}
+
+.u-input-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.u-input-hint {
+  font-size: 0.72rem;
 }
 </style>
 

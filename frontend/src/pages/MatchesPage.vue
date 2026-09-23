@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1" style="color: var(--unmute-text-primary);">Your Matches</h1>
-        <p class="small mb-0" style="color: var(--unmute-text-muted);">People you connected with mutually</p>
+        <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1 u-text-primary">Your Matches</h1>
+        <p class="small mb-0 u-text-muted">People you connected with mutually</p>
       </div>
       <UBadge variant="primary" size="md">
         {{ chatStore.matches.length }} Matches
@@ -51,10 +51,10 @@
             />
 
             <div class="min-w-0 flex-grow-1">
-              <h3 class="fw-bold fs-6 text-truncate mb-1" style="color: var(--unmute-text-primary);">
+              <h3 class="fw-bold fs-6 text-truncate mb-1 u-text-primary">
                 {{ match.user.displayName }}, {{ match.user.age }}
               </h3>
-              <p v-if="match.user.approximateLocation" class="extra-small text-truncate mb-2" style="color: var(--unmute-text-muted);">
+              <p v-if="match.user.approximateLocation" class="extra-small text-truncate mb-2 u-text-muted">
                 {{ match.user.approximateLocation }}
               </p>
 

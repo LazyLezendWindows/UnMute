@@ -22,9 +22,8 @@
     <component
       :is="icon"
       v-if="icon && !loading"
-      class="flex-shrink-0"
-      :class="size === 'sm' ? 'me-1.5' : 'me-2'"
-      :style="{ width: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem', height: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem' }"
+      class="u-button-icon flex-shrink-0"
+      :class="[`u-button-icon-${size}`, size === 'sm' ? 'me-1.5' : 'me-2']"
     />
 
     <!-- Slot content -->
@@ -34,9 +33,8 @@
     <component
       :is="iconRight"
       v-if="iconRight"
-      class="flex-shrink-0"
-      :class="size === 'sm' ? 'ms-1.5' : 'ms-2'"
-      :style="{ width: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem', height: size === 'sm' ? '0.9rem' : size === 'lg' ? '1.25rem' : '1.05rem' }"
+      class="u-button-icon flex-shrink-0"
+      :class="[`u-button-icon-${size}`, size === 'sm' ? 'ms-1.5' : 'ms-2']"
     />
   </button>
 </template>
@@ -208,6 +206,21 @@ const sizeClass = computed(() => {
 .u-btn-icon:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.u-button-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.u-button-icon-sm {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.u-button-icon-lg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 </style>
 

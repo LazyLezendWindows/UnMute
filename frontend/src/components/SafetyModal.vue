@@ -7,7 +7,7 @@
     <template #header>
       <div class="d-flex align-items-center gap-2 text-danger">
         <i class="ri-shield-alert-fill safety-icon"></i>
-        <h3 class="fw-bold fs-6 mb-0 font-display" style="color: var(--unmute-text-primary);">
+        <h3 class="fw-bold fs-6 mb-0 font-display u-text-primary">
           {{ mode === 'report' ? 'Report Profile' : 'Block Connection' }}
         </h3>
       </div>
@@ -20,8 +20,7 @@
           type="button"
           @click="mode = 'report'"
           class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
-          :class="mode === 'report' ? 'btn-danger shadow-sm' : ''"
-          :style="mode === 'report' ? {} : { color: 'var(--unmute-text-secondary)' }"
+          :class="mode === 'report' ? 'btn-danger shadow-sm' : 'u-text-secondary'"
         >
           Report User
         </button>
@@ -29,8 +28,7 @@
           type="button"
           @click="mode = 'block'"
           class="btn flex-fill py-1 px-3 border-0 small fw-bold rounded-pill transition-all"
-          :class="mode === 'block' ? 'btn-warning text-dark shadow-sm' : ''"
-          :style="mode === 'block' ? {} : { color: 'var(--unmute-text-secondary)' }"
+          :class="mode === 'block' ? 'btn-warning text-dark shadow-sm' : 'u-text-secondary'"
         >
           Block User
         </button>
@@ -39,7 +37,7 @@
       <!-- Report Form -->
       <div v-if="mode === 'report'" class="d-flex flex-column gap-3">
         <div>
-          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Reason for Report</label>
+          <label class="form-label small fw-semibold mb-1 u-text-secondary">Reason for Report</label>
           <select
             v-model="reportCategory"
             class="form-select form-control-themed w-100"
@@ -50,7 +48,7 @@
         </div>
 
         <div>
-          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Details (Optional)</label>
+          <label class="form-label small fw-semibold mb-1 u-text-secondary">Details (Optional)</label>
           <textarea
             v-model="reportDetails"
             rows="3"
@@ -66,7 +64,7 @@
             v-model="alsoBlockOnReport"
             class="form-check-input mt-0"
           />
-          <label for="alsoBlock" class="form-check-label small user-select-none" style="color: var(--unmute-text-secondary);">
+          <label for="alsoBlock" class="form-check-label small user-select-none u-text-secondary">
             Also block this user immediately
           </label>
         </div>
@@ -74,11 +72,11 @@
 
       <!-- Block Form -->
       <div v-else class="d-flex flex-column gap-2">
-        <p class="small p-3 rounded-3 surface-raised border mb-0" style="color: var(--unmute-text-secondary); border-color: var(--unmute-glass-border) !important;">
-          Blocking <strong class="fw-bold" style="color: var(--unmute-text-primary);">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
+        <p class="small p-3 rounded-3 surface-raised border mb-0 u-text-secondary u-border-glass">
+          Blocking <strong class="fw-bold u-text-primary">{{ targetName }}</strong> will immediately hide them from your discovery feed and stop them from messaging you. They will not be notified that you blocked them.
         </p>
         <div>
-          <label class="form-label small fw-semibold mb-1" style="color: var(--unmute-text-secondary);">Reason (Optional)</label>
+          <label class="form-label small fw-semibold mb-1 u-text-secondary">Reason (Optional)</label>
           <input
             v-model="blockReason"
             type="text"

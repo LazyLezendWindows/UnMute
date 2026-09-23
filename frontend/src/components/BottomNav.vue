@@ -1,121 +1,66 @@
 <template>
   <nav
-    class="d-md-none position-fixed start-0 end-0 bottom-0 m-3 z-3 surface-glass rounded-4 border px-3 py-2 d-flex justify-content-around align-items-center user-select-none bottom-nav-3d"
-    style="z-index: 1030; border-color: var(--unmute-glass-border) !important; box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);"
+    class="bottom-nav d-md-none position-fixed start-0 end-0 bottom-0 m-3 z-3 surface-glass rounded-4 border px-3 py-2 d-flex justify-content-around align-items-center user-select-none bottom-nav-3d u-border-glass"
   >
-    <!-- Discover -->
     <router-link
-      to="/discover"
-      class="d-flex flex-column align-items-center py-1 px-2 rounded-3 position-relative text-decoration-none"
-      :class="$route.path === '/discover' ? 'fw-bold' : ''"
-      :style="$route.path === '/discover' ? { color: 'var(--unmute-primary)' } : { color: 'var(--unmute-text-muted)' }"
+      v-for="item in mobileItems"
+      :key="item.to"
+      :to="item.to"
+      class="bottom-nav-item d-flex flex-column align-items-center py-1 px-2 rounded-3 position-relative text-decoration-none"
+      :class="{ 'is-active fw-bold': isNavActive(item, $route.path) }"
     >
-      <i
-        class="nav-icon"
-        :class="$route.path === '/discover' ? 'ri-compass-3-fill scale-110' : 'ri-compass-3-line'"
-      ></i>
-      <span class="nav-label">Discover</span>
-      <span
-        v-if="$route.path === '/discover'"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator"
-        style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
-      ></span>
-    </router-link>
-
-    <!-- Matches -->
-    <router-link
-      to="/matches"
-      class="d-flex flex-column align-items-center py-1 px-2 rounded-3 position-relative text-decoration-none"
-      :class="$route.path === '/matches' ? 'fw-bold' : ''"
-      :style="$route.path === '/matches' ? { color: 'var(--unmute-primary)' } : { color: 'var(--unmute-text-muted)' }"
-    >
-      <i
-        class="nav-icon"
-        :class="$route.path === '/matches' ? 'ri-sparkling-fill scale-110' : 'ri-sparkling-line'"
-      ></i>
-      <span class="nav-label">Matches</span>
-      <span
-        v-if="$route.path === '/matches'"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator"
-        style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
-      ></span>
-    </router-link>
-
-    <!-- Chat / Messages -->
-    <router-link
-      to="/chat"
-      class="position-relative d-flex flex-column align-items-center py-1 px-2 rounded-3 text-decoration-none"
-      :class="$route.path.startsWith('/chat') ? 'fw-bold' : ''"
-      :style="$route.path.startsWith('/chat') ? { color: 'var(--unmute-primary)' } : { color: 'var(--unmute-text-muted)' }"
-    >
-      <div class="position-relative">
-        <i
-          class="nav-icon"
-          :class="$route.path.startsWith('/chat') ? 'ri-message-3-fill scale-110' : 'ri-message-3-line'"
-        ></i>
+      <div v-if="item.unreadBadge" class="position-relative">
+        <i class="nav-icon" :class="iconClass(item)"></i>
         <span
           v-if="chatStore.totalUnreadCount > 0"
-          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white fw-bold"
-          style="font-size: 0.55rem; padding: 0.15rem 0.35rem;"
+          class="unread-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white fw-bold"
         >
           {{ chatStore.totalUnreadCount }}
         </span>
       </div>
-      <span class="nav-label">Messages</span>
+      <i v-else class="nav-icon" :class="iconClass(item)"></i>
+      <span class="nav-label">{{ item.label }}</span>
       <span
-        v-if="$route.path.startsWith('/chat')"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator"
-        style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
-      ></span>
-    </router-link>
-
-    <!-- Profile -->
-    <router-link
-      to="/profile"
-      class="d-flex flex-column align-items-center py-1 px-2 rounded-3 position-relative text-decoration-none"
-      :class="$route.path === '/profile' ? 'fw-bold' : ''"
-      :style="$route.path === '/profile' ? { color: 'var(--unmute-primary)' } : { color: 'var(--unmute-text-muted)' }"
-    >
-      <i
-        class="nav-icon"
-        :class="$route.path === '/profile' ? 'ri-user-3-fill scale-110' : 'ri-user-3-line'"
-      ></i>
-      <span class="nav-label">Profile</span>
-      <span
-        v-if="$route.path === '/profile'"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator"
-        style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
-      ></span>
-    </router-link>
-
-    <!-- Settings -->
-    <router-link
-      to="/settings"
-      class="d-flex flex-column align-items-center py-1 px-2 rounded-3 position-relative text-decoration-none"
-      :class="$route.path === '/settings' ? 'fw-bold' : ''"
-      :style="$route.path === '/settings' ? { color: 'var(--unmute-primary)' } : { color: 'var(--unmute-text-muted)' }"
-    >
-      <i
-        class="nav-icon"
-        :class="$route.path === '/settings' ? 'ri-settings-3-fill scale-110' : 'ri-settings-3-line'"
-      ></i>
-      <span class="nav-label">Settings</span>
-      <span
-        v-if="$route.path === '/settings'"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator"
-        style="background: var(--unmute-primary-gradient); box-shadow: var(--unmute-glow-primary);"
+        v-if="isNavActive(item, $route.path)"
+        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator u-fill-primary"
       ></span>
     </router-link>
   </nav>
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router';
 import { useChatStore } from '../stores/chat';
+import { NAV_ITEMS, NavItem, isNavActive } from '../navigation';
 
+const route = useRoute();
 const chatStore = useChatStore();
+const mobileItems = NAV_ITEMS.filter((item) => item.mobile);
+
+function iconClass(item: NavItem): string {
+  return isNavActive(item, route.path) ? `${item.icon}-fill scale-110` : `${item.icon}-line`;
+}
 </script>
 
 <style scoped lang="scss">
+.bottom-nav {
+  z-index: 1030;
+  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
+}
+
+.bottom-nav-item {
+  color: var(--unmute-text-muted);
+
+  &.is-active {
+    color: var(--unmute-primary);
+  }
+}
+
+.unread-badge {
+  font-size: 0.55rem;
+  padding: 0.15rem 0.35rem;
+}
+
 .nav-icon {
   font-size: 1.25rem;
   line-height: 1;

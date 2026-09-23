@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column gap-2">
     <div class="d-flex align-items-center justify-content-between">
-      <span class="small fw-semibold" style="color: var(--unmute-text-muted);">
+      <span class="small fw-semibold u-text-muted">
         Select up to 10 interests ({{ modelValue.length }}/10 selected)
       </span>
     </div>

@@ -85,3 +85,63 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+// ---------------------------------------------------------------------------
+// Token utilities replacing inline `style` attributes. An inline style beats every
+// stylesheet rule, including Bootstrap's `!important` utilities (e.g. .text-decoration-none,
+// .text-muted). These use plus specificity (0,2,1) to keep that precedence.
+// ---------------------------------------------------------------------------
+@mixin inline-strength($name) {
+  html .#{$name}.#{$name} {
+    @content;
+  }
+}
+
+// Text tones
+@include inline-strength(u-text-primary) { color: var(--unmute-text-primary); }
+@include inline-strength(u-text-secondary) { color: var(--unmute-text-secondary); }
+@include inline-strength(u-text-muted) { color: var(--unmute-text-muted); }
+@include inline-strength(u-text-dim) { color: var(--unmute-text-dim); }
+@include inline-strength(u-text-accent) { color: var(--unmute-primary); }
+@include inline-strength(u-text-accent-soft) { color: var(--unmute-primary-light); }
+@include inline-strength(u-pre-line) { white-space: pre-line; }
+@include inline-strength(u-font-editorial) {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.015em;
+}
+
+// Strong inline link (e.g. "Create account")
+@include inline-strength(u-link-strong) {
+  color: var(--unmute-text-primary);
+  text-decoration: underline !important;
+}
+
+// Borders
+@include inline-strength(u-border-glass) { border-color: var(--unmute-glass-border) !important; }
+// NOTE: --unmute-border is not defined in the token set (renders as currentColor); kept for parity.
+@include inline-strength(u-border-default) { border-color: var(--unmute-border) !important; }
+
+// Surfaces
+@include inline-strength(u-page) {
+  background-color: var(--unmute-bg);
+  color: var(--unmute-text-primary);
+}
+@include inline-strength(u-input-surface) {
+  background-color: var(--unmute-input-bg);
+  color: var(--unmute-text-primary);
+  border: 1px solid var(--unmute-input-border);
+}
+@include inline-strength(u-fill-primary) {
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary);
+}
+@include inline-strength(u-fill-primary-3d) {
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-btn-3d-shadow), var(--unmute-3d-specular);
+}
+@include inline-strength(u-ambient-halo) {
+  background: radial-gradient(circle, var(--unmute-primary-surface) 0%, transparent 70%);
+}
+
+// Layering
+@include inline-strength(z-10) { z-index: 10; }
