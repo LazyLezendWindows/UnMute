@@ -12,10 +12,6 @@ export const updateProfileSchema = z.object({
     .string()
     .max(500, 'Bio cannot exceed 500 characters')
     .optional(),
-  approximateLocation: z
-    .string()
-    .max(100, 'Location cannot exceed 100 characters')
-    .optional(),
   // Only https images: rejects javascript:, data: and plain-http URLs that would be rendered to other users.
   avatarUrl: z
     .string()

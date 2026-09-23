@@ -1,6 +1,6 @@
 import { getDatabase, initDatabase } from '../src/config/database';
 import { config } from '../src/config/env';
-import { seedInterests } from '../src/utils/seed';
+import { seedInterests, seedReferenceData } from '../src/utils/seed';
 
 /** Migrates the test database and empties every table except the migration ledger. */
 export async function resetTestDatabase(): Promise<void> {
@@ -21,6 +21,7 @@ export async function resetTestDatabase(): Promise<void> {
     await tx.exec('SET FOREIGN_KEY_CHECKS = 1');
   });
   await seedInterests();
+  await seedReferenceData();
 }
 
 /**

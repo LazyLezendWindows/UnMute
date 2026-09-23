@@ -33,7 +33,6 @@ export class ProfileService {
       await ProfileRepository.update(tx, userId, {
         display_name: input.displayName,
         bio: input.bio,
-        approximate_location: input.approximateLocation,
         avatar_url: input.avatarUrl,
         interaction_preferences:
           input.interactionPreferences !== undefined ? JSON.stringify(input.interactionPreferences) : undefined,

@@ -2,6 +2,11 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { getDatabase } from '../config/database';
 import { AuthAccountRepository } from '../repositories/authAccountRepository';
+import { PlaceRepository } from '../repositories/placeRepository';
+import { PincodeRepository } from '../repositories/pincodeRepository';
+import { InstitutionRepository } from '../repositories/institutionRepository';
+import { SAMPLE_STATES, SAMPLE_SETTLEMENTS, SAMPLE_PINCODES } from './indianLocations';
+import { SAMPLE_INSTITUTIONS } from './indianInstitutions';
 
 export const DEFAULT_INTERESTS = [
   { name: 'Reading & Books', category: 'Culture', icon: 'BookOpen' },
@@ -33,6 +38,96 @@ export async function seedInterests() {
       );
     }
   }
+}
+
+/**
+ * Loads the bundled sample of states, districts, settlements, PIN codes and institutions.
+ * Idempotent: it matches existing rows (including ones from a full LGD/AISHE import) instead of
+ * duplicating them, so it is safe to run on every start.
+ */
+export async function seedReferenceData() {
+  await getDatabase().transaction(async (tx) => {
+    const stateIds = new Map<number, string>();
+    for (const state of SAMPLE_STATES) {
+      stateIds.set(
+        state.lgd,
+        await PlaceRepository.ensure(tx, {
+          kind: 'state',
+          name: state.name,
+          parentId: null,
+          stateId: null,
+          districtId: null,
+          lgdCode: state.lgd,
+        })
+      );
+    }
+
+    const districtIds = new Map<string, string>();
+    const districtId = async (stateCode: number, name: string, lat: number, lng: number) => {
+      const key = `${stateCode}:${name}`;
+      let id = districtIds.get(key);
+      if (!id) {
+        const stateId = stateIds.get(stateCode)!;
+        id = await PlaceRepository.ensure(tx, {
+          kind: 'district',
+          name,
+          parentId: stateId,
+          stateId,
+          districtId: null,
+          latitude: lat,
+          longitude: lng,
+        });
+        districtIds.set(key, id);
+      }
+      return id;
+    };
+
+    for (const s of SAMPLE_SETTLEMENTS) {
+      const stateId = stateIds.get(s.state)!;
+      const district = await districtId(s.state, s.district, s.lat, s.lng);
+      const parentId = s.subdistrict
+        ? await PlaceRepository.ensure(tx, {
+            kind: 'subdistrict',
+            name: s.subdistrict,
+            parentId: district,
+            stateId,
+            districtId: district,
+          })
+        : district;
+      await PlaceRepository.ensure(tx, {
+        kind: s.kind,
+        name: s.name,
+        parentId,
+        stateId,
+        districtId: district,
+        latitude: s.lat,
+        longitude: s.lng,
+      });
+    }
+
+    for (const pin of SAMPLE_PINCODES) {
+      await PincodeRepository.upsert(tx, {
+        pincode: pin.pincode,
+        areaName: pin.area,
+        districtId: await districtId(pin.state, pin.district, pin.lat, pin.lng),
+        stateId: stateIds.get(pin.state)!,
+        latitude: pin.lat,
+        longitude: pin.lng,
+      });
+    }
+
+    for (const inst of SAMPLE_INSTITUTIONS) {
+      await InstitutionRepository.ensure(tx, {
+        aisheCode: null,
+        name: inst.name,
+        shortName: inst.shortName,
+        kind: inst.kind,
+        stateId: stateIds.get(inst.state)!,
+        districtId: inst.district ? districtIds.get(`${inst.state}:${inst.district}`) ?? null : null,
+        city: inst.city,
+      });
+    }
+  });
 }
 
 export async function seedDemoUsersIfEmpty() {
@@ -126,6 +221,19 @@ export async function seedDemoUsersIfEmpty() {
         now,
       ]
     );
+
+    // Structured area (a sample city), shown to others at city precision
+    const city = await db.get<{ id: string; latitude: string; longitude: string }>(
+      `SELECT id, latitude, longitude FROM places WHERE kind = 'city' AND name = $1 LIMIT 1`,
+      [demo.location]
+    );
+    if (city) {
+      await db.run(
+        `INSERT INTO user_locations (user_id, place_id, latitude, longitude, source, label_precision)
+         VALUES ($1, $2, $3, $4, 'place', 'city')`,
+        [userId, city.id, city.latitude, city.longitude]
+      );
+    }
 
     // Link interests
     for (const intName of demo.interests) {

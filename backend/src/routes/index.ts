@@ -6,6 +6,8 @@ import interactionRoutes from './interactionRoutes';
 import matchRoutes from './matchRoutes';
 import chatRoutes from './chatRoutes';
 import safetyRoutes from './safetyRoutes';
+import locationRoutes from './locationRoutes';
+import educationRoutes from './educationRoutes';
 
 const apiRouter = Router();
 
@@ -16,5 +18,7 @@ apiRouter.use('/interactions', interactionRoutes);
 apiRouter.use('/matches', matchRoutes);
 apiRouter.use('/conversations', chatRoutes);
 apiRouter.use('/safety', safetyRoutes);
+apiRouter.use('/locations', locationRoutes);
+apiRouter.use('/education', educationRoutes);
 
 export default apiRouter;

@@ -35,3 +35,19 @@ export const reportRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Per-account cap on changing one's area (must run after requireAuth). Moving a search origin
+ * around repeatedly is how distance-based apps get trilaterated.
+ */
+export const locationRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 30,
+  keyGenerator: (req) => (req as AuthRequest).user!.userId,
+  message: {
+    success: false,
+    error: 'You have changed your area many times recently. Please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

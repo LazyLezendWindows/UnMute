@@ -3,7 +3,7 @@ import { createApp } from './app';
 import { config } from './config/env';
 import { initDatabase } from './config/database';
 import { initSocketServer } from './sockets/chatSocket';
-import { seedInterests, seedDemoUsersIfEmpty } from './utils/seed';
+import { seedInterests, seedReferenceData, seedDemoUsersIfEmpty } from './utils/seed';
 
 async function bootstrap() {
   try {
@@ -12,6 +12,7 @@ async function bootstrap() {
 
     // 2. Seed reference data; demo accounts only when explicitly enabled in development
     await seedInterests();
+    await seedReferenceData();
     if (config.seedDemoUsers) {
       await seedDemoUsersIfEmpty();
     }
