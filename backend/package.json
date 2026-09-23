@@ -8,7 +8,9 @@
     "start": "node dist/server.js",
     "dev": "bash scripts/start-mariadb.sh && tsx watch src/server.ts",
     "test": "vitest run",
-    "seed": "tsx src/utils/seed.ts"
+    "seed": "tsx src/utils/seed.ts",
+    "migrate": "tsx src/config/migrate.ts",
+    "migrate:prod": "node dist/config/migrate.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

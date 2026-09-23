@@ -13,18 +13,12 @@ export class SafetyService {
     const db = getDatabase();
     const now = new Date().toISOString();
 
-    const existing = await db.get(
-      'SELECT id FROM blocks WHERE blocker_id = $1 AND blocked_id = $2',
-      [blockerId, blockedId]
+    // Idempotent: blocking twice keeps the original block (unique (blocker_id, blocked_id)).
+    await db.run(
+      `INSERT INTO blocks (id, blocker_id, blocked_id, reason, created_at) VALUES ($1, $2, $3, $4, $5)
+       ON DUPLICATE KEY UPDATE id = id`,
+      [crypto.randomUUID(), blockerId, blockedId, reason, now]
     );
-
-    if (!existing) {
-      const blockId = crypto.randomUUID();
-      await db.run(
-        'INSERT INTO blocks (id, blocker_id, blocked_id, reason, created_at) VALUES ($1, $2, $3, $4, $5)',
-        [blockId, blockerId, blockedId, reason, now]
-      );
-    }
 
     return { success: true, message: 'User has been blocked' };
   }

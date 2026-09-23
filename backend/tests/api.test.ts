@@ -66,6 +66,15 @@ describe('Unmute API', () => {
       expect(cookie).toMatch(/SameSite=Lax/i);
     });
 
+    it('stores the password hash only in auth_accounts', async () => {
+      const row = await getDatabase().get(
+        `SELECT a.password_hash FROM auth_accounts a JOIN users u ON u.id = a.user_id
+         WHERE u.email = ? AND a.provider = 'password'`,
+        ['alice@example.com']
+      );
+      expect(row.password_hash).toMatch(/^\$2[aby]\$12\$/);
+    });
+
     it('rejects duplicate email registration', async () => {
       const res = await request(app).post('/api/v1/auth/register').send({
         email: 'alice@example.com',
@@ -230,6 +239,22 @@ describe('Unmute API', () => {
       expect(res.body.data.bio).toBe('Connecting through books and philosophy.');
       expect(res.body.data.interests.length).toBe(3);
     });
+
+    it('de-duplicates repeated interest ids', async () => {
+      const interestsRes = await alice.get('/api/v1/users/interests');
+      const id = interestsRes.body.data[0].id;
+      const res = await alice.patch('/api/v1/users/me').send({ interestIds: [id, id] });
+      expect(res.status).toBe(200);
+      expect(res.body.data.interests.map((i: any) => i.id)).toEqual([id]);
+    });
+
+    it('rejects unknown interests without applying any part of the update', async () => {
+      const res = await alice.patch('/api/v1/users/me').send({ bio: 'Should not be saved', interestIds: ['no-such-interest'] });
+      expect(res.status).toBe(400);
+      const profile = await alice.get('/api/v1/users/me');
+      expect(profile.body.data.bio).toBe('Connecting through books and philosophy.');
+      expect(profile.body.data.interests.length).toBe(1);
+    });
   });
 
   describe('Discovery, matching & chat', () => {
@@ -265,6 +290,43 @@ describe('Unmute API', () => {
       const read = await b.agent.get(`/api/v1/conversations/${conversationId}/messages`);
       expect(read.body.data.messages.map((m: any) => m.content)).toEqual(['Hello User B!']);
     });
+
+    it('treats a repeated like as a no-op', async () => {
+      const res = await a.agent.post('/api/v1/interactions/like').send({ targetUserId: b.id });
+      expect(res.status).toBe(200);
+      expect(res.body.data.matched).toBe(true);
+      const likes = await getDatabase().get('SELECT COUNT(*) AS n FROM likes WHERE liker_id = ? AND likee_id = ?', [a.id, b.id]);
+      expect(Number(likes.n)).toBe(1);
+    });
+
+    it('creates exactly one match and conversation when two users like each other simultaneously', async () => {
+      const c = await registerAgent('userc@example.com', 'User C');
+      const d = await registerAgent('userd@example.com', 'User D');
+
+      for (let round = 0; round < 5; round++) {
+        await getDatabase().run('DELETE FROM likes WHERE liker_id IN (?, ?)', [c.id, d.id]);
+        await getDatabase().run('DELETE FROM matches WHERE user_a_id IN (?, ?)', [c.id, d.id]);
+
+        const [fromC, fromD] = await Promise.all([
+          c.agent.post('/api/v1/interactions/like').send({ targetUserId: d.id }),
+          d.agent.post('/api/v1/interactions/like').send({ targetUserId: c.id }),
+        ]);
+        expect([fromC.status, fromD.status]).toEqual([200, 200]);
+        expect(fromC.body.data.matched || fromD.body.data.matched).toBe(true);
+
+        const counts = await getDatabase().get(
+          `SELECT (SELECT COUNT(*) FROM matches WHERE user_a_id IN (?, ?) AND user_b_id IN (?, ?)) AS matches,
+                  (SELECT COUNT(*) FROM conversations WHERE user_a_id IN (?, ?) AND user_b_id IN (?, ?)) AS conversations`,
+          [c.id, d.id, c.id, d.id, c.id, d.id, c.id, d.id]
+        );
+        expect([Number(counts.matches), Number(counts.conversations)]).toEqual([1, 1]);
+      }
+    });
+
+    it('returns 404 when liking or passing on a user that does not exist', async () => {
+      expect((await a.agent.post('/api/v1/interactions/like').send({ targetUserId: 'missing-user' })).status).toBe(404);
+      expect((await a.agent.post('/api/v1/interactions/pass').send({ targetUserId: 'missing-user' })).status).toBe(404);
+    });
   });
 
   describe('Safety: blocking & reporting', () => {
@@ -286,6 +348,8 @@ describe('Unmute API', () => {
     it('blocks the target and excludes them from discovery and likes', async () => {
       const blockRes = await blocker.agent.post('/api/v1/safety/block').send({ targetUserId: target.id, reason: 'Spamming' });
       expect(blockRes.status).toBe(200);
+      const again = await blocker.agent.post('/api/v1/safety/block').send({ targetUserId: target.id });
+      expect(again.status).toBe(200);
 
       const feed = await blocker.agent.get('/api/v1/discover');
       expect(feed.body.data.some((u: any) => u.id === target.id)).toBe(false);

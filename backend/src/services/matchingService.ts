@@ -4,6 +4,56 @@ import { AppError } from '../middleware/errorHandler';
 import { calculateAge } from '../utils/age';
 import { getSocketServer } from '../sockets/chatSocket';
 
+/** Target must be an active user with no block in either direction. */
+async function assertInteractable(actorId: string, targetId: string): Promise<void> {
+  const db = getDatabase();
+  const target = await db.get('SELECT id FROM users WHERE id = ? AND is_active = 1', [targetId]);
+  if (!target) {
+    throw new AppError('User not found', 404);
+  }
+  const blocked = await db.get(
+    'SELECT id FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)',
+    [actorId, targetId, targetId, actorId]
+  );
+  if (blocked) {
+    throw new AppError('Action not allowed', 403);
+  }
+}
+
+/**
+ * Creates the match and its conversation atomically, or returns the existing conversation.
+ * The upsert waits on a concurrent insert of the same pair and then yields to it, and the
+ * locking reads see that committed row, so concurrent calls converge on one match/conversation.
+ */
+async function ensureMatch(userX: string, userY: string): Promise<string> {
+  const [userA, userB] = userX < userY ? [userX, userY] : [userY, userX];
+  const now = new Date().toISOString();
+
+  return getDatabase().transaction(async (tx) => {
+    await tx.run('INSERT INTO matches (id, user_a_id, user_b_id, created_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id', [
+      crypto.randomUUID(),
+      userA,
+      userB,
+      now,
+    ]);
+    const match = await tx.get<{ id: string }>(
+      'SELECT id FROM matches WHERE user_a_id = ? AND user_b_id = ? FOR UPDATE',
+      [userA, userB]
+    );
+
+    await tx.run(
+      `INSERT INTO conversations (id, match_id, user_a_id, user_b_id, last_message_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE id = id`,
+      [crypto.randomUUID(), match!.id, userA, userB, now, now]
+    );
+    const conversation = await tx.get<{ id: string }>('SELECT id FROM conversations WHERE match_id = ? FOR UPDATE', [
+      match!.id,
+    ]);
+    return conversation!.id;
+  });
+}
+
 export class MatchingService {
   static async recordLike(likerId: string, likeeId: string) {
     if (likerId === likeeId) {
@@ -11,134 +61,74 @@ export class MatchingService {
     }
 
     const db = getDatabase();
-    const now = new Date().toISOString();
+    await assertInteractable(likerId, likeeId);
 
-    // Check if either has blocked the other
-    const isBlocked = await db.get(
-      'SELECT id FROM blocks WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1)',
-      [likerId, likeeId]
-    );
-    if (isBlocked) {
-      throw new AppError('Action not allowed', 403);
+    // Idempotent: repeating a like is a no-op (unique (liker_id, likee_id)).
+    await db.run('INSERT INTO likes (id, liker_id, likee_id, created_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id', [
+      crypto.randomUUID(),
+      likerId,
+      likeeId,
+      new Date().toISOString(),
+    ]);
+
+    // Each side's like is committed before it checks for the other's, so of two simultaneous
+    // likes at least one sees the reciprocal; ensureMatch makes both succeed without duplicates.
+    const reciprocalLike = await db.get('SELECT id FROM likes WHERE liker_id = ? AND likee_id = ?', [likeeId, likerId]);
+    if (!reciprocalLike) {
+      return { matched: false };
     }
 
-    // Insert or update like
-    const existingLike = await db.get(
-      'SELECT id FROM likes WHERE liker_id = $1 AND likee_id = $2',
-      [likerId, likeeId]
+    const conversationId = await ensureMatch(likerId, likeeId);
+
+    const matchedProfile = await db.get(
+      `SELECT p.display_name, p.date_of_birth, p.bio, p.approximate_location, p.avatar_url
+       FROM profiles p WHERE p.user_id = ?`,
+      [likeeId]
     );
 
-    if (!existingLike) {
-      const likeId = crypto.randomUUID();
-      await db.run(
-        'INSERT INTO likes (id, liker_id, likee_id, created_at) VALUES ($1, $2, $3, $4)',
-        [likeId, likerId, likeeId, now]
+    const io = getSocketServer();
+    if (io) {
+      const likerProfile = await db.get(
+        'SELECT p.display_name, p.date_of_birth, p.avatar_url FROM profiles p WHERE p.user_id = ?',
+        [likerId]
       );
-    }
-
-    // Check if likee has already liked liker (Mutual Match!)
-    const reciprocalLike = await db.get(
-      'SELECT id FROM likes WHERE liker_id = $1 AND likee_id = $2',
-      [likeeId, likerId]
-    );
-
-    if (reciprocalLike) {
-      // Check if match already exists
-      const userA = likerId < likeeId ? likerId : likeeId;
-      const userB = likerId < likeeId ? likeeId : likerId;
-
-      let match = await db.get(
-        'SELECT id FROM matches WHERE user_a_id = $1 AND user_b_id = $2',
-        [userA, userB]
-      );
-
-      let conversationId = '';
-
-      if (!match) {
-        const matchId = crypto.randomUUID();
-        await db.run(
-          'INSERT INTO matches (id, user_a_id, user_b_id, created_at) VALUES ($1, $2, $3, $4)',
-          [matchId, userA, userB, now]
-        );
-
-        const convId = crypto.randomUUID();
-        await db.run(
-          `INSERT INTO conversations (id, match_id, user_a_id, user_b_id, last_message_at, created_at)
-           VALUES ($1, $2, $3, $4, $5, $5)`,
-          [convId, matchId, userA, userB, now]
-        );
-
-        conversationId = convId;
-      } else {
-        const conv = await db.get('SELECT id FROM conversations WHERE match_id = $1', [match.id]);
-        conversationId = conv?.id || '';
-      }
-
-      // Fetch matched user's profile to return
-      const matchedProfile = await db.get(
-        `SELECT p.display_name, p.date_of_birth, p.bio, p.approximate_location, p.avatar_url
-         FROM profiles p WHERE p.user_id = $1`,
-        [likeeId]
-      );
-
-      const result = {
-        matched: true,
+      io.to(`user:${likeeId}`).emit('new_match', {
         conversationId,
         matchedUser: {
-          id: likeeId,
-          displayName: matchedProfile?.display_name || 'Connection',
-          age: matchedProfile ? calculateAge(matchedProfile.date_of_birth) : 18,
-          bio: matchedProfile?.bio || '',
-          approximateLocation: matchedProfile?.approximate_location || '',
-          avatarUrl: matchedProfile?.avatar_url || '',
+          id: likerId,
+          displayName: likerProfile?.display_name || 'New Match',
+          age: likerProfile ? calculateAge(likerProfile.date_of_birth) : 18,
+          avatarUrl: likerProfile?.avatar_url || '',
         },
-      };
-
-      // Notify the other user in real-time if connected via Socket.io
-      const io = getSocketServer();
-      if (io) {
-        const likerProfile = await db.get(
-          `SELECT p.display_name, p.date_of_birth, p.avatar_url FROM profiles p WHERE p.user_id = $1`,
-          [likerId]
-        );
-
-        io.to(`user:${likeeId}`).emit('new_match', {
-          conversationId,
-          matchedUser: {
-            id: likerId,
-            displayName: likerProfile?.display_name || 'New Match',
-            age: likerProfile ? calculateAge(likerProfile.date_of_birth) : 18,
-            avatarUrl: likerProfile?.avatar_url || '',
-          },
-        });
-      }
-
-      return result;
+      });
     }
 
-    return { matched: false };
+    return {
+      matched: true,
+      conversationId,
+      matchedUser: {
+        id: likeeId,
+        displayName: matchedProfile?.display_name || 'Connection',
+        age: matchedProfile ? calculateAge(matchedProfile.date_of_birth) : 18,
+        bio: matchedProfile?.bio || '',
+        approximateLocation: matchedProfile?.approximate_location || '',
+        avatarUrl: matchedProfile?.avatar_url || '',
+      },
+    };
   }
 
   static async recordPass(passerId: string, passeeId: string) {
     if (passerId === passeeId) {
       throw new AppError('Cannot pass on yourself', 400);
     }
+    await assertInteractable(passerId, passeeId);
 
-    const db = getDatabase();
-    const now = new Date().toISOString();
-
-    const existing = await db.get(
-      'SELECT id FROM passes WHERE passer_id = $1 AND passee_id = $2',
-      [passerId, passeeId]
-    );
-
-    if (!existing) {
-      const passId = crypto.randomUUID();
-      await db.run(
-        'INSERT INTO passes (id, passer_id, passee_id, created_at) VALUES ($1, $2, $3, $4)',
-        [passId, passerId, passeeId, now]
-      );
-    }
+    await getDatabase().run('INSERT INTO passes (id, passer_id, passee_id, created_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id', [
+      crypto.randomUUID(),
+      passerId,
+      passeeId,
+      new Date().toISOString(),
+    ]);
 
     return { success: true };
   }

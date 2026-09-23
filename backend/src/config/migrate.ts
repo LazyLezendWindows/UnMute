@@ -12,9 +12,13 @@ const LOCK_NAME = 'unmute_schema_migrations';
  * each in `schema_migrations`. MariaDB DDL auto-commits, so every migration must be safe to
  * re-run if it fails midway.
  */
-export async function runMigrations(): Promise<void> {
+export async function runMigrations(options: { database?: string } = {}): Promise<void> {
   // A dedicated connection: multi-statement execution is enabled here only, never on the app pool.
-  const conn = await mysql.createConnection({ ...mariaConnectionOptions(), multipleStatements: true });
+  const conn = await mysql.createConnection({
+    ...mariaConnectionOptions(),
+    ...(options.database ? { database: options.database } : {}),
+    multipleStatements: true,
+  });
   try {
     const [lockRows] = await conn.query('SELECT GET_LOCK(?, 30) AS acquired', [LOCK_NAME]);
     if ((lockRows as any[])[0]?.acquired !== 1) {
@@ -47,4 +51,17 @@ export async function runMigrations(): Promise<void> {
     await conn.query('SELECT RELEASE_LOCK(?)', [LOCK_NAME]).catch(() => undefined);
     await conn.end();
   }
+}
+
+// `npm run migrate`: apply migrations without starting the server (e.g. as a deploy step).
+if (require.main === module) {
+  runMigrations()
+    .then(() => {
+      console.log('[DB] Migrations are up to date');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('[DB] Migration failed:', err);
+      process.exit(1);
+    });
 }

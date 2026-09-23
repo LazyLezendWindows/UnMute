@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { getDatabase } from '../config/database';
+import { addPasswordCredential } from '../services/authService';
 
 export const DEFAULT_INTERESTS = [
   { name: 'Reading & Books', category: 'Culture', icon: 'BookOpen' },
@@ -105,10 +106,8 @@ export async function seedDemoUsersIfEmpty() {
     const userId = crypto.randomUUID();
     const profileId = crypto.randomUUID();
 
-    await db.run(
-      'INSERT INTO users (id, email, password_hash, is_active, created_at) VALUES ($1, $2, $3, 1, $4)',
-      [userId, demo.email, demoPasswordHash, now]
-    );
+    await db.run('INSERT INTO users (id, email, is_active, created_at) VALUES ($1, $2, 1, $3)', [userId, demo.email, now]);
+    await addPasswordCredential(db, userId, demoPasswordHash);
 
     await db.run(
       `INSERT INTO profiles (

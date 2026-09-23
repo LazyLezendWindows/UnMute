@@ -52,7 +52,7 @@ Unmute
 
 | Table | Description |
 |---|---|
-| `users` | Account credentials (bcrypt-hashed passwords, email, active status) |
+| `users` | Account identity (email, active status); no credentials |
 | `profiles` | Display name, date of birth, bio, approximate location, avatar, interaction preferences |
 | `interests` | Predefined categorized interest topics |
 | `user_interests` | Many-to-many relationship linking users to their interests |
@@ -63,7 +63,7 @@ Unmute
 | `messages` | Chat messages with timestamps and status (`sent`, `delivered`, `read`) |
 | `blocks` | Immediate mutual suppression across discovery, matches, and messaging |
 | `reports` | Categorized moderation reports (harassment, spam, fake profile, etc.) |
-| `auth_accounts` | Links a user to external identity providers (e.g. Google `sub`) |
+| `auth_accounts` | Sign-in methods per user: Google (`sub`) or password (bcrypt hash) |
 | `sessions` | Server-side sessions (SHA-256 of the cookie token, expiry, revocation) |
 
 ---
@@ -147,7 +147,7 @@ The browser only ever passes Google's signed ID token to the backend, which veri
 
 ### Database Migrations
 
-Schema changes live in `backend/migrations/NNN_name.sql` and are applied automatically, in order, on server start (tracked in `schema_migrations`). Never edit an applied migration; add a new one.
+Schema changes live in `backend/migrations/NNN_name.sql` and are applied in order (tracked in `schema_migrations`) on server start, or explicitly with `npm run migrate` (`npm run migrate:prod` against the compiled build). Never edit an applied migration; add a new one. MariaDB DDL is not transactional, so write migrations that are safe to re-run.
 
 ### Running Automated Tests
 
