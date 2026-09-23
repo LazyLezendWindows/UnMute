@@ -115,9 +115,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import UModal from './ui/UModal.vue';
-import UButton from './ui/UButton.vue';
-import { useDiscoverStore } from '../stores/discover';
+import UModal from '../ui/UModal.vue';
+import UButton from '../ui/UButton.vue';
+import { useDiscoverStore } from '../../stores/discover';
 
 const props = defineProps<{
   isOpen: boolean;

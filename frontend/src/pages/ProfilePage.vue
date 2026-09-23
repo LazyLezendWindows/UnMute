@@ -156,7 +156,7 @@ import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
 import UInput from '../components/ui/UInput.vue';
 import UButton from '../components/ui/UButton.vue';
-import InterestSelector from '../components/InterestSelector.vue';
+import InterestSelector from '../components/profile/InterestSelector.vue';
 import { useAuthStore } from '../stores/auth';
 
 const router = useRouter();

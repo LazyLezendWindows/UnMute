@@ -61,8 +61,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import DiscoverCard from '../components/DiscoverCard.vue';
-import SafetyModal from '../components/SafetyModal.vue';
+import DiscoverCard from '../components/discovery/DiscoverCard.vue';
+import SafetyModal from '../components/safety/SafetyModal.vue';
 import USkeleton from '../components/ui/USkeleton.vue';
 import UEmptyState from '../components/ui/UEmptyState.vue';
 import UButton from '../components/ui/UButton.vue';

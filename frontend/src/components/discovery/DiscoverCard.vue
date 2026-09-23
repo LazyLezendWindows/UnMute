@@ -130,10 +130,10 @@
 </template>
 
 <script setup lang="ts">
-import UCard from './ui/UCard.vue';
-import UButton from './ui/UButton.vue';
-import UBadge from './ui/UBadge.vue';
-import { DiscoveryCandidate } from '../types';
+import UCard from '../ui/UCard.vue';
+import UButton from '../ui/UButton.vue';
+import UBadge from '../ui/UBadge.vue';
+import { DiscoveryCandidate } from '../../types';
 
 defineProps<{
   candidate: DiscoveryCandidate;

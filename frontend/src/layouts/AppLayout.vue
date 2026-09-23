@@ -25,9 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import Navbar from '../components/Navbar.vue';
-import BottomNav from '../components/BottomNav.vue';
-import MatchModal from '../components/MatchModal.vue';
+import Navbar from '../components/layout/Navbar.vue';
+import BottomNav from '../components/layout/BottomNav.vue';
+import MatchModal from '../components/matching/MatchModal.vue';
 import { useDiscoverStore } from '../stores/discover';
 
 const discoverStore = useDiscoverStore();

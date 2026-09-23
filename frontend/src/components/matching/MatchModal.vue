@@ -80,11 +80,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import UModal from './ui/UModal.vue';
-import UAvatar from './ui/UAvatar.vue';
-import UButton from './ui/UButton.vue';
-import { useAuthStore } from '../stores/auth';
-import { useChatStore } from '../stores/chat';
+import UModal from '../ui/UModal.vue';
+import UAvatar from '../ui/UAvatar.vue';
+import UButton from '../ui/UButton.vue';
+import { useAuthStore } from '../../stores/auth';
+import { useChatStore } from '../../stores/chat';
 
 const props = defineProps<{
   match: {

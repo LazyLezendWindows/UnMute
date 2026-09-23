@@ -24,8 +24,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { api } from '../services/api';
-import { Interest } from '../types';
+import { api } from '../../services/api';
+import { Interest } from '../../types';
 
 const props = defineProps<{
   modelValue: string[]; // array of interest IDs

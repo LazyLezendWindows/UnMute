@@ -78,11 +78,11 @@
 </template>
 
 <script setup lang="ts">
-import UAvatar from './ui/UAvatar.vue';
-import { NAV_ITEMS, isNavActive } from '../navigation';
-import { useAuthStore } from '../stores/auth';
-import { useChatStore } from '../stores/chat';
-import { useThemeStore } from '../stores/theme';
+import UAvatar from '../ui/UAvatar.vue';
+import { NAV_ITEMS, isNavActive } from '../../navigation';
+import { useAuthStore } from '../../stores/auth';
+import { useChatStore } from '../../stores/chat';
+import { useThemeStore } from '../../stores/theme';
 
 const authStore = useAuthStore();
 const chatStore = useChatStore();

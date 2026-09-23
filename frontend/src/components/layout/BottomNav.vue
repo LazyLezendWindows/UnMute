@@ -30,8 +30,8 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { useChatStore } from '../stores/chat';
-import { NAV_ITEMS, NavItem, isNavActive } from '../navigation';
+import { useChatStore } from '../../stores/chat';
+import { NAV_ITEMS, NavItem, isNavActive } from '../../navigation';
 
 const route = useRoute();
 const chatStore = useChatStore();

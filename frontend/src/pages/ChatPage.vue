@@ -212,7 +212,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import SafetyModal from '../components/SafetyModal.vue';
+import SafetyModal from '../components/safety/SafetyModal.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
 import UButton from '../components/ui/UButton.vue';
 import { useAuthStore } from '../stores/auth';
