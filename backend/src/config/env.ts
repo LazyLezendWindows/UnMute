@@ -6,13 +6,20 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const env = process.env.NODE_ENV || 'development';
 const isProduction = env === 'production';
 
-const corsOrigins = (process.env.CORS_ORIGIN || (isProduction ? '' : 'http://localhost:5173'))
+const rawCors =
+  process.env.CORS_ORIGIN ||
+  process.env.RENDER_EXTERNAL_URL ||
+  process.env.APP_URL ||
+  (isProduction ? '' : 'http://localhost:5173');
+
+const corsOrigins = rawCors
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
 
 if (isProduction && corsOrigins.length === 0) {
-  throw new Error('CORS_ORIGIN must be set in production');
+  // If no external URL configured yet, allow same-origin requests
+  console.warn('[Unmute] CORS_ORIGIN not explicitly set in production; defaulting to same-origin requests.');
 }
 
 /**

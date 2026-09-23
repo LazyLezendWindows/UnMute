@@ -1,6 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import fs from 'fs';
+import path from 'path';
 import { config } from './config/env';
 import { apiRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
@@ -45,7 +47,19 @@ export function createApp(): Express {
   // Base API v1
   app.use('/api/v1', apiRouter);
 
-  // 404 handler
+  // Serve built frontend assets and SPA fallback for single-service deployment
+  const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+  if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    app.get('*', (req: Request, res: Response, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/socket.io')) {
+        return next();
+      }
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  }
+
+  // 404 handler for unmatched API routes
   app.use((_req: Request, res: Response) => {
     res.status(404).json({
       success: false,
