@@ -1,221 +1,86 @@
-import crypto from 'crypto';
-import { getDatabase } from '../config/database';
 import { AppError } from '../middleware/errorHandler';
-import { calculateAge } from '../utils/age';
 import { getSocketServer } from '../sockets/chatSocket';
+import { toPublicProfile } from '../mappers/profileMapper';
+import { toMessage } from '../mappers/messageMapper';
+import { ConversationRepository } from '../repositories/conversationRepository';
+import { MessageRepository } from '../repositories/messageRepository';
+import { ProfileRepository } from '../repositories/profileRepository';
+import { InterestRepository } from '../repositories/interestRepository';
 
 export class ChatService {
   static async getConversations(userId: string) {
-    const db = getDatabase();
+    const conversations = await ConversationRepository.listForUser(userId);
+    const ids = conversations.map((c) => c.id);
+    const [profiles, lastMessages, unread] = await Promise.all([
+      ProfileRepository.findByUserIds(conversations.map((c) => c.other_user_id)),
+      MessageRepository.latestFor(ids),
+      MessageRepository.unreadCounts(ids, userId),
+    ]);
 
-    const conversations = await db.query(
-      `SELECT
-         c.id,
-         c.match_id,
-         c.user_a_id,
-         c.user_b_id,
-         c.last_message_at,
-         c.created_at,
-         CASE WHEN c.user_a_id = $1 THEN c.user_b_id ELSE c.user_a_id END as other_user_id
-       FROM conversations c
-       WHERE (c.user_a_id = $1 OR c.user_b_id = $1)
-         AND c.user_a_id NOT IN (SELECT blocked_id FROM blocks WHERE blocker_id = $1 UNION SELECT blocker_id FROM blocks WHERE blocked_id = $1)
-         AND c.user_b_id NOT IN (SELECT blocked_id FROM blocks WHERE blocker_id = $1 UNION SELECT blocker_id FROM blocks WHERE blocked_id = $1)
-       ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`,
-      [userId]
-    );
-
-    return Promise.all(
-      conversations.map(async (conv) => {
-        const otherProfile = await db.get(
-          `SELECT p.display_name, p.date_of_birth, p.avatar_url, p.is_verified, p.approximate_location
-           FROM profiles p WHERE p.user_id = $1`,
-          [conv.other_user_id]
-        );
-
-        const lastMessage = await db.get(
-          `SELECT id, sender_id, content, status, created_at
-           FROM messages WHERE conversation_id = $1
-           ORDER BY created_at DESC LIMIT 1`,
-          [conv.id]
-        );
-
-        const unreadRes = await db.get(
-          `SELECT COUNT(*) as count
-           FROM messages
-           WHERE conversation_id = $1 AND sender_id != $2 AND status != 'read'`,
-          [conv.id, userId]
-        );
-
-        return {
-          id: conv.id,
-          matchId: conv.match_id,
-          lastMessageAt: conv.last_message_at,
-          lastMessage: lastMessage || null,
-          unreadCount: parseInt(unreadRes?.count || '0', 10),
-          otherUser: {
-            id: conv.other_user_id,
-            displayName: otherProfile?.display_name || 'Connection',
-            age: otherProfile ? calculateAge(otherProfile.date_of_birth) : 18,
-            avatarUrl: otherProfile?.avatar_url || '',
-            approximateLocation: otherProfile?.approximate_location || '',
-            isVerified: Boolean(otherProfile?.is_verified),
-          },
-        };
-      })
-    );
+    return conversations.map((conv) => {
+      const lastMessage = lastMessages.get(conv.id);
+      const { bio: _bio, ...otherUser } = toPublicProfile(conv.other_user_id, profiles.get(conv.other_user_id));
+      return {
+        id: conv.id,
+        matchId: conv.match_id,
+        lastMessageAt: conv.last_message_at,
+        lastMessage: lastMessage ? toMessage(lastMessage) : null,
+        unreadCount: unread.get(conv.id) ?? 0,
+        otherUser,
+      };
+    });
   }
 
   /** True if `userId` belongs to the conversation and neither participant has blocked the other. */
   static async canAccessConversation(conversationId: string, userId: string): Promise<boolean> {
-    const row = await getDatabase().get(
-      `SELECT c.id FROM conversations c
-       WHERE c.id = ? AND (c.user_a_id = ? OR c.user_b_id = ?)
-         AND NOT EXISTS (
-           SELECT 1 FROM blocks b
-           WHERE (b.blocker_id = c.user_a_id AND b.blocked_id = c.user_b_id)
-              OR (b.blocker_id = c.user_b_id AND b.blocked_id = c.user_a_id)
-         )`,
-      [conversationId, userId, userId]
-    );
-    return Boolean(row);
+    const conv = await ConversationRepository.findForParticipant(conversationId, userId);
+    return Boolean(conv && !conv.blocked);
+  }
+
+  /** Resolves a conversation the user may use, or fails without revealing whether it exists. */
+  private static async requireAccessible(conversationId: string, userId: string, blockedMessage: string) {
+    const conv = await ConversationRepository.findForParticipant(conversationId, userId);
+    if (!conv) {
+      throw new AppError('Conversation not found or unauthorized', 404);
+    }
+    if (conv.blocked) {
+      throw new AppError(blockedMessage, 403);
+    }
+    return conv;
   }
 
   static async getMessages(conversationId: string, userId: string, limit = 50, offset = 0) {
-    const db = getDatabase();
+    const conv = await this.requireAccessible(conversationId, userId, 'Access to this conversation is restricted');
 
-    const conv = await db.get(
-      'SELECT id, user_a_id, user_b_id FROM conversations WHERE id = $1',
-      [conversationId]
-    );
+    const [rows, profile, interests] = await Promise.all([
+      MessageRepository.page(conversationId, limit, offset),
+      ProfileRepository.findByUserId(conv.other_user_id),
+      InterestRepository.forUser(conv.other_user_id),
+    ]);
 
-    if (!conv || (conv.user_a_id !== userId && conv.user_b_id !== userId)) {
-      throw new AppError('Conversation not found or unauthorized', 404);
-    }
-
-    const otherUserId = conv.user_a_id === userId ? conv.user_b_id : conv.user_a_id;
-
-    // Check block
-    const isBlocked = await db.get(
-      'SELECT id FROM blocks WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1)',
-      [userId, otherUserId]
-    );
-    if (isBlocked) {
-      throw new AppError('Access to this conversation is restricted', 403);
-    }
-
-    // The newest `limit` messages (skipping `offset` newer ones), returned oldest-first for display.
-    const messages = await db.query(
-      `SELECT * FROM (
-         SELECT id, conversation_id, sender_id, content, status, created_at
-         FROM messages
-         WHERE conversation_id = $1
-         ORDER BY created_at DESC, id DESC
-         LIMIT $2 OFFSET $3
-       ) recent
-       ORDER BY created_at ASC, id ASC`,
-      [conversationId, limit, offset]
-    );
-
-    // Auto mark received messages as read
-    await db.run(
-      `UPDATE messages SET status = 'read'
-       WHERE conversation_id = $1 AND sender_id != $2 AND status != 'read'`,
-      [conversationId, userId]
-    );
-
-    // Notify other user that their messages were read
-    const io = getSocketServer();
-    if (io) {
-      io.to(`conversation:${conversationId}`).emit('messages_read', {
-        conversationId,
-        readerId: userId,
-      });
-    }
-
-    const otherProfile = await db.get(
-      `SELECT p.display_name, p.date_of_birth, p.avatar_url, p.is_verified, p.bio, p.approximate_location
-       FROM profiles p WHERE p.user_id = $1`,
-      [otherUserId]
-    );
-
-    const otherInterests = await db.query(
-      `SELECT i.name FROM user_interests ui
-       JOIN interests i ON ui.interest_id = i.id
-       WHERE ui.user_id = $1`,
-      [otherUserId]
-    );
+    await MessageRepository.markRead(conversationId, userId);
+    getSocketServer()?.to(`conversation:${conversationId}`).emit('messages_read', { conversationId, readerId: userId });
 
     return {
       conversationId,
       otherUser: {
-        id: otherUserId,
-        displayName: otherProfile?.display_name || 'Connection',
-        age: otherProfile ? calculateAge(otherProfile.date_of_birth) : 18,
-        avatarUrl: otherProfile?.avatar_url || '',
-        bio: otherProfile?.bio || '',
-        approximateLocation: otherProfile?.approximate_location || '',
-        isVerified: Boolean(otherProfile?.is_verified),
-        interests: otherInterests.map((i) => i.name),
+        ...toPublicProfile(conv.other_user_id, profile),
+        interests: interests.map((i) => i.name),
       },
-      messages,
+      messages: rows.map(toMessage),
     };
   }
 
   static async sendMessage(conversationId: string, senderId: string, content: string) {
-    const db = getDatabase();
+    const conv = await this.requireAccessible(conversationId, senderId, 'You cannot message this user');
 
-    const conv = await db.get(
-      'SELECT id, user_a_id, user_b_id FROM conversations WHERE id = $1',
-      [conversationId]
-    );
+    const message = toMessage(await MessageRepository.insert(conversationId, senderId, content));
+    await ConversationRepository.touch(conversationId, message.createdAt);
 
-    if (!conv || (conv.user_a_id !== senderId && conv.user_b_id !== senderId)) {
-      throw new AppError('Conversation not found or unauthorized', 404);
-    }
-
-    const recipientId = conv.user_a_id === senderId ? conv.user_b_id : conv.user_a_id;
-
-    // Check if blocked in either direction
-    const isBlocked = await db.get(
-      'SELECT id FROM blocks WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1)',
-      [senderId, recipientId]
-    );
-    if (isBlocked) {
-      throw new AppError('You cannot message this user', 403);
-    }
-
-    const messageId = crypto.randomUUID();
-    const now = new Date().toISOString();
-
-    await db.run(
-      `INSERT INTO messages (id, conversation_id, sender_id, content, status, created_at)
-       VALUES ($1, $2, $3, $4, 'sent', $5)`,
-      [messageId, conversationId, senderId, content, now]
-    );
-
-    await db.run(
-      'UPDATE conversations SET last_message_at = $1 WHERE id = $2',
-      [now, conversationId]
-    );
-
-    const message = {
-      id: messageId,
-      conversationId,
-      senderId,
-      content,
-      status: 'sent',
-      createdAt: now,
-    };
-
-    // Emit real-time message to conversation room and recipient user room
     const io = getSocketServer();
     if (io) {
       io.to(`conversation:${conversationId}`).emit('new_message', message);
-      io.to(`user:${recipientId}`).emit('message_notification', {
-        conversationId,
-        message,
-      });
+      io.to(`user:${conv.other_user_id}`).emit('message_notification', { conversationId, message });
     }
 
     return message;

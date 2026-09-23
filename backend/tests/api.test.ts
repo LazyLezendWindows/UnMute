@@ -290,6 +290,20 @@ describe('Unmute API', () => {
 
       const read = await b.agent.get(`/api/v1/conversations/${conversationId}/messages`);
       expect(read.body.data.messages.map((m: any) => m.content)).toEqual(['Hello User B!']);
+      // History uses the same camelCase message shape as send responses and realtime events.
+      expect(read.body.data.messages[0]).toEqual({
+        id: sent.body.data.id,
+        conversationId,
+        senderId: a.id,
+        content: 'Hello User B!',
+        status: 'sent',
+        createdAt: sent.body.data.createdAt,
+      });
+
+      const conversations = await b.agent.get('/api/v1/conversations');
+      const conversation = conversations.body.data.find((c: any) => c.id === conversationId);
+      expect(conversation.lastMessage.senderId).toBe(a.id);
+      expect(conversation.otherUser).toMatchObject({ id: a.id, displayName: 'User A' });
     });
 
     it('treats a repeated like as a no-op', async () => {
@@ -383,6 +397,62 @@ describe('Unmute API', () => {
       expect(like.status).toBe(403);
     });
   });
+  describe('Query efficiency & ranking', () => {
+    /** Counts database round-trips made while serving one request. */
+    async function countQueries(run: () => Promise<unknown>): Promise<number> {
+      const db = getDatabase();
+      const spies = [vi.spyOn(db, 'query'), vi.spyOn(db, 'get'), vi.spyOn(db, 'run')];
+      try {
+        await run();
+        return spies.reduce((total, spy) => total + spy.mock.calls.length, 0);
+      } finally {
+        spies.forEach((spy) => spy.mockRestore());
+      }
+    }
+
+    async function matchWith(hub: { agent: request.Agent; id: string }, email: string) {
+      const other = await registerAgent(email, email.split('@')[0]);
+      await hub.agent.post('/api/v1/interactions/like').send({ targetUserId: other.id });
+      await other.agent.post('/api/v1/interactions/like').send({ targetUserId: hub.id });
+      const conv = await hub.agent.get('/api/v1/conversations');
+      const id = conv.body.data.find((c: any) => c.otherUser.id === other.id).id;
+      await other.agent.post(`/api/v1/conversations/${id}/messages`).send({ content: `hi from ${email}` });
+    }
+
+    it('serves conversations, matches and discovery with a constant number of queries', async () => {
+      const hub = await registerAgent('hub@example.com', 'Hub');
+      await matchWith(hub, 'spoke1@example.com');
+      const paths = ['/api/v1/conversations', '/api/v1/matches', '/api/v1/discover'];
+      const withOne = [];
+      for (const p of paths) withOne.push(await countQueries(() => hub.agent.get(p)));
+
+      for (const n of [2, 3, 4]) await matchWith(hub, `spoke${n}@example.com`);
+      const withFour = [];
+      for (const p of paths) withFour.push(await countQueries(() => hub.agent.get(p)));
+
+      expect(withFour).toEqual(withOne);
+      const convs = await hub.agent.get('/api/v1/conversations');
+      expect(convs.body.data).toHaveLength(4);
+      expect(convs.body.data.every((c: any) => c.unreadCount === 1 && c.lastMessage.content.startsWith('hi from'))).toBe(true);
+    });
+
+    it('ranks discovery by shared interests across the whole pool, not just within a page', async () => {
+      const viewer = await registerAgent('ranker@example.com', 'Ranker');
+      const allInterests = (await viewer.agent.get('/api/v1/users/interests')).body.data;
+      const chosen = allInterests.slice(5, 8).map((i: any) => i.id);
+      const kindred = await registerAgent('kindred@example.com', 'Kindred');
+      await viewer.agent.patch('/api/v1/users/me').send({ interestIds: chosen });
+      await kindred.agent.patch('/api/v1/users/me').send({ interestIds: chosen });
+      // A newer profile with nothing in common must not outrank the best match.
+      const recent = await registerAgent('recent@example.com', 'Recent');
+      await recent.agent.patch('/api/v1/users/me').send({ bio: 'Just updated' });
+
+      const firstPage = await viewer.agent.get('/api/v1/discover?limit=1');
+      expect(firstPage.body.data[0].id).toBe(kindred.id);
+      expect(firstPage.body.data[0].commonInterestsCount).toBe(3);
+    });
+  });
+
   describe('Input validation & error handling', () => {
     let user: { agent: request.Agent; id: string };
 
