@@ -87,11 +87,10 @@ function toggleInterest(id: string) {
   }
 
   &.chip-selected {
-    background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-primary-hover, #a855f7));
+    background: var(--unmute-primary-gradient);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.25) !important;
-    box-shadow: 0 4px 12px var(--theme-glow, rgba(99, 102, 241, 0.35)),
-                0 2px 0 var(--theme-primary-dark, #4338ca);
+    box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.4);
     transform: translateY(-1px);
   }
 }

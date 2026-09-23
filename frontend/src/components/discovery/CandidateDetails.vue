@@ -118,8 +118,9 @@ defineProps<{ candidate: DiscoveryCandidate }>();
 }
 
 .pill-shared {
-  color: var(--unmute-on-ink);
-  background: var(--unmute-ink);
+  color: var(--unmute-accent-text);
+  background: var(--unmute-primary-surface);
+  box-shadow: inset 0 0 0 1px var(--unmute-primary-surface), var(--unmute-glass-edge);
 }
 
 .edu {

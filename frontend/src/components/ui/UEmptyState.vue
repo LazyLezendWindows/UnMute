@@ -36,7 +36,7 @@ defineProps<{
 .empty-glow {
   width: 10rem;
   height: 10rem;
-  background: var(--theme-glow, rgba(99, 102, 241, 0.15));
+  background: var(--unmute-primary-surface);
   filter: blur(48px);
   z-index: 0;
 }
@@ -49,7 +49,7 @@ defineProps<{
   border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.1));
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3),
               inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  color: var(--theme-primary, #6366f1);
+  color: var(--unmute-accent-text);
   position: relative;
   z-index: 1;
 }

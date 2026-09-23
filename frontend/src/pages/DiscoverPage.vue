@@ -308,8 +308,8 @@ function onSafetyActionCompleted() {
   padding: 0 0.35rem;
   border-radius: 9999px;
   font-size: 0.7rem;
-  color: var(--unmute-on-ink);
-  background: var(--unmute-ink);
+  color: #fff;
+  background: var(--unmute-primary-gradient);
 }
 
 .filter-chip {

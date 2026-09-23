@@ -41,6 +41,7 @@ onMounted(async () => {
     handle = createSpatialScene(canvas.value, {
       mode: props.mode,
       dark: themeStore.isDarkMode,
+      accent: themeStore.activePreset.primary,
       still: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     });
     requestAnimationFrame(() => (ready.value = true));
@@ -53,6 +54,11 @@ onMounted(async () => {
 watch(
   () => themeStore.isDarkMode,
   (dark) => handle?.setDark(dark)
+);
+
+watch(
+  () => themeStore.activePreset.primary,
+  (accent) => handle?.setAccent(accent)
 );
 
 onBeforeUnmount(() => {

@@ -138,9 +138,10 @@ function iconClass(item: NavItem): string {
   }
 
   &.is-active {
-    color: var(--unmute-on-ink);
-    background: var(--unmute-ink);
-    box-shadow: var(--unmute-btn-3d-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    color: #fff;
+    background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.45), transparent 45%),
+      var(--unmute-primary-gradient);
+    box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   }
 }
 

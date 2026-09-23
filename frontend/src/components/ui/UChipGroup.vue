@@ -96,9 +96,9 @@ function onKeydown(event: KeyboardEvent) {
   }
 
   &.is-selected {
-    background: var(--unmute-ink);
-    color: var(--unmute-on-ink);
-    box-shadow: var(--unmute-btn-3d-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    background: var(--unmute-primary-gradient);
+    color: #fff;
+    box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 }
 </style>

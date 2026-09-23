@@ -33,12 +33,15 @@ export type SceneMode = 'ambient' | 'hero';
 export interface SpatialSceneOptions {
   mode: SceneMode;
   dark: boolean;
+  /** Accent colour (hex); tints the chrome and the motes of light. */
+  accent: string;
   /** Render one still frame and never animate. */
   still: boolean;
 }
 
 export interface SpatialSceneHandle {
   setDark(dark: boolean): void;
+  setAccent(accent: string): void;
   dispose(): void;
 }
 
@@ -134,14 +137,22 @@ export function createSpatialScene(canvas: HTMLCanvasElement, options: SpatialSc
   const motes = new Points(moteGeometry, moteMaterial);
   scene.add(motes);
 
-  function applyTheme(dark: boolean) {
+  let dark = options.dark;
+  let accent = new Color(options.accent);
+
+  // The accent reads as coloured light caught in the chrome, not as paint: a light tint on the
+  // metal, and the motes glow in the accent colour.
+  function applyTheme() {
+    const white = new Color('#ffffff');
+    chrome.color = white.clone().lerp(accent, 0.22);
+    satelliteMaterial.color = white.clone().lerp(accent, 0.3);
     renderer.toneMappingExposure = dark ? 0.95 : 1.15;
-    moteMaterial.color = new Color(dark ? '#b9c4ff' : '#7f8bb0');
-    moteMaterial.opacity = dark ? 0.75 : 0.45;
+    moteMaterial.color = dark ? white.clone().lerp(accent, 0.55) : accent.clone();
+    moteMaterial.opacity = dark ? 0.8 : 0.5;
     moteMaterial.blending = dark ? AdditiveBlending : NormalBlending;
     moteMaterial.needsUpdate = true;
   }
-  applyTheme(options.dark);
+  applyTheme();
 
   // Composition: off to the upper right behind content, or centred as a hero object.
   function layout() {
@@ -247,8 +258,14 @@ export function createSpatialScene(canvas: HTMLCanvasElement, options: SpatialSc
   }
 
   return {
-    setDark(dark: boolean) {
-      applyTheme(dark);
+    setDark(value: boolean) {
+      dark = value;
+      applyTheme();
+      if (options.still) renderAt(2.4);
+    },
+    setAccent(value: string) {
+      accent = new Color(value);
+      applyTheme();
       if (options.still) renderAt(2.4);
     },
     dispose() {

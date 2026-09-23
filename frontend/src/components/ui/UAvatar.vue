@@ -72,12 +72,12 @@ const initials = computed(() => {
   transition: transform var(--transition-bounce, 0.2s cubic-bezier(0.34, 1.56, 0.64, 1));
 
   &.u-avatar-bordered {
-    box-shadow: 0 0 0 2px var(--theme-primary, #6366f1);
+    box-shadow: 0 0 0 2px var(--unmute-primary);
   }
 }
 
 .u-avatar-gradient {
-  background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-primary-hover, #a855f7));
+  background: var(--unmute-primary-gradient);
 }
 
 .u-avatar-xs {
