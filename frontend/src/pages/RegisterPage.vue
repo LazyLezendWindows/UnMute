@@ -1,19 +1,13 @@
 <template>
   <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors u-page">
-    <!-- Subtle Architectural Ambient Halos -->
-    <div class="position-absolute ambient-halo-top rounded-circle pointer-events-none u-ambient-halo"></div>
-    <div class="position-absolute ambient-halo-bottom rounded-circle pointer-events-none u-ambient-halo"></div>
+    <SpaceBackdrop />
 
     <div class="w-100 max-w-md position-relative z-10">
-      <UCard variant="elevated" padding="lg" class="shadow-2xl elyse-auth-card">
+      <UCard variant="elevated" padding="lg" class="auth-card">
         <div class="d-flex flex-column gap-4">
           <!-- Header -->
           <div class="text-center pt-2">
-            <div
-              class="auth-logo-badge d-inline-flex align-items-center justify-content-center mb-3 u-fill-primary-3d"
-            >
-              <i class="ri-voiceprint-fill text-white fs-2"></i>
-            </div>
+            <HoloOrb size="5.5rem" class="mb-3" />
             <h1 class="brand-heading fs-2 fw-bold tracking-tight mb-1 u-text-primary">
               Join Unmute
             </h1>
@@ -54,7 +48,7 @@
               label="Email address"
               type="email"
               required
-              placeholder="julian@residence.com"
+              placeholder="you@domain.com"
             />
 
             <UInput
@@ -112,6 +106,8 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
 import UInput from '../components/ui/UInput.vue';
+import HoloOrb from '../components/ui/HoloOrb.vue';
+import SpaceBackdrop from '../components/layout/SpaceBackdrop.vue';
 import UButton from '../components/ui/UButton.vue';
 import GoogleSignIn from '../components/auth/GoogleSignIn.vue';
 import { useAuthStore } from '../stores/auth';
@@ -157,38 +153,9 @@ async function handleRegister() {
 </script>
 
 <style scoped lang="scss">
-.ambient-halo-top {
-  top: -10rem;
-  right: -10rem;
-  width: 32rem;
-  height: 32rem;
-  filter: blur(80px);
-  opacity: 0.8;
-}
-
-.ambient-halo-bottom {
-  bottom: -10rem;
-  left: -10rem;
-  width: 32rem;
-  height: 32rem;
-  filter: blur(80px);
-  opacity: 0.8;
-}
-
-.elyse-auth-card {
-  border: 1px solid var(--unmute-glass-border, rgba(10, 10, 10, 0.08)) !important;
-  background-color: var(--unmute-surface, #ffffff) !important;
+.auth-card {
   border-radius: var(--unmute-radius-xl, 32px);
-}
-
-.auth-logo-badge {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 20px;
-}
-
-.brand-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-glow-primary);
 }
 
 .extra-small {

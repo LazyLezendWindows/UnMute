@@ -22,7 +22,7 @@
         </div>
 
         <p class="small mb-2 u-text-secondary">
-          Choose between crystalline white mode (default), deep 3D obsidian dark mode, or automatic system adaptation.
+          Deep-space dark (default), luminous pearl light, or follow your device.
         </p>
 
         <!-- Segmented Mode Selector with 3D tactile buttons -->
@@ -173,7 +173,7 @@ const themeStore = useThemeStore();
 const authStore = useAuthStore();
 
 const THEME_MODES: { mode: ThemeMode; label: string; icon: string }[] = [
-  { mode: 'light', label: 'Light (White)', icon: 'ri-sun-line text-warning' },
+  { mode: 'light', label: 'Light', icon: 'ri-sun-line text-warning' },
   { mode: 'dark', label: 'Dark Mode', icon: 'ri-moon-line u-text-accent' },
   { mode: 'system', label: 'System Auto', icon: 'ri-computer-line text-info' },
 ];

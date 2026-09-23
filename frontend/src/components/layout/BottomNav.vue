@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="bottom-nav d-md-none position-fixed start-0 end-0 bottom-0 m-3 surface-glass rounded-4 border px-3 py-2 d-flex justify-content-around align-items-center user-select-none bottom-nav-3d u-border-glass"
+    class="bottom-nav holo-panel d-md-none position-fixed start-0 end-0 bottom-0 m-3 rounded-4 px-2 py-2 d-flex justify-content-around align-items-center user-select-none"
   >
     <router-link
       v-for="item in mobileItems"
@@ -22,7 +22,7 @@
       <span class="nav-label">{{ item.label }}</span>
       <span
         v-if="isNavActive(item, $route.path)"
-        class="position-absolute bottom-0 rounded-pill shadow-sm nav-indicator u-fill-primary"
+        class="position-absolute bottom-0 rounded-pill nav-indicator"
       ></span>
     </router-link>
   </nav>
@@ -51,9 +51,15 @@ function iconClass(item: NavItem): string {
 
 .bottom-nav-item {
   color: var(--unmute-text-muted);
+  transition: color var(--unmute-transition-fast), background-color var(--unmute-transition-fast);
 
   &.is-active {
     color: var(--unmute-accent-text);
+    background: var(--unmute-primary-surface);
+
+    .nav-icon {
+      filter: drop-shadow(0 0 8px var(--unmute-accent-text));
+    }
   }
 }
 
@@ -78,7 +84,9 @@ function iconClass(item: NavItem): string {
 }
 
 .nav-indicator {
-  width: 1rem;
-  height: 0.2rem;
+  width: 1.25rem;
+  height: 3px;
+  background: var(--unmute-primary-gradient);
+  box-shadow: 0 0 12px 1px var(--unmute-accent-text);
 }
 </style>

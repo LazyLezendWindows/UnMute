@@ -223,7 +223,8 @@ onBeforeUnmount(() => {
   background-color: var(--unmute-input-bg);
   color: var(--unmute-text-primary);
   border: 1px solid var(--unmute-input-border);
-  box-shadow: inset 0 2.5px 5px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 0 var(--unmute-glass-highlight);
+  backdrop-filter: blur(10px);
   outline: none;
   transition: border-color var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast);
 
@@ -237,7 +238,7 @@ onBeforeUnmount(() => {
 
   &:focus {
     border-color: var(--unmute-primary);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3.5px var(--unmute-primary-surface), var(--unmute-glow-primary);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 0 3px var(--unmute-primary-surface), 0 0 24px -4px var(--unmute-primary);
   }
 }
 

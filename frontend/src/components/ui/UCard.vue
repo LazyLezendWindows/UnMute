@@ -1,6 +1,7 @@
 <template>
   <div
-    class="u-card transition-all position-relative overflow-hidden"
+    v-tilt="tilts"
+    class="u-card holo-panel position-relative overflow-hidden"
     :class="[variantClass, paddingClass, { 'cursor-pointer user-select-none': interactive }]"
     @click="$emit('click', $event)"
   >
@@ -36,6 +37,9 @@ defineEmits<{
   (e: 'click', event: MouseEvent): void;
 }>();
 
+// Depth cards and clickable cards lean toward the pointer (desktop, motion allowed).
+const tilts = computed(() => (props.variant === 'depth3d' ? { max: 6 } : props.variant === 'interactive' ? { max: 4 } : false));
+
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'glass':
@@ -70,66 +74,36 @@ const paddingClass = computed(() => {
 <style scoped>
 .u-card {
   border-radius: var(--unmute-radius-lg, 24px);
-  transform: translateY(0);
-  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal), border-color var(--unmute-transition-normal), background-color var(--unmute-transition-normal);
+  color: var(--unmute-text-primary);
+  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal);
 }
 
 .u-card-default {
-  background-color: var(--unmute-surface, #ffffff);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary, #0f172a);
 }
 
-.u-card-elevated {
-  background-color: var(--unmute-surface, #ffffff);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary, #0f172a);
-}
-
+.u-card-elevated,
 .u-card-glass {
-  background: var(--unmute-glass-bg, rgba(255, 255, 255, 0.94));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary, #0f172a);
 }
 
 .u-card-interactive {
-  background-color: var(--unmute-surface, #ffffff);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
-  box-shadow: var(--unmute-shadow-sm), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary, #0f172a);
+  box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
 }
 
 .u-card-interactive:hover {
-  transform: translateY(-4px) scale(1.008);
-  border-color: var(--unmute-primary);
-  box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
+  box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-glow-primary);
 }
 
-/* 3D perspective tilt on hover */
 .u-card-3d {
-  background-color: var(--unmute-surface, #ffffff);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
   box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  color: var(--unmute-text-primary, #0f172a);
   transform-style: preserve-3d;
-  perspective: 1200px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .u-card-3d:hover {
-    transform: perspective(1200px) translateY(-5px) rotateX(1.5deg) rotateY(-1.5deg);
-    box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-3d-card-rim);
-    border-color: var(--unmute-primary);
-  }
-}
-
+/* A thin light line along the top edge sells the glass thickness. */
 .u-card-specular {
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight, rgba(255, 255, 255, 0.85)), transparent);
+  z-index: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight), transparent);
 }
 </style>

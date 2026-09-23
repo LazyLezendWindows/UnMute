@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-export type AccentColor = 'elyse' | 'cyberpunk' | 'aurora' | 'ember' | 'matrix' | 'luxe' | 'sapphire';
+export type AccentColor = 'holo' | 'aurora' | 'synthwave' | 'ember' | 'matrix' | 'sapphire';
 
 export interface AccentPreset {
   id: AccentColor;
@@ -15,112 +15,105 @@ export interface AccentPreset {
   gradient: string;
   glow: string;
   surface: string;
+  /** Bright tone used for accent text/icons on dark surfaces. */
   preview: string;
 }
 
+const glow = (rgb: string) => `0 0 0 1px rgba(${rgb}, 0.35), 0 10px 34px -6px rgba(${rgb}, 0.65)`;
+
+export const DEFAULT_ACCENT: AccentColor = 'holo';
+
 export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
-  elyse: {
-    id: 'elyse',
-    name: 'Elyse Residence',
-    subtitle: 'Obsidian Charcoal & Champagne Bronze',
-    primary: '#1a1817',
-    light: '#463729',
-    dark: '#0a0a0a',
-    bevel: '#000000',
-    gradient: 'linear-gradient(135deg, #1a1817 0%, #383431 55%, #c5a880 100%)',
-    glow: '0 8px 25px -4px rgba(26, 24, 23, 0.25)',
-    surface: 'rgba(26, 24, 23, 0.08)',
-    preview: '#c5a880',
-  },
-  cyberpunk: {
-    id: 'cyberpunk',
-    name: 'Cyberpunk Neon',
-    subtitle: 'Electric Violet & Hyper Pink',
-    primary: '#8b5cf6',
-    light: '#c084fc',
-    dark: '#6d28d9',
-    bevel: '#4c1d95',
-    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%)',
-    glow: '0 8px 30px -4px rgba(217, 70, 239, 0.55)',
-    surface: 'rgba(139, 92, 246, 0.16)',
-    preview: '#d946ef',
+  holo: {
+    id: 'holo',
+    name: 'Holo',
+    subtitle: 'Cyan, violet & magenta spectrum',
+    primary: '#6a4dff',
+    light: '#a594ff',
+    dark: '#5b3dff',
+    bevel: '#3a1fc2',
+    gradient: 'linear-gradient(120deg, #00e5ff 0%, #7c5cff 52%, #ff3dc8 100%)',
+    glow: glow('124, 92, 255'),
+    surface: 'rgba(124, 92, 255, 0.16)',
+    preview: '#7ff0ff',
   },
   aurora: {
     id: 'aurora',
-    name: 'Midnight Aurora',
-    subtitle: 'Electric Cyan & Azure',
-    primary: '#06b6d4',
-    light: '#38bdf8',
-    dark: '#0891b2',
-    bevel: '#0e7490',
-    gradient: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #6366f1 100%)',
-    glow: '0 8px 30px -4px rgba(0, 242, 254, 0.55)',
-    surface: 'rgba(6, 182, 212, 0.16)',
-    preview: '#00f2fe',
+    name: 'Aurora',
+    subtitle: 'Ice cyan & electric azure',
+    primary: '#0891b2',
+    light: '#67e8f9',
+    dark: '#0e7490',
+    bevel: '#155e75',
+    gradient: 'linear-gradient(120deg, #00f2fe 0%, #22d3ee 45%, #4f6bff 100%)',
+    glow: glow('0, 229, 255'),
+    surface: 'rgba(0, 229, 255, 0.14)',
+    preview: '#67f3ff',
+  },
+  synthwave: {
+    id: 'synthwave',
+    name: 'Synthwave',
+    subtitle: 'Hyper pink & ultraviolet',
+    primary: '#c026d3',
+    light: '#f0abfc',
+    dark: '#a21caf',
+    bevel: '#701a75',
+    gradient: 'linear-gradient(120deg, #ff3dc8 0%, #b026ff 55%, #5b3dff 100%)',
+    glow: glow('255, 61, 200'),
+    surface: 'rgba(255, 61, 200, 0.14)',
+    preview: '#ff8ae2',
   },
   ember: {
     id: 'ember',
-    name: 'Solar Flare',
-    subtitle: 'Hot Coral & Tangerine',
-    primary: '#ff416c',
-    light: '#ff6b8b',
-    dark: '#e11d48',
-    bevel: '#9f1239',
-    gradient: 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 55%, #f9d423 100%)',
-    glow: '0 8px 30px -4px rgba(255, 65, 108, 0.55)',
-    surface: 'rgba(255, 65, 108, 0.16)',
-    preview: '#ff416c',
+    name: 'Solar',
+    subtitle: 'Plasma coral & flare orange',
+    primary: '#e11d48',
+    light: '#fb7185',
+    dark: '#be123c',
+    bevel: '#881337',
+    gradient: 'linear-gradient(120deg, #ff416c 0%, #ff6a3d 55%, #ffc53d 100%)',
+    glow: glow('255, 90, 90'),
+    surface: 'rgba(255, 90, 90, 0.14)',
+    preview: '#ff9a8a',
   },
   matrix: {
     id: 'matrix',
-    name: 'Neon Matrix',
-    subtitle: 'Acid Mint & Hyper Emerald',
-    primary: '#00f5a0',
-    light: '#5eead4',
-    dark: '#059669',
+    name: 'Matrix',
+    subtitle: 'Acid mint & emerald code',
+    primary: '#059669',
+    light: '#6ee7b7',
+    dark: '#047857',
     bevel: '#065f46',
-    gradient: 'linear-gradient(135deg, #00f5a0 0%, #00d995 50%, #84cc16 100%)',
-    glow: '0 8px 30px -4px rgba(0, 245, 160, 0.55)',
-    surface: 'rgba(0, 245, 160, 0.16)',
-    preview: '#00f5a0',
-  },
-  luxe: {
-    id: 'luxe',
-    name: 'Champagne Luxe',
-    subtitle: 'Solar Gold & Royal Amber',
-    primary: '#f59e0b',
-    light: '#fde047',
-    dark: '#d97706',
-    bevel: '#92400e',
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 45%, #ea580c 100%)',
-    glow: '0 8px 30px -4px rgba(245, 158, 11, 0.55)',
-    surface: 'rgba(245, 158, 11, 0.16)',
-    preview: '#fbbf24',
+    gradient: 'linear-gradient(120deg, #00f5a0 0%, #00d9f5 100%)',
+    glow: glow('0, 245, 160'),
+    surface: 'rgba(0, 245, 160, 0.14)',
+    preview: '#5dfdc4',
   },
   sapphire: {
     id: 'sapphire',
-    name: 'Electric Sapphire',
-    subtitle: 'Cobalt Glow & Crystalline Ice',
+    name: 'Sapphire',
+    subtitle: 'Cobalt core & crystal blue',
     primary: '#2563eb',
-    light: '#60a5fa',
+    light: '#93c5fd',
     dark: '#1d4ed8',
     bevel: '#1e3a8a',
-    gradient: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 50%, #93c5fd 100%)',
-    glow: '0 8px 30px -4px rgba(37, 99, 235, 0.55)',
-    surface: 'rgba(37, 99, 235, 0.16)',
-    preview: '#38bdf8',
+    gradient: 'linear-gradient(120deg, #2563eb 0%, #38bdf8 60%, #a5f3fc 100%)',
+    glow: glow('56, 140, 255'),
+    surface: 'rgba(56, 140, 255, 0.16)',
+    preview: '#8fd0ff',
   },
 };
 
 export const useThemeStore = defineStore('theme', () => {
-  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'light';
-  const rawAccent = (localStorage.getItem('unmute_theme_accent') as AccentColor) || 'elyse';
-  const initialAccent: AccentColor = ACCENT_PRESETS[rawAccent] ? rawAccent : 'elyse';
+  // The app is dark-first; accents from the retired design fall back to the default.
+  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'dark';
+  const rawAccent = localStorage.getItem('unmute_theme_accent') as AccentColor;
+  const initialAccent: AccentColor = rawAccent && ACCENT_PRESETS[rawAccent] ? rawAccent : DEFAULT_ACCENT;
 
   const mode = ref<ThemeMode>(savedMode);
   const accent = ref<AccentColor>(initialAccent);
 
-  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS.elyse);
+  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS[DEFAULT_ACCENT]);
 
   const isDarkMode = computed(() => {
     if (mode.value === 'system') {
@@ -145,8 +138,7 @@ export const useThemeStore = defineStore('theme', () => {
     root.style.setProperty('--unmute-primary-gradient', preset.gradient);
     root.style.setProperty('--unmute-primary-surface', preset.surface);
     root.style.setProperty('--unmute-glow-primary', preset.glow);
-    // Accent used as text/icon colour: dark presets (e.g. Elyse obsidian) are unreadable on
-    // dark surfaces, so dark mode uses the preset's bright preview colour instead.
+    // Accent as text/icon colour: the bright tone on dark surfaces, the deep tone on light ones.
     root.style.setProperty('--unmute-accent-text', isDarkMode.value ? preset.preview : preset.primary);
 
     // 3. Persist

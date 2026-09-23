@@ -107,105 +107,100 @@ const sizeClass = computed(() => {
 
 <style scoped>
 .u-button {
+  overflow: hidden;
+  white-space: nowrap;
+  isolation: isolate;
+  letter-spacing: 0.01em;
   transform: translateY(0);
-  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast), border-color var(--unmute-transition-fast), color var(--unmute-transition-fast), filter var(--unmute-transition-fast);
+  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast),
+    background var(--unmute-transition-fast), color var(--unmute-transition-fast), filter var(--unmute-transition-fast);
 }
 
-/* 3D Dynamic Primary Button */
+/* Primary: neon gradient slab with bevel, glow, and a light sweep on hover */
 .u-btn-primary {
   background: var(--unmute-primary-gradient);
-  box-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 10px 22px rgba(0, 0, 0, 0.35), var(--unmute-3d-specular);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-size: 140% 100%;
+  box-shadow: 0 3px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.u-btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .u-btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 var(--unmute-primary-bevel), 0 14px 28px rgba(0, 0, 0, 0.45), var(--unmute-3d-specular);
-  filter: brightness(1.08);
+  background-position: 100% 0;
+  box-shadow: 0 5px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), 0 18px 40px -10px var(--unmute-primary),
+    var(--unmute-3d-specular);
+}
+
+.u-btn-primary:hover:not(:disabled)::after {
+  animation: shine-sweep 900ms ease;
 }
 
 .u-btn-primary:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--unmute-primary-bevel), 0 3px 8px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
-}
-
-/* 3D Secondary Variant */
-.u-btn-secondary {
-  background-color: var(--unmute-surface-raised);
-  color: var(--unmute-text-primary);
-  border: 1px solid var(--unmute-glass-border);
-  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 6px 16px rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
-}
-
-.u-btn-secondary:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-  background-color: var(--unmute-surface-overlay);
-  border-color: var(--unmute-glass-border-hover);
-  box-shadow: 0 4.5px 0 var(--unmute-glass-border-hover), 0 8px 20px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
-}
-
-.u-btn-secondary:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
+  box-shadow: 0 1px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary);
 }
 
-/* 3D Glass Variant */
+/* Secondary & glass: frosted panels with a lit edge */
+.u-btn-secondary,
 .u-btn-glass {
-  background: var(--unmute-glass-bg);
+  background: var(--unmute-glass-surface);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   color: var(--unmute-text-primary);
-  border: 1px solid var(--unmute-glass-border);
-  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 6px 16px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
+  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), 0 3px 0 rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
 }
 
+.u-btn-secondary:hover:not(:disabled),
 .u-btn-glass:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-  border-color: var(--unmute-glass-border-hover);
-  box-shadow: 0 4.5px 0 var(--unmute-glass-border-hover), 0 8px 20px rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px var(--unmute-glass-border-hover), 0 4px 0 rgba(0, 0, 0, 0.25), var(--unmute-glow-primary);
 }
 
+.u-btn-secondary:active:not(:disabled),
 .u-btn-glass:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
-/* Dynamic Ghost Variant */
+/* Ghost: text only until hovered */
 .u-btn-ghost {
   background: transparent;
   color: var(--unmute-text-secondary);
-  border: 1px solid transparent;
 }
 
 .u-btn-ghost:hover:not(:disabled) {
-  background-color: var(--unmute-surface-raised);
+  background: var(--unmute-primary-surface);
   color: var(--unmute-text-primary);
-  border-color: var(--unmute-glass-border);
-  transform: translateY(-1px);
 }
 
-.u-btn-ghost:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-/* 3D Icon Variant */
+/* Icon */
 .u-btn-icon {
-  background-color: var(--unmute-surface-raised);
+  background: var(--unmute-glass-surface);
   color: var(--unmute-text-secondary);
-  border: 1px solid var(--unmute-glass-border);
-  box-shadow: 0 3px 0 var(--unmute-glass-border), 0 4px 12px rgba(0, 0, 0, 0.2), var(--unmute-3d-specular);
+  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), var(--unmute-3d-specular);
 }
 
 .u-btn-icon:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-  color: var(--unmute-text-primary);
-  border-color: var(--unmute-primary);
-  box-shadow: 0 4px 0 var(--unmute-primary), 0 6px 16px rgba(0, 0, 0, 0.3), var(--unmute-3d-specular);
+  transform: translateY(-2px);
+  color: var(--unmute-accent-text);
+  box-shadow: inset 0 0 0 1px var(--unmute-glass-border-hover), var(--unmute-glow-primary);
 }
 
 .u-btn-icon:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--unmute-glass-border), 0 2px 6px rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
 }
 
 .u-button-icon {
@@ -223,4 +218,3 @@ const sizeClass = computed(() => {
   height: 1.25rem;
 }
 </style>
-

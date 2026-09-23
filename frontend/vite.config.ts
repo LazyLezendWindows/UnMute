@@ -19,8 +19,8 @@ export default defineConfig({
         name: 'Unmute - Connect without the pressure',
         short_name: 'Unmute',
         description: 'A conversation-first social connection platform based on shared interests and intentions.',
-        theme_color: '#F5F5F3',
-        background_color: '#F5F5F3',
+        theme_color: '#04050c',
+        background_color: '#04050c',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

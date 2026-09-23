@@ -6,7 +6,7 @@
       @click.self="handleBackdropClick"
     >
       <div
-        class="u-modal-container w-100 position-relative animate-modal"
+        class="u-modal-container holo-panel w-100 position-relative animate-modal"
         :class="maxWidthClass"
         role="dialog"
         aria-modal="true"
@@ -105,18 +105,18 @@ const maxWidthClass = computed(() => {
 <style scoped lang="scss">
 .u-modal-backdrop {
   z-index: 1050;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--unmute-scrim);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
 .u-modal-container {
-  background: var(--unmute-surface, #ffffff);
-  border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
+  background: var(--unmute-modal-bg);
   border-radius: var(--unmute-radius-lg, 24px);
-  box-shadow: var(--unmute-shadow-lg),
-              0 0 35px -5px var(--unmute-primary-surface),
-              var(--unmute-3d-card-rim);
+  // Stronger blur than cards: modal text sits over busy content.
+  backdrop-filter: blur(36px) saturate(150%);
+  -webkit-backdrop-filter: blur(36px) saturate(150%);
+  box-shadow: var(--unmute-shadow-lg), 0 0 60px -10px var(--unmute-primary), var(--unmute-3d-card-rim);
   overflow: hidden;
 }
 
@@ -127,7 +127,9 @@ const maxWidthClass = computed(() => {
 
 .modal-specular-bar {
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--unmute-primary, #6366f1), transparent);
+  z-index: 1;
+  background: var(--unmute-primary-gradient);
+  box-shadow: 0 0 16px 1px var(--unmute-primary);
 }
 
 .u-modal-header {
@@ -136,7 +138,7 @@ const maxWidthClass = computed(() => {
 
 .u-modal-footer {
   border-top: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.08));
-  background-color: var(--unmute-surface-raised, #f8fafd);
+  background-color: var(--unmute-glass-surface);
 }
 
 .btn-close-custom {

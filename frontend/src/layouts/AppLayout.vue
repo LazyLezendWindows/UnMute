@@ -1,12 +1,6 @@
 <template>
   <div class="min-vh-100 d-flex flex-column position-relative overflow-hidden u-page">
-    <!-- Ambient 3D Depth Lighting & Dynamic Blobs -->
-    <div
-      class="ambient-blob ambient-blob-primary position-fixed top-0 start-25 rounded-circle pointer-events-none animate-pulse-glow"
-    ></div>
-    <div
-      class="ambient-blob ambient-blob-secondary position-fixed bottom-0 end-25 rounded-circle pointer-events-none animate-pulse-glow"
-    ></div>
+    <SpaceBackdrop />
 
     <Navbar />
 
@@ -26,6 +20,7 @@
 
 <script setup lang="ts">
 import Navbar from '../components/layout/Navbar.vue';
+import SpaceBackdrop from '../components/layout/SpaceBackdrop.vue';
 import BottomNav from '../components/layout/BottomNav.vue';
 import MatchModal from '../components/matching/MatchModal.vue';
 import { computed } from 'vue';
@@ -40,27 +35,6 @@ const showBottomNav = computed(() => !(route.name === 'chat' && route.params.id)
 </script>
 
 <style scoped lang="scss">
-.ambient-blob {
-  z-index: 0;
-}
-
-.ambient-blob-primary {
-  width: 24rem;
-  height: 24rem;
-  filter: blur(130px);
-  background: var(--unmute-primary);
-  opacity: 0.14;
-}
-
-.ambient-blob-secondary {
-  width: 20rem;
-  height: 20rem;
-  filter: blur(110px);
-  background: var(--unmute-primary-light);
-  opacity: 0.1;
-  animation-delay: 1.5s;
-}
-
 .app-main {
   z-index: 10;
   padding-bottom: 1rem;

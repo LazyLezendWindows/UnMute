@@ -29,12 +29,12 @@
 }
 
 .font-display {
-  font-family: 'Syne', sans-serif !important;
-  letter-spacing: -0.025em;
+  font-family: var(--unmute-font-display) !important;
+  letter-spacing: -0.03em;
 }
 
 .font-sans {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: var(--unmute-font-body) !important;
 }
 
 // Custom Radii
@@ -64,6 +64,7 @@
 // Text gradients
 .text-gradient-primary {
   background: var(--unmute-primary-gradient);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -106,8 +107,8 @@
 @include inline-strength(u-text-accent-soft) { color: var(--unmute-primary-light); }
 @include inline-strength(u-pre-line) { white-space: pre-line; }
 @include inline-strength(u-font-editorial) {
-  font-family: 'Playfair Display', Georgia, serif;
-  letter-spacing: -0.015em;
+  font-family: var(--unmute-font-display);
+  letter-spacing: -0.03em;
 }
 
 // Strong inline link (e.g. "Create account")

@@ -33,7 +33,7 @@
       <!-- Candidate Basic Info Overlay -->
       <div class="position-absolute bottom-0 start-0 end-0 p-4">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <h2 class="fs-3 fw-bold text-white mb-0 text-shadow u-font-editorial">
+          <h2 class="fs-3 fw-bold text-white mb-0 text-shadow">
             {{ candidate.displayName }}, {{ candidate.age }}
           </h2>
           <UBadge v-if="candidate.isVerified" variant="primary" size="sm">
@@ -178,7 +178,7 @@ defineEmits<{
 }
 
 .card-photo-overlay {
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.3) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(4, 5, 12, 0.92) 0%, rgba(20, 12, 60, 0.35) 55%, transparent 100%);
 }
 
 .photo-placeholder-icon {
@@ -187,14 +187,15 @@ defineEmits<{
 }
 
 .btn-safety-trigger {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(10, 12, 30, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #ffffff;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(10, 12, 30, 0.7);
     color: #ffffff;
     transform: scale(1.08);
   }
@@ -228,7 +229,19 @@ defineEmits<{
 }
 
 .card-details-body {
-  background-color: var(--unmute-surface, #ffffff);
+  background: transparent;
+}
+
+// Holographic scan line where the photo meets the details
+.card-photo-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--unmute-primary-gradient);
+  box-shadow: 0 0 18px 2px var(--unmute-primary);
 }
 
 .common-interests-banner {
@@ -238,7 +251,7 @@ defineEmits<{
 }
 
 .candidate-bio-box {
-  background-color: var(--unmute-surface-raised, #f8fafd);
+  background-color: var(--unmute-glass-surface);
   border: 1px solid var(--unmute-glass-border, rgba(15, 23, 42, 0.06));
 }
 </style>
