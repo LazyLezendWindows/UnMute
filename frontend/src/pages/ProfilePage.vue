@@ -72,16 +72,6 @@
             </div>
           </div>
 
-          <!-- Approximate Location -->
-          <div>
-            <UInput
-              v-model="form.approximateLocation"
-              label="Approximate City / Location"
-              placeholder="e.g. Hyderabad, Bengaluru, Mumbai, Secunderabad"
-              hint="To protect your privacy, only your city or region is shown to others"
-            />
-          </div>
-
           <!-- Bio / About You -->
           <div>
             <div class="d-flex align-items-center justify-content-between mb-1">
@@ -142,6 +132,19 @@
         </div>
       </UCard>
     </form>
+
+    <!-- Area and education save on their own, separately from the form above. -->
+    <UCard variant="elevated" padding="lg">
+      <h2 class="fs-6 fw-bold mb-1 u-text-primary">Your area</h2>
+      <p class="small mb-3 u-text-muted">Used for "near me" and area filters in Discover.</p>
+      <LocationPicker />
+    </UCard>
+
+    <UCard variant="elevated" padding="lg">
+      <h2 class="fs-6 fw-bold mb-1 u-text-primary">Education</h2>
+      <p class="small mb-3 u-text-muted">Optional. Helps classmates and alumni find you.</p>
+      <EducationPicker />
+    </UCard>
   </div>
 </template>
 
@@ -153,6 +156,8 @@ import UAvatar from '../components/ui/UAvatar.vue';
 import UInput from '../components/ui/UInput.vue';
 import UButton from '../components/ui/UButton.vue';
 import InterestSelector from '../components/profile/InterestSelector.vue';
+import LocationPicker from '../components/location/LocationPicker.vue';
+import EducationPicker from '../components/education/EducationPicker.vue';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
 
@@ -176,7 +181,6 @@ const availablePreferences = [
 const form = reactive({
   displayName: '',
   avatarUrl: '',
-  approximateLocation: '',
   bio: '',
   interactionPreferences: [] as string[],
   interestIds: [] as string[],
@@ -187,7 +191,6 @@ onMounted(() => {
   if (profile) {
     form.displayName = profile.displayName || '';
     form.avatarUrl = profile.avatarUrl || '';
-    form.approximateLocation = profile.approximateLocation || '';
     form.bio = profile.bio || '';
     form.interactionPreferences = [...(profile.interactionPreferences || [])];
     form.interestIds = (profile.interests || []).map((i) => i.id);
@@ -209,7 +212,6 @@ async function saveProfile() {
     await authStore.updateProfile({
       displayName: form.displayName,
       avatarUrl: form.avatarUrl,
-      approximateLocation: form.approximateLocation,
       bio: form.bio,
       interactionPreferences: form.interactionPreferences,
       interestIds: form.interestIds,

@@ -2,7 +2,45 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
 import { useToastStore } from './toast';
-import { DiscoveryCandidate } from '../types';
+import { useAuthStore } from './auth';
+import { DiscoveryCandidate, Institution, Place } from '../types';
+
+/** Discovery filters as the viewer chose them; applied by the backend, never client-side. */
+export interface DiscoverFilters {
+  radiusKm: number | null;
+  /** Kept whole (not just the id) so the active-filter chips can name it without another request. */
+  place: Place | null;
+  sameInstitution: boolean;
+  institution: Institution | null;
+  minAge: number | null;
+  maxAge: number | null;
+}
+
+export const RADIUS_OPTIONS_KM = [5, 10, 25, 50, 100, 200] as const;
+
+export function emptyFilters(): DiscoverFilters {
+  return { radiusKm: null, place: null, sameInstitution: false, institution: null, minAge: null, maxAge: null };
+}
+
+const STORAGE_PREFIX = 'unmute.discoverFilters.v1:';
+
+// Per-viewer convenience only: storage can be unavailable (private mode, blocked site data).
+function readSavedFilters(userId: string): DiscoverFilters {
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX + userId);
+    return raw ? { ...emptyFilters(), ...JSON.parse(raw) } : emptyFilters();
+  } catch {
+    return emptyFilters();
+  }
+}
+
+function saveFilters(userId: string, filters: DiscoverFilters): void {
+  try {
+    localStorage.setItem(STORAGE_PREFIX + userId, JSON.stringify(filters));
+  } catch {
+    // Not persisting is fine; the filters still apply for this visit.
+  }
+}
 
 export const useDiscoverStore = defineStore('discover', () => {
   const feed = ref<DiscoveryCandidate[]>([]);
@@ -28,11 +66,59 @@ export const useDiscoverStore = defineStore('discover', () => {
 
   const hasMore = computed(() => currentIndex.value < feed.value.length);
 
+  const filters = ref<DiscoverFilters>(emptyFilters());
+  let filtersOwner: string | null = null;
+
+  /** Loads the signed-in viewer's saved filters once, and again if a different member signs in. */
+  function syncFiltersOwner() {
+    const userId = useAuthStore().user?.id ?? null;
+    if (userId && userId !== filtersOwner) {
+      filtersOwner = userId;
+      filters.value = readSavedFilters(userId);
+    }
+  }
+
+  const activeFilterCount = computed(() => {
+    const f = filters.value;
+    return [f.radiusKm !== null, f.place, f.sameInstitution || f.institution, f.minAge !== null || f.maxAge !== null].filter(
+      Boolean
+    ).length;
+  });
+
+  /**
+   * Query parameters for the backend. Filters the viewer can no longer use (distance without an
+   * area, "my college" without one) are dropped rather than sent to fail.
+   */
+  function filterParams(): Record<string, string | number | boolean> {
+    const f = filters.value;
+    const profile = useAuthStore().profile;
+    const params: Record<string, string | number | boolean> = {};
+    if (f.radiusKm !== null && profile?.location) params.radiusKm = f.radiusKm;
+    if (f.place) params.placeId = f.place.id;
+    if (f.sameInstitution && profile?.education) params.sameInstitution = true;
+    else if (f.institution) params.institutionId = f.institution.id;
+    if (f.minAge !== null) params.minAge = f.minAge;
+    if (f.maxAge !== null) params.maxAge = f.maxAge;
+    return params;
+  }
+
+  function setFilters(next: DiscoverFilters) {
+    syncFiltersOwner();
+    filters.value = next;
+    if (filtersOwner) saveFilters(filtersOwner, next);
+    return loadFeed();
+  }
+
+  function clearFilters() {
+    return setFilters(emptyFilters());
+  }
+
   async function loadFeed() {
+    syncFiltersOwner();
     loading.value = true;
     error.value = null;
     try {
-      const res = await api.get('/discover');
+      const res = await api.get('/discover', { params: filterParams() });
       feed.value = res.data.data;
       currentIndex.value = 0;
     } catch (err: any) {
@@ -100,6 +186,10 @@ export const useDiscoverStore = defineStore('discover', () => {
     currentCandidate,
     hasMore,
     activeMatch,
+    filters,
+    activeFilterCount,
+    setFilters,
+    clearFilters,
     loadFeed,
     likeCurrent,
     passCurrent,

@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { api, onUnauthorized } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 import { useGoogleIdentity } from '../composables/useGoogleIdentity';
-import { User, Profile } from '../types';
+import { User, Profile, LocationPrecision } from '../types';
 
 /**
  * UNKNOWN: nothing checked yet. CHECKING_SESSION: asking the backend.
@@ -120,6 +120,40 @@ export const useAuthStore = defineStore('auth', () => {
     });
   }
 
+  /** Location and education endpoints respond with the updated own profile. */
+  async function applyProfile(request: Promise<{ data: { data: Profile } }>): Promise<Profile> {
+    const res = await request;
+    if (user.value) {
+      user.value.profile = res.data.data;
+    }
+    return res.data.data;
+  }
+
+  function setLocation(
+    payload:
+      | { mode: 'place'; placeId: string; precision?: LocationPrecision }
+      | { mode: 'pincode'; pincode: string; precision?: LocationPrecision }
+      | { mode: 'device'; latitude: number; longitude: number; precision?: LocationPrecision }
+  ) {
+    return applyProfile(api.put('/users/me/location', payload));
+  }
+
+  function setLocationPrecision(precision: LocationPrecision) {
+    return applyProfile(api.patch('/users/me/location', { precision }));
+  }
+
+  function clearLocation() {
+    return applyProfile(api.delete('/users/me/location'));
+  }
+
+  function setEducation(payload: { institutionId: string; course: string; startYear: number | null; endYear: number | null }) {
+    return applyProfile(api.put('/users/me/education', payload));
+  }
+
+  function clearEducation() {
+    return applyProfile(api.delete('/users/me/education'));
+  }
+
   async function logout() {
     try {
       await api.post('/auth/logout');
@@ -142,6 +176,11 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithGoogle,
     fetchMe,
     updateProfile,
+    setLocation,
+    setLocationPrecision,
+    clearLocation,
+    setEducation,
+    clearEducation,
     logout,
   };
 });

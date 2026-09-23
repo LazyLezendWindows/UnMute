@@ -42,9 +42,14 @@
           </UBadge>
         </div>
 
-        <div v-if="candidate.approximateLocation" class="d-flex align-items-center gap-1 small text-white-50 mt-1 fw-medium">
-          <i class="ri-map-pin-2-fill icon-xs text-primary"></i>
-          <span>{{ candidate.approximateLocation }}</span>
+        <div v-if="areaLine" class="d-flex align-items-center gap-1 small text-white-50 mt-1 fw-medium">
+          <i class="ri-map-pin-2-fill icon-xs text-primary" aria-hidden="true"></i>
+          <span>{{ areaLine }}</span>
+        </div>
+
+        <div v-if="educationLine" class="d-flex align-items-center gap-1 small text-white-50 mt-1 fw-medium">
+          <i class="ri-graduation-cap-fill icon-xs text-primary" aria-hidden="true"></i>
+          <span class="text-truncate">{{ educationLine }}</span>
         </div>
       </div>
     </div>
@@ -130,14 +135,27 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import UCard from '../ui/UCard.vue';
 import UButton from '../ui/UButton.vue';
 import UBadge from '../ui/UBadge.vue';
 import { DiscoveryCandidate } from '../../types';
+import { formatDistance } from '../../services/directory';
 
-defineProps<{
+const props = defineProps<{
   candidate: DiscoveryCandidate;
 }>();
+
+/** "Secunderabad, Telangana · within 10 km"; distances arrive already bucketed from the API. */
+const areaLine = computed(() =>
+  [props.candidate.approximateLocation, formatDistance(props.candidate.distanceKm)].filter(Boolean).join(' · ')
+);
+
+const educationLine = computed(() => {
+  const edu = props.candidate.education;
+  if (!edu) return '';
+  return [edu.institutionShortName || edu.institutionName, edu.course].filter(Boolean).join(' · ');
+});
 
 defineEmits<{
   (e: 'like'): void;

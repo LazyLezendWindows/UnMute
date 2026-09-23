@@ -53,7 +53,12 @@ Unmute
 | Table | Description |
 |---|---|
 | `users` | Account identity (email, active status); no credentials |
-| `profiles` | Display name, date of birth, bio, approximate location, avatar, interaction preferences |
+| `profiles` | Display name, date of birth, bio, avatar, interaction preferences (plus a legacy free-text location) |
+| `places` | Location hierarchy shaped like LGD: state → district → sub-district → village, and district → city/town |
+| `pincodes` | 6-digit PIN codes with their district, state and approximate centre |
+| `user_locations` | A member's area: place, optional PIN code, coarsened (~1 km grid) coordinates, and label precision |
+| `institutions` | Universities, colleges and standalone institutions (AISHE-shaped) |
+| `user_education` | A member's institution, course and years |
 | `interests` | Predefined categorized interest topics |
 | `user_interests` | Many-to-many relationship linking users to their interests |
 | `likes` | Recorded likes (authority rests solely on the backend) |
@@ -78,11 +83,26 @@ Unmute
 * `GET  /api/v1/auth/session` — Restore the session from the cookie (`authenticated: true|false`)
 * `GET  /api/v1/auth/me` — Get authenticated user details
 * `GET  /api/v1/users/me` — Get user profile & interests
-* `PATCH /api/v1/users/me` — Update bio, location, avatar, interaction preferences & interests
+* `PATCH /api/v1/users/me` — Update bio, avatar, interaction preferences & interests
 * `GET  /api/v1/users/interests` — Fetch available interests
 
+### Location & Education
+* `PUT    /api/v1/users/me/location` — Set your area: `{mode: "place", placeId}`, `{mode: "pincode", pincode}` or `{mode: "device", latitude, longitude}`, each with optional `precision` (`locality` | `city` | `state`). Rate-limited per account.
+* `PATCH  /api/v1/users/me/location` — Change how much of your area others see (`{precision}`)
+* `DELETE /api/v1/users/me/location` — Remove your area
+* `PUT    /api/v1/users/me/education` — Set your institution (`{institutionId, course?, startYear?, endYear?}`)
+* `DELETE /api/v1/users/me/education` — Remove it
+* `GET    /api/v1/locations/states` — All states and union territories
+* `GET    /api/v1/locations/:id/children` — Districts of a state, settlements of a district, … (`?q=` narrows)
+* `GET    /api/v1/locations/search?q=&kinds=&stateId=` — Name-prefix search across the hierarchy
+* `GET    /api/v1/locations/pincodes/:pincode` — The area a PIN code covers
+* `GET    /api/v1/education/institutions?q=&stateId=&districtId=&kind=` — Institution search
+* `GET    /api/v1/education/institutions/:id` — One institution
+
+**Location privacy.** Device positions are snapped to a ~1 km grid before they are stored, and no endpoint ever returns coordinates, not even your own. Others see only an area label at the precision you choose, plus a bucketed distance ("within 10 km", "about 45 km away"; never below 2 km). The radius filter accepts only 5, 10, 25, 50, 100 or 200 km, and changing your area is rate-limited, so repeated searches cannot be used to pinpoint anyone. PIN codes are never shown to other members.
+
 ### Discovery & Interactions
-* `GET  /api/v1/discover` — Fetch discovery feed (filters out self, liked, passed, and blocked users; sorts by common interests)
+* `GET  /api/v1/discover` — Fetch discovery feed (filters out self, liked, passed, and blocked users; sorts by common interests, then distance). Optional filters, all applied in SQL and combined with AND: `radiusKm` (needs your own area), `placeId` (any level: state, district, sub-district, city, town or village), `pincode`, `institutionId` or `sameInstitution=true`, `minAge` / `maxAge`.
 * `POST /api/v1/interactions/like` — Like a user (triggers mutual match and creates conversation if reciprocal)
 * `POST /api/v1/interactions/pass` — Pass on a user
 
@@ -148,6 +168,23 @@ The browser only ever passes Google's signed ID token to the backend, which veri
 ### Database Migrations
 
 Schema changes live in `backend/migrations/NNN_name.sql` and are applied in order (tracked in `schema_migrations`) on server start, or explicitly with `npm run migrate` (`npm run migrate:prod` against the compiled build). Never edit an applied migration; add a new one. MariaDB DDL is not transactional, so write migrations that are safe to re-run.
+
+### Location & Education Data
+
+A small, real sample (all 36 states and union territories with LGD codes, major cities, a few towns and villages, some PIN codes and 48 well-known institutions) is loaded on every start, so the app works out of the box. For production, import the complete official datasets; imports upsert over the sample and can be re-run with newer releases:
+
+```bash
+cd backend
+# 1. LGD (https://lgdirectory.gov.in → Download Directory): states, districts, sub-districts,
+#    villages and urban local bodies, as CSV. Import each file; order does not matter.
+npm run import:data -- places path/to/villages.csv
+# 2. India Post "All India Pincode Directory" (data.gov.in). Import after places.
+npm run import:data -- pincodes path/to/pincode_directory.csv
+# 3. AISHE (https://aishe.gov.in) university / college / standalone lists. Import after places.
+npm run import:data -- institutions path/to/colleges.csv [--kind college]
+```
+
+Use `npm run import:data:prod -- …` against the compiled build. Header names are matched loosely (e.g. `State Name (In English)` or `statename`); each importer's accepted columns are documented at the top of `backend/src/importers/`. LGD itself has no coordinates, so an imported village borrows its sub-district's or district's where one is known (the sample districts have them); members whose area has no coordinates at all still appear in area, PIN code and college filters, but not in distance filters. The PIN code import averages post-office coordinates per PIN code, so setting your area by PIN code usually gives accurate distances, and "Near me" always does. Sample districts are named, not coded, so an LGD import adopts matching names; a district whose official name differs (e.g. `Mumbai` vs `Mumbai City`) remains alongside the imported one.
 
 ### Running Automated Tests
 
