@@ -79,7 +79,7 @@ const variantClass = computed(() => {
     case 'glass':
       return 'u-btn-glass';
     case 'danger':
-      return 'btn-danger text-white';
+      return 'u-btn-danger text-white';
     case 'ghost':
       return 'u-btn-ghost';
     case 'icon':
@@ -91,16 +91,16 @@ const variantClass = computed(() => {
 
 const sizeClass = computed(() => {
   if (props.variant === 'icon') {
-    return 'p-2 rounded-xl';
+    return 'p-2 rounded-circle';
   }
   switch (props.size) {
     case 'sm':
-      return 'px-3 py-1.5 small rounded-xl';
+      return 'px-3 py-1.5 small rounded-pill';
     case 'lg':
-      return 'px-4 py-3 rounded-2xl';
+      return 'px-4 py-3 rounded-pill';
     case 'md':
     default:
-      return 'px-3 py-2 small rounded-xl';
+      return 'px-3 py-2 small rounded-pill';
   }
 });
 </script>
@@ -108,99 +108,84 @@ const sizeClass = computed(() => {
 <style scoped>
 .u-button {
   overflow: hidden;
-  white-space: nowrap;
   isolation: isolate;
-  letter-spacing: 0.01em;
-  transform: translateY(0);
+  white-space: nowrap;
+  letter-spacing: 0.005em;
   transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast),
     background var(--unmute-transition-fast), color var(--unmute-transition-fast), filter var(--unmute-transition-fast);
 }
 
-/* Primary: neon gradient slab with bevel, glow, and a light sweep on hover */
-.u-btn-primary {
-  background: var(--unmute-primary-gradient);
-  background-size: 140% 100%;
-  box-shadow: 0 3px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), var(--unmute-3d-specular);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.u-btn-primary::after {
+/* A curved-glass sheen over the top half of filled buttons */
+.u-btn-primary::before,
+.u-btn-danger::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  transform: translateX(-120%) skewX(-20deg);
+  inset: 0 0 50% 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0));
   pointer-events: none;
   z-index: -1;
 }
 
-.u-btn-primary:hover:not(:disabled) {
+.u-btn-primary {
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.u-btn-danger {
+  background: linear-gradient(135deg, #ff7aa0 0%, var(--unmute-danger) 100%);
+  box-shadow: 0 12px 30px -12px var(--unmute-danger), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.u-btn-primary:hover:not(:disabled),
+.u-btn-danger:hover:not(:disabled) {
   transform: translateY(-2px);
-  background-position: 100% 0;
-  box-shadow: 0 5px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary), 0 18px 40px -10px var(--unmute-primary),
-    var(--unmute-3d-specular);
+  filter: brightness(1.06) saturate(1.05);
 }
 
-.u-btn-primary:hover:not(:disabled)::after {
-  animation: shine-sweep 900ms ease;
+.u-btn-primary:active:not(:disabled),
+.u-btn-danger:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
 }
 
-.u-btn-primary:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--unmute-primary-bevel), var(--unmute-glow-primary);
-}
-
-/* Secondary & glass: frosted panels with a lit edge */
+/* Glass pills */
 .u-btn-secondary,
-.u-btn-glass {
+.u-btn-glass,
+.u-btn-icon {
   background: var(--unmute-glass-surface);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
   color: var(--unmute-text-primary);
-  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), 0 3px 0 rgba(0, 0, 0, 0.25), var(--unmute-3d-specular);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-sm);
+}
+
+.u-btn-icon {
+  color: var(--unmute-text-secondary);
 }
 
 .u-btn-secondary:hover:not(:disabled),
-.u-btn-glass:hover:not(:disabled) {
+.u-btn-glass:hover:not(:disabled),
+.u-btn-icon:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: inset 0 0 0 1px var(--unmute-glass-border-hover), 0 4px 0 rgba(0, 0, 0, 0.25), var(--unmute-glow-primary);
+  color: var(--unmute-text-primary);
+  background: var(--unmute-glass-strong);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
 }
 
 .u-btn-secondary:active:not(:disabled),
-.u-btn-glass:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), 0 1px 0 rgba(0, 0, 0, 0.25);
+.u-btn-glass:active:not(:disabled),
+.u-btn-icon:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
 }
 
-/* Ghost: text only until hovered */
 .u-btn-ghost {
   background: transparent;
   color: var(--unmute-text-secondary);
 }
 
 .u-btn-ghost:hover:not(:disabled) {
-  background: var(--unmute-primary-surface);
-  color: var(--unmute-text-primary);
-}
-
-/* Icon */
-.u-btn-icon {
   background: var(--unmute-glass-surface);
-  color: var(--unmute-text-secondary);
-  box-shadow: inset 0 0 0 1px var(--unmute-glass-border), var(--unmute-3d-specular);
-}
-
-.u-btn-icon:hover:not(:disabled) {
-  transform: translateY(-2px);
-  color: var(--unmute-accent-text);
-  box-shadow: inset 0 0 0 1px var(--unmute-glass-border-hover), var(--unmute-glow-primary);
-}
-
-.u-btn-icon:active:not(:disabled) {
-  transform: translateY(1px);
+  color: var(--unmute-text-primary);
 }
 
 .u-button-icon {

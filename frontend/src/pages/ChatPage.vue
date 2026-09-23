@@ -1,7 +1,7 @@
 <template>
   <div
     :class="{ 'in-thread': activeConversationId }"
-    class="chat-layout-container flex-grow-1 d-flex flex-column flex-md-row surface-raised rounded-4 overflow-hidden max-w-4xl mx-auto w-100 position-relative border u-border-glass"
+    class="chat-layout-container glass-pane flex-grow-1 d-flex flex-column flex-md-row overflow-hidden w-100 position-relative"
   >
     <!-- Conversations Sidebar (Desktop or Mobile when no active conversation) -->
     <div
@@ -334,19 +334,20 @@ function formatMessageTime(iso: string): string {
 
 <style scoped lang="scss">
 .chat-layout-container {
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  // Mobile conversation list: header, top padding and the bottom-nav clearance.
-  height: calc(100vh - 11rem - env(safe-area-inset-bottom, 0px));
+  border-radius: var(--unmute-radius-xl);
+  // Mobile conversation list: top bar, padding and the floating dock's clearance.
+  height: calc(100svh - 11.5rem - env(safe-area-inset-bottom, 0px));
 
-  // Mobile open conversation: the bottom nav is hidden, the composer sits at the bottom.
+  // Mobile open conversation: the dock is hidden, the composer sits at the bottom.
   &.in-thread {
-    height: calc(100vh - 8.5rem);
+    height: calc(100svh - 5.5rem);
   }
 
+  // Desktop: fills the stage beside the dock rail.
   @media (min-width: 768px) {
     &,
     &.in-thread {
-      height: calc(100vh - 10rem);
+      height: calc(100vh - 4rem);
     }
   }
 }
@@ -359,7 +360,7 @@ function formatMessageTime(iso: string): string {
 }
 
 .chat-view-pane {
-  background-color: var(--unmute-surface, #ffffff);
+  background: var(--unmute-glass-surface);
 }
 
 .chat-conv-item {

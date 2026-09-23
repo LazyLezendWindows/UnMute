@@ -1,145 +1,140 @@
-// Unmute "Holo" design tokens
-// Dark-first futuristic system: deep-space canvas, frosted glass panels with holographic rims,
-// neon accent light, and layered depth shadows. Components consume only these tokens.
+// Unmute "Spatial" design tokens: liquid chrome & glass.
+// Bright translucent panes floating over a live 3D scene, with chrome edges, soft refraction and
+// calm, luxurious contrast. Components consume only these tokens.
 
-@mixin holo-dark {
-  color-scheme: dark;
-
-  // Canvas & surfaces (deep space, faint indigo tint)
-  --unmute-bg: #04050c;
-  --unmute-surface: #0b0e1f;
-  --unmute-surface-raised: #11152d;
-  --unmute-surface-overlay: #171c3b;
-  --unmute-surface-active: #20264d;
-
-  // Frosted glass
-  --unmute-glass-bg: rgba(14, 18, 42, 0.58);
-  --unmute-glass-surface: rgba(20, 25, 56, 0.5);
-  --unmute-glass-border: rgba(150, 165, 255, 0.14);
-  --unmute-glass-border-hover: rgba(170, 185, 255, 0.34);
-  --unmute-glass-highlight: rgba(255, 255, 255, 0.14);
-
-  // Depth: specular top edge, shadowed lip, rim light
-  --unmute-3d-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.45);
-  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 0 rgba(0, 0, 0, 0.5);
-
-  // Text
-  --unmute-text-primary: #eef1ff;
-  --unmute-text-secondary: #b9c0f2;
-  --unmute-text-muted: #8990bf;
-  --unmute-text-dim: #5d6390;
-  --unmute-success: #34f5b0;
-  --unmute-danger: #ff5c8a;
-
-  // Inputs
-  --unmute-input-bg: rgba(6, 8, 22, 0.72);
-  --unmute-input-border: rgba(150, 165, 255, 0.18);
-  --unmute-border: var(--unmute-glass-border);
-
-  // Shadows: deep ambient occlusion with a faint indigo bloom
-  --unmute-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.45);
-  --unmute-shadow-md: 0 12px 30px -6px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.35);
-  --unmute-shadow-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 8px 20px -4px rgba(0, 0, 0, 0.45);
-  --unmute-shadow-3d: 0 30px 60px -18px rgba(0, 0, 0, 0.85), 0 12px 28px -8px rgba(40, 30, 120, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --unmute-shadow-3d-hover: 0 40px 80px -20px rgba(0, 0, 0, 0.9), 0 16px 40px -10px rgba(90, 60, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-
-  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 12px 28px -6px rgba(0, 0, 0, 0.6);
-  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 4px 10px rgba(0, 0, 0, 0.4);
-
-  // Backdrop light
-  --unmute-aurora-a: rgba(0, 229, 255, 0.22);
-  --unmute-aurora-b: rgba(124, 92, 255, 0.28);
-  --unmute-aurora-c: rgba(255, 61, 200, 0.18);
-  --unmute-grid-line: rgba(124, 140, 255, 0.16);
-  --unmute-star: rgba(255, 255, 255, 0.7);
-
-  // Overlays
-  --unmute-scrim: rgba(2, 3, 10, 0.62);
-  --unmute-modal-bg: rgba(12, 15, 36, 0.8);
-}
-
-@mixin holo-light {
+@mixin spatial-light {
   color-scheme: light;
 
-  // "Pearl": cool, luminous, iridescent
-  --unmute-bg: #eef1fb;
+  --unmute-bg: #e8ecf4;
   --unmute-surface: #ffffff;
-  --unmute-surface-raised: #f6f7ff;
-  --unmute-surface-overlay: #eceffe;
-  --unmute-surface-active: #e1e5fb;
+  --unmute-surface-raised: #f7f9fc;
+  --unmute-surface-overlay: #eef1f7;
+  --unmute-surface-active: #e3e8f1;
 
-  --unmute-glass-bg: rgba(255, 255, 255, 0.62);
-  --unmute-glass-surface: rgba(246, 247, 255, 0.7);
-  --unmute-glass-border: rgba(84, 92, 190, 0.16);
-  --unmute-glass-border-hover: rgba(84, 92, 190, 0.34);
+  // Liquid glass: bright, heavily blurred, with a white specular edge
+  --unmute-glass-bg: rgba(255, 255, 255, 0.46);
+  --unmute-glass-surface: rgba(255, 255, 255, 0.58);
+  --unmute-glass-strong: rgba(255, 255, 255, 0.78);
+  --unmute-glass-border: rgba(20, 30, 60, 0.09);
+  --unmute-glass-border-hover: rgba(20, 30, 60, 0.2);
   --unmute-glass-highlight: rgba(255, 255, 255, 0.95);
+  --unmute-glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(20, 30, 60, 0.06);
 
   --unmute-3d-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(40, 45, 120, 0.08);
-  --unmute-3d-card-rim: inset 0 1px 0 0 #ffffff, inset 0 -1px 0 0 rgba(40, 45, 120, 0.06);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(20, 30, 60, 0.06);
+  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 
-  --unmute-text-primary: #0b1030;
-  --unmute-text-secondary: #363d73;
-  --unmute-text-muted: #5f6696;
-  --unmute-text-dim: #9097bd;
-  --unmute-success: #0e9f6e;
-  --unmute-danger: #e11d63;
+  --unmute-text-primary: #0c1222;
+  --unmute-text-secondary: #384158;
+  --unmute-text-muted: #636c84;
+  --unmute-text-dim: #98a0b5;
+  --unmute-success: #0b9d6c;
+  --unmute-danger: #e0245e;
 
-  --unmute-input-bg: rgba(255, 255, 255, 0.85);
-  --unmute-input-border: rgba(84, 92, 190, 0.22);
+  --unmute-input-bg: rgba(255, 255, 255, 0.62);
+  --unmute-input-border: rgba(20, 30, 60, 0.12);
   --unmute-border: var(--unmute-glass-border);
 
-  --unmute-shadow-sm: 0 2px 10px rgba(40, 45, 120, 0.08);
-  --unmute-shadow-md: 0 12px 30px -8px rgba(40, 45, 120, 0.16), 0 2px 8px rgba(40, 45, 120, 0.06);
-  --unmute-shadow-lg: 0 24px 60px -14px rgba(40, 45, 120, 0.22), 0 8px 20px -6px rgba(40, 45, 120, 0.08);
-  --unmute-shadow-3d: 0 30px 60px -20px rgba(40, 45, 120, 0.3), 0 10px 24px -10px rgba(91, 61, 255, 0.18),
-    inset 0 1px 0 #ffffff;
-  --unmute-shadow-3d-hover: 0 40px 80px -22px rgba(40, 45, 120, 0.38), 0 14px 34px -10px rgba(91, 61, 255, 0.26),
-    inset 0 1px 0 #ffffff;
+  // Soft, wide, cool shadows: panes float rather than sit
+  --unmute-shadow-sm: 0 2px 8px rgba(20, 30, 60, 0.06);
+  --unmute-shadow-md: 0 10px 30px -10px rgba(20, 30, 60, 0.18), 0 2px 6px rgba(20, 30, 60, 0.05);
+  --unmute-shadow-lg: 0 30px 70px -20px rgba(20, 30, 60, 0.28), 0 8px 20px -8px rgba(20, 30, 60, 0.1);
+  --unmute-shadow-3d: 0 40px 80px -30px rgba(20, 30, 60, 0.35), 0 12px 30px -14px rgba(20, 30, 60, 0.18);
+  --unmute-shadow-3d-hover: 0 50px 100px -30px rgba(20, 30, 60, 0.42), 0 18px 40px -16px rgba(20, 30, 60, 0.22);
 
-  --unmute-btn-3d-shadow: 0 4px 0 var(--unmute-primary-bevel), 0 12px 24px -8px rgba(40, 45, 120, 0.35);
-  --unmute-btn-3d-shadow-active: 0 1px 0 var(--unmute-primary-bevel), 0 4px 10px rgba(40, 45, 120, 0.2);
+  --unmute-btn-3d-shadow: 0 10px 24px -10px rgba(20, 30, 60, 0.45);
+  --unmute-btn-3d-shadow-active: 0 4px 10px -4px rgba(20, 30, 60, 0.35);
 
-  --unmute-aurora-a: rgba(0, 200, 255, 0.2);
-  --unmute-aurora-b: rgba(124, 92, 255, 0.22);
-  --unmute-aurora-c: rgba(255, 61, 200, 0.14);
-  --unmute-grid-line: rgba(84, 92, 190, 0.13);
-  --unmute-star: rgba(84, 92, 190, 0.35);
+  // Chrome: polished silver used for edges, the logo and metallic accents
+  --unmute-chrome: linear-gradient(135deg, #ffffff 0%, #d7deeb 22%, #8e9ab4 48%, #f2f5fb 64%, #b3bdd2 100%);
+  --unmute-chrome-text: linear-gradient(120deg, #0c1222 0%, #58647f 45%, #1b2336 70%, #6b7898 100%);
+  --unmute-ink: linear-gradient(160deg, #2a3246 0%, #0c1222 100%);
+  --unmute-on-ink: #ffffff;
 
-  --unmute-scrim: rgba(30, 35, 90, 0.26);
-  --unmute-modal-bg: rgba(255, 255, 255, 0.9);
+  --unmute-scrim: rgba(210, 218, 232, 0.45);
+  --unmute-modal-bg: rgba(255, 255, 255, 0.82);
+  --unmute-scene-fallback: radial-gradient(60% 50% at 75% 20%, #d9e1ff 0%, transparent 70%),
+    radial-gradient(50% 45% at 15% 85%, #f6dcf2 0%, transparent 70%), #e8ecf4;
+}
+
+@mixin spatial-dark {
+  color-scheme: dark;
+
+  --unmute-bg: #07090f;
+  --unmute-surface: #121622;
+  --unmute-surface-raised: #171c2a;
+  --unmute-surface-overlay: #1d2334;
+  --unmute-surface-active: #262d42;
+
+  --unmute-glass-bg: rgba(28, 33, 48, 0.46);
+  --unmute-glass-surface: rgba(40, 46, 64, 0.5);
+  --unmute-glass-strong: rgba(30, 35, 50, 0.78);
+  --unmute-glass-border: rgba(255, 255, 255, 0.1);
+  --unmute-glass-border-hover: rgba(255, 255, 255, 0.24);
+  --unmute-glass-highlight: rgba(255, 255, 255, 0.22);
+  --unmute-glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+
+  --unmute-3d-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.4);
+  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  --unmute-text-primary: #f3f5fa;
+  --unmute-text-secondary: #c4cadb;
+  --unmute-text-muted: #8f97ad;
+  --unmute-text-dim: #5f6780;
+  --unmute-success: #3ee0a1;
+  --unmute-danger: #ff5a86;
+
+  --unmute-input-bg: rgba(10, 13, 22, 0.55);
+  --unmute-input-border: rgba(255, 255, 255, 0.12);
+  --unmute-border: var(--unmute-glass-border);
+
+  --unmute-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --unmute-shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --unmute-shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, 0.75), 0 8px 20px -8px rgba(0, 0, 0, 0.4);
+  --unmute-shadow-3d: 0 40px 80px -30px rgba(0, 0, 0, 0.85), 0 12px 30px -14px rgba(0, 0, 0, 0.5);
+  --unmute-shadow-3d-hover: 0 50px 100px -30px rgba(0, 0, 0, 0.9), 0 18px 40px -16px rgba(0, 0, 0, 0.55);
+
+  --unmute-btn-3d-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  --unmute-btn-3d-shadow-active: 0 4px 10px -4px rgba(0, 0, 0, 0.6);
+
+  --unmute-chrome: linear-gradient(135deg, #ffffff 0%, #c3cbdc 22%, #6d7792 48%, #e7ebf4 64%, #8e98b0 100%);
+  --unmute-chrome-text: linear-gradient(120deg, #ffffff 0%, #b8c2d8 45%, #f3f5fa 70%, #9aa5bf 100%);
+  --unmute-ink: linear-gradient(160deg, #ffffff 0%, #d9dfeb 100%);
+  --unmute-on-ink: #0c1222;
+
+  --unmute-scrim: rgba(3, 5, 10, 0.55);
+  --unmute-modal-bg: rgba(24, 28, 42, 0.82);
+  --unmute-scene-fallback: radial-gradient(60% 50% at 75% 20%, #1c2550 0%, transparent 70%),
+    radial-gradient(50% 45% at 15% 85%, #33183f 0%, transparent 70%), #07090f;
 }
 
 :root {
-  @include holo-dark;
+  @include spatial-light;
 
-  // Accent defaults (the theme store overrides these per preset)
-  --unmute-primary: #7c5cff;
-  --unmute-primary-light: #a594ff;
-  --unmute-primary-dark: #5b3dff;
-  --unmute-primary-bevel: #3a1fc2;
-  --unmute-primary-gradient: linear-gradient(120deg, #00e5ff 0%, #7c5cff 52%, #ff3dc8 100%);
-  --unmute-primary-surface: rgba(124, 92, 255, 0.16);
-  --unmute-accent-text: #7ff0ff;
-  --unmute-glow-primary: 0 0 0 1px rgba(124, 92, 255, 0.35), 0 10px 34px -6px rgba(124, 92, 255, 0.65);
+  // Accent (the theme store overrides per preset): a soft iris that reads as light, not neon.
+  --unmute-primary: #4f5bff;
+  --unmute-primary-light: #8d97ff;
+  --unmute-primary-dark: #3a44e0;
+  --unmute-primary-bevel: #2c34b8;
+  --unmute-primary-gradient: linear-gradient(135deg, #7b8cff 0%, #4f5bff 55%, #8b5cf6 100%);
+  --unmute-primary-surface: rgba(79, 91, 255, 0.12);
+  --unmute-accent-text: #4f5bff;
+  --unmute-glow-primary: 0 12px 30px -12px rgba(79, 91, 255, 0.7);
 
-  // Holographic rim used on glass panels (gradient border)
-  --unmute-holo-rim: linear-gradient(135deg, rgba(0, 229, 255, 0.55), rgba(124, 92, 255, 0.15) 40%,
-      rgba(124, 92, 255, 0.1) 60%, rgba(255, 61, 200, 0.5));
+  // Legacy alias kept for components that still reference it.
+  --unmute-holo-rim: var(--unmute-chrome);
 
-  // Radii
-  --unmute-radius-xs: 8px;
-  --unmute-radius-sm: 12px;
-  --unmute-radius-md: 16px;
-  --unmute-radius-lg: 24px;
-  --unmute-radius-xl: 32px;
+  --unmute-radius-xs: 10px;
+  --unmute-radius-sm: 14px;
+  --unmute-radius-md: 18px;
+  --unmute-radius-lg: 28px;
+  --unmute-radius-xl: 36px;
   --unmute-radius-pill: 9999px;
 
-  // Type
-  --unmute-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --unmute-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   --unmute-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-xs: 0.75rem;
   --font-sm: 0.8125rem;
@@ -150,16 +145,18 @@
   --font-2xl: 1.75rem;
   --font-display: 2.25rem;
 
-  // Motion
-  --unmute-transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
-  --unmute-transition-normal: 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  --unmute-transition-bounce: 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+  --unmute-transition-fast: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --unmute-transition-normal: 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --unmute-transition-bounce: 520ms cubic-bezier(0.34, 1.4, 0.64, 1);
 
-[data-theme='dark'] {
-  @include holo-dark;
+  // Layout
+  --unmute-dock-width: 5.25rem;
 }
 
 [data-theme='light'] {
-  @include holo-light;
+  @include spatial-light;
+}
+
+[data-theme='dark'] {
+  @include spatial-dark;
 }

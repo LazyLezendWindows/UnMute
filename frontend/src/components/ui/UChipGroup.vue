@@ -72,10 +72,10 @@ function onKeydown(event: KeyboardEvent) {
 
 <style scoped lang="scss">
 .u-chip-group-option {
-  background-color: var(--unmute-surface-raised);
+  background: var(--unmute-glass-surface);
   color: var(--unmute-text-secondary);
-  border: 1px solid var(--unmute-glass-border);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  border: 0;
+  box-shadow: var(--unmute-glass-edge);
   transition: transform var(--unmute-transition-fast), background var(--unmute-transition-fast),
     color var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast);
 
@@ -96,10 +96,9 @@ function onKeydown(event: KeyboardEvent) {
   }
 
   &.is-selected {
-    background: var(--unmute-primary-gradient);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: var(--unmute-glow-primary);
+    background: var(--unmute-ink);
+    color: var(--unmute-on-ink);
+    box-shadow: var(--unmute-btn-3d-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 }
 </style>

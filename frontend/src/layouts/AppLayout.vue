@@ -1,37 +1,36 @@
 <template>
   <div class="app-shell min-vh-100 d-flex flex-column position-relative u-page">
-    <SpaceBackdrop />
+    <SpatialScene mode="ambient" />
 
-    <Navbar />
+    <SpatialDock :show-mobile-dock="showMobileDock" />
 
-    <main :class="{ 'has-bottom-nav': showBottomNav }" class="app-main flex-grow-1 d-flex flex-column container max-w-4xl px-3 pt-3 pt-md-4 position-relative">
-      <slot />
+    <main
+      :class="{ 'has-mobile-dock': showMobileDock }"
+      class="app-main flex-grow-1 d-flex flex-column position-relative"
+    >
+      <div class="app-stage flex-grow-1 d-flex flex-column w-100 mx-auto">
+        <slot />
+      </div>
     </main>
 
-    <BottomNav v-if="showBottomNav" />
-
-    <!-- Global Mutual Match Celebration Modal -->
-    <MatchModal
-      :match="discoverStore.activeMatch"
-      @dismiss="discoverStore.dismissMatchModal"
-    />
+    <!-- Global mutual-match celebration -->
+    <MatchModal :match="discoverStore.activeMatch" @dismiss="discoverStore.dismissMatchModal" />
   </div>
 </template>
 
 <script setup lang="ts">
-import Navbar from '../components/layout/Navbar.vue';
-import SpaceBackdrop from '../components/layout/SpaceBackdrop.vue';
-import BottomNav from '../components/layout/BottomNav.vue';
-import MatchModal from '../components/matching/MatchModal.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import SpatialScene from '../components/scene/SpatialScene.vue';
+import SpatialDock from '../components/layout/SpatialDock.vue';
+import MatchModal from '../components/matching/MatchModal.vue';
 import { useDiscoverStore } from '../stores/discover';
 
 const route = useRoute();
 const discoverStore = useDiscoverStore();
 
 // Inside an open conversation the message composer owns the bottom of the screen.
-const showBottomNav = computed(() => !(route.name === 'chat' && route.params.id));
+const showMobileDock = computed(() => !(route.name === 'chat' && route.params.id));
 </script>
 
 <style scoped lang="scss">
@@ -44,18 +43,23 @@ const showBottomNav = computed(() => !(route.name === 'chat' && route.params.id)
 
 .app-main {
   z-index: 10;
-  padding-bottom: 1rem;
+  padding: 0.5rem 1rem 1.5rem;
 
-  // Clearance for the fixed mobile bottom nav (and the home indicator); desktop has no bottom nav.
-  &.has-bottom-nav {
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  // Clearance for the floating mobile dock (and the home indicator).
+  &.has-mobile-dock {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
   }
 
+  // Desktop: content sits to the right of the dock rail.
   @media (min-width: 768px) {
     &,
-    &.has-bottom-nav {
-      padding-bottom: 1.5rem;
+    &.has-mobile-dock {
+      padding: 2rem 2rem 2rem calc(var(--unmute-dock-width) + 3rem);
     }
   }
+}
+
+.app-stage {
+  max-width: 72rem;
 }
 </style>

@@ -1,10 +1,6 @@
 <template>
-  <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100">
-    <!-- Header -->
-    <div>
-      <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1 u-text-primary">Safety & Community</h1>
-      <p class="small mb-0 u-text-muted">Our commitments to keeping Unmute authentic, safe, and pressure-free</p>
-    </div>
+  <div class="d-flex flex-column gap-4 max-w-3xl w-100">
+    <PageHeader title="Safety" subtitle="How we keep Unmute authentic, safe and pressure-free." />
 
     <!-- Core Safety Commitments in UCard -->
     <UCard variant="elevated" padding="lg">
@@ -103,6 +99,7 @@
 </template>
 
 <script setup lang="ts">
+import PageHeader from '../components/layout/PageHeader.vue';
 import { ref, onMounted } from 'vue';
 import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';

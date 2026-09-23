@@ -1,14 +1,6 @@
 <template>
-  <div class="d-flex flex-column gap-4 max-w-xl mx-auto w-100">
-    <!-- Page Header -->
-    <div>
-      <h1 class="font-display fs-3 fw-bolder tracking-tight mb-1 u-text-primary">
-        Settings
-      </h1>
-      <p class="small mb-0 u-text-muted">
-        Personalize your appearance, dynamic theme colors, and privacy preferences
-      </p>
-    </div>
+  <div class="d-flex flex-column gap-4 max-w-3xl w-100">
+    <PageHeader title="Settings" subtitle="Appearance, accent colour and privacy." />
 
     <!-- Appearance: Mode (Dark vs Light/White) -->
     <UCard variant="elevated" padding="lg">
@@ -22,7 +14,7 @@
         </div>
 
         <p class="small mb-2 u-text-secondary">
-          Deep-space dark (default), luminous pearl light, or follow your device.
+          Bright liquid glass (default), night glass, or follow your device.
         </p>
 
         <!-- Segmented Mode Selector with 3D tactile buttons -->
@@ -61,7 +53,7 @@
         </div>
 
         <p class="small mb-1 u-text-secondary">
-          Choose an electric theme preset. All cards, buttons, 3D bottom bevels, glow borders, and tabs will instantly re-skin in real time.
+          Pick the accent light used for buttons, highlights and the active dock item.
         </p>
 
         <!-- 6-Palette 3D Grid using Bootstrap row & cols -->
@@ -162,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import PageHeader from '../components/layout/PageHeader.vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
 import UButton from '../components/ui/UButton.vue';

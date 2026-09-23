@@ -30,7 +30,7 @@ const props = withDefaults(
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'u-badge-primary border';
+      return 'u-badge-primary';
     case 'glow':
       return 'u-badge-glow text-white';
     case 'success':
@@ -83,9 +83,8 @@ const dotClass = computed(() => {
 
 .u-badge-primary {
   background: var(--unmute-primary-surface);
-  color: var(--unmute-primary-light);
-  border-color: var(--unmute-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: var(--unmute-accent-text);
+  box-shadow: inset 0 0 0 1px var(--unmute-primary-surface), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .u-badge-glow {

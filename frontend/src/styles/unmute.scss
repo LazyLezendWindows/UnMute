@@ -1,4 +1,4 @@
-// Unmute global stylesheet: Bootstrap 5 on top of the "Holo" tokens.
+// Unmute global stylesheet: Bootstrap 5 under the "Spatial" liquid-glass tokens.
 
 @use "./tokens";
 @use "./mixins";
@@ -6,28 +6,27 @@
 @use "./utilities";
 
 @use "bootstrap/scss/bootstrap.scss" with (
-  $primary: #7c5cff,
-  $secondary: #8990bf,
-  $success: #10d98f,
-  $info: #00c8f0,
-  $warning: #ffb547,
-  $danger: #ff3d7f,
-  $light: #f6f7ff,
-  $dark: #04050c,
-  $body-bg: #04050c,
-  $body-color: #eef1ff,
+  $primary: #4f5bff,
+  $secondary: #636c84,
+  $success: #0b9d6c,
+  $info: #0ea5c6,
+  $warning: #f59e0b,
+  $danger: #e0245e,
+  $light: #f7f9fc,
+  $dark: #0c1222,
+  $body-bg: #e8ecf4,
+  $body-color: #0c1222,
   $font-family-sans-serif: ('Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif),
-  $border-radius: 16px,
-  $border-radius-sm: 10px,
-  $border-radius-lg: 24px,
+  $border-radius: 18px,
+  $border-radius-sm: 12px,
+  $border-radius-lg: 28px,
   $border-radius-pill: 9999px
 );
 
 body {
-  background-color: var(--unmute-bg);
+  background: var(--unmute-bg);
   color: var(--unmute-text-primary);
   font-family: var(--unmute-font-body);
-  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -36,7 +35,7 @@ body {
 
 h1, h2, h3, h4, .font-display, .brand-heading {
   font-family: var(--unmute-font-display);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }
 
 ::selection {
@@ -44,63 +43,69 @@ h1, h2, h3, h4, .font-display, .brand-heading {
   color: var(--unmute-text-primary);
 }
 
-// Visible, on-brand keyboard focus everywhere.
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--unmute-accent-text);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-.surface-3d {
-  background: var(--unmute-surface-raised);
-  border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-}
-
-.btn {
-  font-family: var(--unmute-font-body);
-  font-weight: 600;
-  border-radius: var(--unmute-radius-md);
-  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast);
-
-  &:active {
-    transform: translateY(2px) scale(0.985);
-  }
-}
-
-.card {
-  background-color: var(--unmute-glass-bg);
-  border: 1px solid var(--unmute-glass-border);
-  border-radius: var(--unmute-radius-lg);
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-}
-
-// Frosted glass panel with a holographic gradient rim (1px border drawn with a masked gradient).
-.holo-panel {
+// ---------------------------------------------------------------------------
+// Liquid glass: the one surface everything floats on.
+// Heavy blur + saturation, bright specular edges, a top sheen, and a soft wide shadow.
+// ---------------------------------------------------------------------------
+.glass-pane {
   position: relative;
   background: var(--unmute-glass-bg);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
   border: 0;
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
 
-  // Drawn inside the box so `overflow: hidden` containers never clip it.
+  // Specular sheen across the upper part of the pane, like light on curved glass.
   &::before {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    padding: 1px;
-    background: var(--unmute-holo-rim);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
     pointer-events: none;
+    background: linear-gradient(180deg, var(--unmute-glass-highlight) 0%, transparent 38%);
+    opacity: 0.35;
   }
 }
 
-// Scrollbars follow the theme.
+.glass-pane-strong {
+  background: var(--unmute-glass-strong);
+}
+
+// Chrome text (logo, hero headings)
+.text-chrome {
+  background: var(--unmute-chrome-text);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.surface-3d {
+  background: var(--unmute-glass-surface);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+}
+
+.btn {
+  font-family: var(--unmute-font-body);
+  font-weight: 600;
+  border-radius: var(--unmute-radius-pill);
+}
+
+.card {
+  background: var(--unmute-glass-bg);
+  border: 0;
+  border-radius: var(--unmute-radius-lg);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
+}
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--unmute-surface-active) transparent;
+  scrollbar-color: var(--unmute-glass-border-hover) transparent;
 }
 ::-webkit-scrollbar {
   width: 6px;
@@ -110,9 +115,6 @@ h1, h2, h3, h4, .font-display, .brand-heading {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--unmute-surface-active);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
   background: var(--unmute-glass-border-hover);
+  border-radius: 9999px;
 }

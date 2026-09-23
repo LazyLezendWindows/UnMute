@@ -1,7 +1,7 @@
 <template>
   <div
     v-tilt="tilts"
-    class="u-card holo-panel position-relative overflow-hidden"
+    class="u-card glass-pane position-relative overflow-hidden"
     :class="[variantClass, paddingClass, { 'cursor-pointer user-select-none': interactive }]"
     @click="$emit('click', $event)"
   >
@@ -73,34 +73,29 @@ const paddingClass = computed(() => {
 
 <style scoped>
 .u-card {
-  border-radius: var(--unmute-radius-lg, 24px);
+  border-radius: var(--unmute-radius-lg, 28px);
   color: var(--unmute-text-primary);
   transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal);
 }
 
 .u-card-default {
-  box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
 }
 
 .u-card-elevated,
-.u-card-glass {
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
+.u-card-glass,
+.u-card-3d {
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
 }
 
 .u-card-interactive {
-  box-shadow: var(--unmute-shadow-md), var(--unmute-3d-card-rim);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
 }
 
 .u-card-interactive:hover {
-  box-shadow: var(--unmute-shadow-3d-hover), var(--unmute-glow-primary);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-3d-hover);
 }
 
-.u-card-3d {
-  box-shadow: var(--unmute-shadow-3d), var(--unmute-3d-card-rim);
-  transform-style: preserve-3d;
-}
-
-/* A thin light line along the top edge sells the glass thickness. */
 .u-card-specular {
   z-index: 1;
   height: 1px;

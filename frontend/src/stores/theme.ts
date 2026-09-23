@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-export type AccentColor = 'holo' | 'aurora' | 'synthwave' | 'ember' | 'matrix' | 'sapphire';
+export type AccentColor = 'iris' | 'aqua' | 'rose' | 'mint' | 'amber' | 'graphite';
 
 export interface AccentPreset {
   id: AccentColor;
@@ -11,102 +11,102 @@ export interface AccentPreset {
   primary: string;
   light: string;
   dark: string;
-  bevel: string; // 3D bottom bevel extrusion color
+  bevel: string;
   gradient: string;
   glow: string;
   surface: string;
-  /** Bright tone used for accent text/icons on dark surfaces. */
+  /** Lighter tone used for accent text/icons on dark glass. */
   preview: string;
 }
 
-const glow = (rgb: string) => `0 0 0 1px rgba(${rgb}, 0.35), 0 10px 34px -6px rgba(${rgb}, 0.65)`;
+const glow = (rgb: string) => `0 12px 30px -12px rgba(${rgb}, 0.7)`;
 
-export const DEFAULT_ACCENT: AccentColor = 'holo';
+export const DEFAULT_ACCENT: AccentColor = 'iris';
 
 export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
-  holo: {
-    id: 'holo',
-    name: 'Holo',
-    subtitle: 'Cyan, violet & magenta spectrum',
-    primary: '#6a4dff',
-    light: '#a594ff',
-    dark: '#5b3dff',
-    bevel: '#3a1fc2',
-    gradient: 'linear-gradient(120deg, #00e5ff 0%, #7c5cff 52%, #ff3dc8 100%)',
-    glow: glow('124, 92, 255'),
-    surface: 'rgba(124, 92, 255, 0.16)',
-    preview: '#7ff0ff',
+  iris: {
+    id: 'iris',
+    name: 'Iris',
+    subtitle: 'Soft periwinkle light',
+    primary: '#4f5bff',
+    light: '#8d97ff',
+    dark: '#3a44e0',
+    bevel: '#2c34b8',
+    gradient: 'linear-gradient(135deg, #7b8cff 0%, #4f5bff 55%, #8b5cf6 100%)',
+    glow: glow('79, 91, 255'),
+    surface: 'rgba(79, 91, 255, 0.12)',
+    preview: '#a3acff',
   },
-  aurora: {
-    id: 'aurora',
-    name: 'Aurora',
-    subtitle: 'Ice cyan & electric azure',
+  aqua: {
+    id: 'aqua',
+    name: 'Aqua',
+    subtitle: 'Glacier cyan',
     primary: '#0891b2',
     light: '#67e8f9',
     dark: '#0e7490',
     bevel: '#155e75',
-    gradient: 'linear-gradient(120deg, #00f2fe 0%, #22d3ee 45%, #4f6bff 100%)',
-    glow: glow('0, 229, 255'),
-    surface: 'rgba(0, 229, 255, 0.14)',
-    preview: '#67f3ff',
+    gradient: 'linear-gradient(135deg, #5ee7f5 0%, #0ea5c6 55%, #3b82f6 100%)',
+    glow: glow('14, 165, 198'),
+    surface: 'rgba(14, 165, 198, 0.12)',
+    preview: '#7ce9f7',
   },
-  synthwave: {
-    id: 'synthwave',
-    name: 'Synthwave',
-    subtitle: 'Hyper pink & ultraviolet',
-    primary: '#c026d3',
-    light: '#f0abfc',
-    dark: '#a21caf',
-    bevel: '#701a75',
-    gradient: 'linear-gradient(120deg, #ff3dc8 0%, #b026ff 55%, #5b3dff 100%)',
-    glow: glow('255, 61, 200'),
-    surface: 'rgba(255, 61, 200, 0.14)',
-    preview: '#ff8ae2',
+  rose: {
+    id: 'rose',
+    name: 'Rose',
+    subtitle: 'Pearl pink',
+    primary: '#e0457b',
+    light: '#f9a8c9',
+    dark: '#be2d63',
+    bevel: '#9d174d',
+    gradient: 'linear-gradient(135deg, #ffa3c4 0%, #e0457b 55%, #a855f7 100%)',
+    glow: glow('224, 69, 123'),
+    surface: 'rgba(224, 69, 123, 0.12)',
+    preview: '#ffa9c8',
   },
-  ember: {
-    id: 'ember',
-    name: 'Solar',
-    subtitle: 'Plasma coral & flare orange',
-    primary: '#e11d48',
-    light: '#fb7185',
-    dark: '#be123c',
-    bevel: '#881337',
-    gradient: 'linear-gradient(120deg, #ff416c 0%, #ff6a3d 55%, #ffc53d 100%)',
-    glow: glow('255, 90, 90'),
-    surface: 'rgba(255, 90, 90, 0.14)',
-    preview: '#ff9a8a',
-  },
-  matrix: {
-    id: 'matrix',
-    name: 'Matrix',
-    subtitle: 'Acid mint & emerald code',
-    primary: '#059669',
+  mint: {
+    id: 'mint',
+    name: 'Mint',
+    subtitle: 'Fresh jade',
+    primary: '#0f9f75',
     light: '#6ee7b7',
     dark: '#047857',
     bevel: '#065f46',
-    gradient: 'linear-gradient(120deg, #00f5a0 0%, #00d9f5 100%)',
-    glow: glow('0, 245, 160'),
-    surface: 'rgba(0, 245, 160, 0.14)',
-    preview: '#5dfdc4',
+    gradient: 'linear-gradient(135deg, #7af0c3 0%, #10b981 55%, #0ea5a4 100%)',
+    glow: glow('16, 185, 129'),
+    surface: 'rgba(16, 185, 129, 0.12)',
+    preview: '#7cf0c7',
   },
-  sapphire: {
-    id: 'sapphire',
-    name: 'Sapphire',
-    subtitle: 'Cobalt core & crystal blue',
-    primary: '#2563eb',
-    light: '#93c5fd',
-    dark: '#1d4ed8',
-    bevel: '#1e3a8a',
-    gradient: 'linear-gradient(120deg, #2563eb 0%, #38bdf8 60%, #a5f3fc 100%)',
-    glow: glow('56, 140, 255'),
-    surface: 'rgba(56, 140, 255, 0.16)',
-    preview: '#8fd0ff',
+  amber: {
+    id: 'amber',
+    name: 'Amber',
+    subtitle: 'Warm sunlight',
+    primary: '#d97706',
+    light: '#fcd34d',
+    dark: '#b45309',
+    bevel: '#92400e',
+    gradient: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 50%, #f97316 100%)',
+    glow: glow('245, 158, 11'),
+    surface: 'rgba(245, 158, 11, 0.13)',
+    preview: '#fcd668',
+  },
+  graphite: {
+    id: 'graphite',
+    name: 'Graphite',
+    subtitle: 'Monochrome chrome',
+    primary: '#2a3246',
+    light: '#8e9ab4',
+    dark: '#0c1222',
+    bevel: '#05080f',
+    gradient: 'linear-gradient(135deg, #5b6680 0%, #2a3246 55%, #0c1222 100%)',
+    glow: glow('20, 30, 60'),
+    surface: 'rgba(42, 50, 70, 0.1)',
+    preview: '#d7deeb',
   },
 };
 
 export const useThemeStore = defineStore('theme', () => {
-  // The app is dark-first; accents from the retired design fall back to the default.
-  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'dark';
+  // Bright liquid glass is the default; accents from retired designs fall back to Iris.
+  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'light';
   const rawAccent = localStorage.getItem('unmute_theme_accent') as AccentColor;
   const initialAccent: AccentColor = rawAccent && ACCENT_PRESETS[rawAccent] ? rawAccent : DEFAULT_ACCENT;
 

@@ -1,19 +1,24 @@
 <template>
-  <div class="flex-grow-1 d-flex flex-column max-w-lg mx-auto w-100 py-3">
-    <!-- Filters toolbar: the button plus a removable chip per active filter -->
-    <div class="discover-toolbar d-flex align-items-center gap-2 flex-wrap mb-3 w-100 max-w-md mx-auto">
-      <UButton variant="glass" size="sm" :aria-label="filterButtonLabel" @click="isFiltersOpen = true">
-        <i class="ri-equalizer-line me-1" aria-hidden="true"></i>
-        <span>Filters</span>
-        <span v-if="discoverStore.activeFilterCount" class="filter-count ms-2 rounded-pill px-2" aria-hidden="true">
-          {{ discoverStore.activeFilterCount }}
-        </span>
-      </UButton>
+  <div class="discover-page d-flex flex-column flex-grow-1">
+    <PageHeader title="Discover" subtitle="People who share your interests, near and far.">
+      <template #actions>
+        <UButton variant="glass" size="sm" :aria-label="filterButtonLabel" @click="isFiltersOpen = true">
+          <i class="ri-equalizer-2-line me-1" aria-hidden="true"></i>
+          <span>Filters</span>
+          <span v-if="discoverStore.activeFilterCount" class="filter-count ms-2" aria-hidden="true">
+            {{ discoverStore.activeFilterCount }}
+          </span>
+        </UButton>
+      </template>
+    </PageHeader>
+
+    <!-- Active filters, each removable -->
+    <div v-if="activeChips.length" class="discover-toolbar d-flex align-items-center gap-2 flex-wrap mb-3">
       <button
         v-for="chip in activeChips"
         :key="chip.key"
         type="button"
-        class="filter-chip d-inline-flex align-items-center gap-1 rounded-pill px-2 py-1 small fw-semibold"
+        class="filter-chip"
         :aria-label="`Remove filter: ${chip.label}`"
         @click="removeFilter(chip.key)"
       >
@@ -23,31 +28,41 @@
     </div>
 
     <div class="flex-grow-1 d-flex flex-column justify-content-center">
-      <!-- Loading State: Card Skeleton with shimmer -->
-      <div v-if="discoverStore.loading" class="w-100 d-flex flex-column gap-3">
-        <USkeleton type="card" height="480px" />
-        <div class="d-flex gap-3">
-          <USkeleton type="button" class="flex-fill" />
-          <USkeleton type="button" class="flex-fill" />
-        </div>
+      <!-- Loading -->
+      <div v-if="discoverStore.loading" class="discover-grid">
+        <USkeleton type="card" height="34rem" class="stack-skeleton" />
+        <USkeleton type="card" height="20rem" class="d-none d-lg-block" />
       </div>
 
-      <!-- Active Discovery Card with 3D Depth -->
-      <div v-else-if="discoverStore.currentCandidate" class="w-100 animate-fade-in">
-        <DiscoverCard
-          :candidate="discoverStore.currentCandidate"
-          @like="handleLike"
-          @pass="handlePass"
-          @open-safety="openSafety"
-        />
+      <!-- The deck -->
+      <div v-else-if="discoverStore.currentCandidate" class="discover-grid animate-fade-in">
+        <div class="deck-column">
+          <DiscoverStack
+            ref="stack"
+            :top="discoverStore.currentCandidate"
+            :behind="behind"
+            @like="handleLike"
+            @pass="handlePass"
+            @open-safety="openSafety"
+          />
+
+          <!-- Action orbs -->
+          <div class="deck-actions">
+            <button type="button" class="action-orb orb-pass" aria-label="Pass" title="Pass" @click="stack?.fling('left')">
+              <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="action-orb orb-like" aria-label="Connect" title="Connect" @click="stack?.fling('right')">
+              <i class="ri-heart-3-fill" aria-hidden="true"></i>
+            </button>
+          </div>
+          <p class="deck-hint d-none d-md-block mb-0">Drag the card, or use ← →</p>
+        </div>
+
+        <CandidateDetails :candidate="discoverStore.currentCandidate" />
       </div>
 
       <!-- The feed could not load: say so rather than pretending no one is left -->
-      <UEmptyState
-        v-else-if="discoverStore.error"
-        title="Couldn't load people"
-        :description="discoverStore.error"
-      >
+      <UEmptyState v-else-if="discoverStore.error" title="Couldn't load people" :description="discoverStore.error">
         <template #icon>
           <i class="ri-wifi-off-line fs-2"></i>
         </template>
@@ -74,34 +89,23 @@
         </template>
       </UEmptyState>
 
-      <!-- Empty State with Ambient 3D Glow -->
+      <!-- Everyone reviewed -->
       <UEmptyState
         v-else
         title="You're all caught up!"
-        description="You've reviewed all active connections matching your criteria. Check back soon or update your interests to meet more people."
+        description="You've seen everyone for now. Check back soon, or add interests to meet more people."
       >
         <template #icon>
           <i class="ri-sparkling-fill fs-2"></i>
         </template>
         <template #action>
-          <UButton
-            variant="secondary"
-            size="md"
-            @click="discoverStore.loadFeed"
-          >
+          <UButton variant="secondary" size="md" @click="discoverStore.loadFeed">
             <i class="ri-refresh-line me-2"></i>
-            <span>Refresh Feed</span>
+            <span>Refresh</span>
           </UButton>
-          <UButton
-            variant="primary"
-            size="md"
-            @click="$router.push('/profile')"
-          >
-            Edit Interests
-          </UButton>
+          <UButton variant="primary" size="md" @click="$router.push('/profile')">Edit interests</UButton>
         </template>
       </UEmptyState>
-
     </div>
 
     <DiscoverFilters
@@ -111,7 +115,6 @@
       @apply="applyFilters"
     />
 
-    <!-- Safety Modal (Block / Report) -->
     <SafetyModal
       v-if="safetyTarget"
       :is-open="isSafetyOpen"
@@ -125,7 +128,9 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
-import DiscoverCard from '../components/discovery/DiscoverCard.vue';
+import DiscoverStack from '../components/discovery/DiscoverStack.vue';
+import CandidateDetails from '../components/discovery/CandidateDetails.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 import DiscoverFilters from '../components/discovery/DiscoverFilters.vue';
 import SafetyModal from '../components/safety/SafetyModal.vue';
 import USkeleton from '../components/ui/USkeleton.vue';
@@ -189,6 +194,13 @@ onMounted(() => {
   discoverStore.loadFeed();
 });
 
+const stack = ref<InstanceType<typeof DiscoverStack> | null>(null);
+
+/** The next two people, shown receding behind the current card. */
+const behind = computed(() =>
+  discoverStore.feed.slice(discoverStore.currentIndex + 1, discoverStore.currentIndex + 3)
+);
+
 function handleLike() {
   discoverStore.likeCurrent();
 }
@@ -213,28 +225,110 @@ function onSafetyActionCompleted() {
 </script>
 
 <style scoped lang="scss">
+.discover-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (min-width: 992px) {
+    grid-template-columns: minmax(20rem, 26rem) minmax(18rem, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+.stack-skeleton {
+  max-width: 26rem;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: var(--unmute-radius-xl);
+}
+
+.deck-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.deck-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.4rem;
+}
+
+.action-orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  transition: transform var(--unmute-transition-bounce), box-shadow var(--unmute-transition-fast);
+
+  &:hover {
+    transform: translateY(-3px) scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+.orb-pass {
+  width: 3.75rem;
+  height: 3.75rem;
+  font-size: 1.6rem;
+  color: var(--unmute-text-secondary);
+  background: var(--unmute-glass-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+}
+
+.orb-like {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.8rem;
+  color: #fff;
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.55), transparent 42%), var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.deck-hint {
+  margin-top: 0.9rem;
+  font-size: 0.75rem;
+  color: var(--unmute-text-muted);
+}
+
 .filter-count {
-  background: var(--unmute-primary-gradient);
-  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 9999px;
   font-size: 0.7rem;
-  line-height: 1.4;
+  color: var(--unmute-on-ink);
+  background: var(--unmute-ink);
 }
 
 .filter-chip {
-  background-color: var(--unmute-primary-surface);
-  color: var(--unmute-accent-text);
-  border: 1px solid var(--unmute-glass-border);
-  font-size: 0.75rem;
-  transition: background-color var(--unmute-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--unmute-text-primary);
+  background: var(--unmute-glass-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-sm);
 
-  &:hover,
-  &:focus-visible {
-    background-color: var(--unmute-surface-active);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--unmute-primary);
-    outline-offset: 2px;
+  &:hover {
+    background: var(--unmute-primary-surface);
   }
 }
 </style>
