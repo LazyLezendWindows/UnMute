@@ -217,6 +217,7 @@ import UAvatar from '../components/ui/UAvatar.vue';
 import UButton from '../components/ui/UButton.vue';
 import { useAuthStore } from '../stores/auth';
 import { useChatStore } from '../stores/chat';
+import { useToastStore } from '../stores/toast';
 
 const route = useRoute();
 const router = useRouter();
@@ -238,10 +239,20 @@ onMounted(async () => {
   chatStore.initSocketHandlers();
 
   if (route.params.id) {
-    await chatStore.openConversation(route.params.id as string);
-    scrollToBottom();
+    await openFromRoute(route.params.id as string);
   }
 });
+
+/** Opens the routed conversation; an unavailable one (removed, blocked, not yours) returns to the list. */
+async function openFromRoute(id: string) {
+  try {
+    await chatStore.openConversation(id);
+    scrollToBottom();
+  } catch (err: any) {
+    useToastStore().error(`This conversation isn't available. ${err.message}`);
+    router.replace('/chat');
+  }
+}
 
 onUnmounted(() => {
   chatStore.leaveCurrentConversation();
@@ -251,8 +262,7 @@ watch(
   () => route.params.id,
   async (newId) => {
     if (newId) {
-      await chatStore.openConversation(newId as string);
-      scrollToBottom();
+      await openFromRoute(newId as string);
     } else {
       chatStore.leaveCurrentConversation();
     }
@@ -280,8 +290,14 @@ async function handleSend() {
   const text = inputContent.value.trim();
   if (!text) return;
   inputContent.value = '';
-  await chatStore.sendMessage(text);
-  scrollToBottom();
+  try {
+    await chatStore.sendMessage(text);
+    scrollToBottom();
+  } catch (err: any) {
+    // Give the unsent text back rather than losing it.
+    if (!inputContent.value) inputContent.value = text;
+    useToastStore().error(`Message not sent. ${err.message}`);
+  }
 }
 
 function scrollToBottom() {

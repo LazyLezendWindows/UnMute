@@ -118,6 +118,7 @@ import { ref } from 'vue';
 import UModal from '../ui/UModal.vue';
 import UButton from '../ui/UButton.vue';
 import { useDiscoverStore } from '../../stores/discover';
+import { useToastStore } from '../../stores/toast';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -173,6 +174,11 @@ async function submitAction() {
     } else {
       await discoverStore.blockUser(props.targetUserId, blockReason.value);
     }
+    useToastStore().success(
+      mode.value === 'report'
+        ? `Report submitted. Thank you — our safety team will review it.${alsoBlockOnReport.value ? ` ${props.targetName} is blocked.` : ''}`
+        : `${props.targetName} has been blocked.`
+    );
     emit('actionCompleted');
     close();
   } catch (err: any) {

@@ -27,10 +27,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status: number | undefined = error.response?.status;
-    const message =
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      (error.response ? 'An unexpected error occurred' : 'Unable to reach Unmute. Check your connection.');
+    // Server faults carry no useful detail for users; client errors (4xx) explain what to fix.
+    const message = !error.response
+      ? 'Unable to reach Unmute. Check your connection.'
+      : status !== undefined && status >= 500
+        ? 'Something went wrong on our side. Please try again.'
+        : error.response.data?.error || error.response.data?.message || 'Something went wrong. Please try again.';
 
     if (status === 401 && !String(error.config?.url || '').startsWith('/auth/')) {
       unauthorizedHandler?.();

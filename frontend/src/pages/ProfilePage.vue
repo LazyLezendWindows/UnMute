@@ -23,10 +23,6 @@
     </div>
 
     <!-- Feedback Message -->
-    <div v-if="successMsg" class="alert alert-success py-2 px-3 small rounded-3 d-flex align-items-center gap-2 mb-0">
-      <span>✓</span>
-      <span>{{ successMsg }}</span>
-    </div>
     <div v-if="errorMsg" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
       {{ errorMsg }}
     </div>
@@ -158,12 +154,12 @@ import UInput from '../components/ui/UInput.vue';
 import UButton from '../components/ui/UButton.vue';
 import InterestSelector from '../components/profile/InterestSelector.vue';
 import { useAuthStore } from '../stores/auth';
+import { useToastStore } from '../stores/toast';
 
 const router = useRouter();
 const authStore = useAuthStore();
 
 const saving = ref(false);
-const successMsg = ref<string | null>(null);
 const errorMsg = ref<string | null>(null);
 
 const availablePreferences = [
@@ -208,7 +204,6 @@ function togglePreference(pref: string) {
 
 async function saveProfile() {
   saving.value = true;
-  successMsg.value = null;
   errorMsg.value = null;
   try {
     await authStore.updateProfile({
@@ -219,7 +214,7 @@ async function saveProfile() {
       interactionPreferences: form.interactionPreferences,
       interestIds: form.interestIds,
     });
-    successMsg.value = 'Profile updated successfully!';
+    useToastStore().success('Profile updated.');
   } catch (err: any) {
     errorMsg.value = err.message || 'Failed to update profile';
   } finally {

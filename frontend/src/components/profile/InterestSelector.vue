@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { api } from '../../services/api';
+import { useToastStore } from '../../stores/toast';
 import { Interest } from '../../types';
 
 const props = defineProps<{
@@ -41,8 +42,8 @@ onMounted(async () => {
   try {
     const res = await api.get('/users/interests');
     allInterests.value = res.data.data;
-  } catch (err) {
-    console.error('Failed to load interests:', err);
+  } catch (err: any) {
+    useToastStore().error(`Couldn't load interests. ${err.message}`);
   }
 });
 

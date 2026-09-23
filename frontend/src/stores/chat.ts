@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
+import { useToastStore } from './toast';
 import { Conversation, Match, Message } from '../types';
 
 export const useChatStore = defineStore('chat', () => {
@@ -22,7 +23,7 @@ export const useChatStore = defineStore('chat', () => {
       const res = await api.get('/matches');
       matches.value = res.data.data;
     } catch (err: any) {
-      console.error('Failed to load matches:', err);
+      useToastStore().error(`Couldn't load your matches. ${err.message}`);
     }
   }
 
@@ -31,7 +32,7 @@ export const useChatStore = defineStore('chat', () => {
       const res = await api.get('/conversations');
       conversations.value = res.data.data;
     } catch (err: any) {
-      console.error('Failed to load conversations:', err);
+      useToastStore().error(`Couldn't load your conversations. ${err.message}`);
     }
   }
 
@@ -55,7 +56,7 @@ export const useChatStore = defineStore('chat', () => {
         conv.unreadCount = 0;
       }
     } catch (err: any) {
-      console.error('Failed to load conversation:', err);
+      activeConversationId.value = null;
       throw err;
     } finally {
       loading.value = false;
@@ -94,7 +95,6 @@ export const useChatStore = defineStore('chat', () => {
       }
       return msg;
     } catch (err: any) {
-      console.error('Failed to send message:', err);
       throw err;
     } finally {
       sending.value = false;

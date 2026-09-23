@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
+import { useToastStore } from './toast';
 import { DiscoveryCandidate } from '../types';
 
 export const useDiscoverStore = defineStore('discover', () => {
@@ -41,37 +42,33 @@ export const useDiscoverStore = defineStore('discover', () => {
     }
   }
 
-  async function likeCurrent() {
+  /**
+   * Advances optimistically; if the server rejects the action the card comes back
+   * (when the user hasn't moved on further) so a failed like is never silently lost.
+   */
+  async function interactWithCurrent(action: 'like' | 'pass') {
     if (!currentCandidate.value) return;
     const target = currentCandidate.value;
+    const index = currentIndex.value;
     currentIndex.value++;
 
     try {
-      const res = await api.post('/interactions/like', {
-        targetUserId: target.id,
-      });
-
-      if (res.data.data.matched) {
+      const res = await api.post(`/interactions/${action}`, { targetUserId: target.id });
+      if (action === 'like' && res.data.data.matched) {
         activeMatch.value = res.data.data;
       }
     } catch (err: any) {
-      console.error('Failed to like:', err);
+      if (currentIndex.value === index + 1) currentIndex.value = index;
+      useToastStore().error(
+        action === 'like'
+          ? `Couldn't connect with ${target.displayName}. ${err.message}`
+          : `Couldn't skip ${target.displayName}. ${err.message}`
+      );
     }
   }
 
-  async function passCurrent() {
-    if (!currentCandidate.value) return;
-    const target = currentCandidate.value;
-    currentIndex.value++;
-
-    try {
-      await api.post('/interactions/pass', {
-        targetUserId: target.id,
-      });
-    } catch (err: any) {
-      console.error('Failed to pass:', err);
-    }
-  }
+  const likeCurrent = () => interactWithCurrent('like');
+  const passCurrent = () => interactWithCurrent('pass');
 
   async function blockUser(targetUserId: string, reason = '') {
     try {

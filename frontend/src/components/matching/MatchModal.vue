@@ -85,6 +85,7 @@ import UAvatar from '../ui/UAvatar.vue';
 import UButton from '../ui/UButton.vue';
 import { useAuthStore } from '../../stores/auth';
 import { useChatStore } from '../../stores/chat';
+import { useToastStore } from '../../stores/toast';
 
 const props = defineProps<{
   match: {
@@ -122,8 +123,8 @@ async function sendAndOpen() {
     try {
       await chatStore.openConversation(conversationId);
       await chatStore.sendMessage(quickMessage.value.trim());
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      useToastStore().error(`Your message wasn't sent. ${err.message}`);
     }
   }
 

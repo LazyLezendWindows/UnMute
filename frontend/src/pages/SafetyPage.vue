@@ -111,6 +111,9 @@ import UButton from '../components/ui/UButton.vue';
 import USkeleton from '../components/ui/USkeleton.vue';
 import { api } from '../services/api';
 import { BlockedUser } from '../types';
+import { useToastStore } from '../stores/toast';
+
+const toast = useToastStore();
 
 const blockedList = ref<BlockedUser[]>([]);
 const loading = ref(false);
@@ -124,19 +127,21 @@ async function loadBlockedUsers() {
   try {
     const res = await api.get('/safety/blocked');
     blockedList.value = res.data.data;
-  } catch (err) {
-    console.error('Failed to load blocked users:', err);
+  } catch (err: any) {
+    toast.error(`Couldn't load blocked users. ${err.message}`);
   } finally {
     loading.value = false;
   }
 }
 
 async function unblock(blockedId: string) {
+  const name = blockedList.value.find((u) => u.blockedId === blockedId)?.displayName || 'User';
   try {
     await api.delete('/safety/block', { data: { targetUserId: blockedId } });
     blockedList.value = blockedList.value.filter((u) => u.blockedId !== blockedId);
-  } catch (err) {
-    console.error('Failed to unblock:', err);
+    toast.success(`${name} has been unblocked.`);
+  } catch (err: any) {
+    toast.error(`Couldn't unblock ${name}. ${err.message}`);
   }
 }
 </script>
