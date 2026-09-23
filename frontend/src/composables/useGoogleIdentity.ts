@@ -1,3 +1,6 @@
+import { ref } from 'vue';
+import { api } from '../services/api';
+
 /**
  * Google Identity Services (GIS) integration. GIS only yields a signed ID token ("credential");
  * the backend verifies it and decides who the user is.
@@ -27,6 +30,28 @@ declare global {
 }
 
 const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+
+/**
+ * The OAuth client ID: VITE_GOOGLE_CLIENT_ID when the build sets it, otherwise the backend's
+ * GOOGLE_CLIENT_ID from /auth/config, so a deployment only has to configure it in one place.
+ */
+const clientId = ref<string>(import.meta.env.VITE_GOOGLE_CLIENT_ID || '');
+let clientIdLoader: Promise<string> | null = null;
+
+function resolveClientId(): Promise<string> {
+  if (clientId.value) return Promise.resolve(clientId.value);
+  if (!clientIdLoader) {
+    clientIdLoader = api
+      .get('/auth/config')
+      .then((res) => (clientId.value = res.data.data?.googleClientId || ''))
+      .catch(() => {
+        clientIdLoader = null; // try again next time a sign-in button mounts
+        return '';
+      });
+  }
+  return clientIdLoader;
+}
+
 let scriptLoader: Promise<GoogleAccountsId> | null = null;
 
 function loadGoogleIdentity(): Promise<GoogleAccountsId> {
@@ -52,13 +77,11 @@ function loadGoogleIdentity(): Promise<GoogleAccountsId> {
 export type GoogleButtonText = 'continue_with' | 'signup_with' | 'signin_with';
 
 export function useGoogleIdentity() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-
   /** Renders Google's official button into `el`; `onCredential` receives the raw ID token. */
   async function renderButton(el: HTMLElement, onCredential: (credential: string) => void, text: GoogleButtonText) {
     const gis = await loadGoogleIdentity();
     gis.initialize({
-      client_id: clientId,
+      client_id: clientId.value,
       callback: (response) => {
         if (response.credential) onCredential(response.credential);
       },
@@ -83,5 +106,5 @@ export function useGoogleIdentity() {
     window.google?.accounts?.id?.disableAutoSelect();
   }
 
-  return { isConfigured: Boolean(clientId), renderButton, disableAutoSelect };
+  return { clientId, resolveClientId, renderButton, disableAutoSelect };
 }

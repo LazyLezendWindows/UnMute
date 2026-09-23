@@ -160,10 +160,13 @@ The frontend application opens at `http://localhost:5173`.
 
 ### Google Sign-In
 
-1. In Google Cloud Console create an OAuth 2.0 **Web application** client and add `http://localhost:5173` to *Authorized JavaScript origins*.
-2. Set the client ID in `backend/.env` as `GOOGLE_CLIENT_ID` and in `frontend/.env` as `VITE_GOOGLE_CLIENT_ID` (see the `.env.example` files).
+1. In [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials), configure the OAuth consent screen (External; add your Google account as a test user while in testing), then **Create credentials → OAuth client ID → Web application**.
+2. Under *Authorized JavaScript origins* add `http://localhost:5173` (plus your production origin later). No redirect URIs are needed.
+3. Put the client ID (`…apps.googleusercontent.com`) in `backend/.env` as `GOOGLE_CLIENT_ID` and restart the backend. The frontend reads it from `GET /api/v1/auth/config`, so `VITE_GOOGLE_CLIENT_ID` is optional (it only overrides that at build time).
 
 The browser only ever passes Google's signed ID token to the backend, which verifies its signature and audience before creating an Unmute session.
+
+**Troubleshooting:** "Google sign-in is not available right now" means `GOOGLE_CLIENT_ID` is not set (or the backend was not restarted). *"The given origin is not allowed for the given client ID"* in the browser console means the page's origin is missing from *Authorized JavaScript origins* (changes can take a few minutes to apply). *"The given client ID is not found"* means the ID is mistyped. A 401 after choosing an account means the backend's `GOOGLE_CLIENT_ID` differs from the one the button used.
 
 ### Database Migrations
 

@@ -1,6 +1,6 @@
 <template>
   <div class="google-sign-in w-100 d-flex flex-column align-items-center gap-2">
-    <p v-if="!isConfigured" class="google-unavailable small text-center mb-0 w-100 py-2 px-3 rounded-3">
+    <p v-if="state === 'unavailable'" class="google-unavailable small text-center mb-0 w-100 py-2 px-3 rounded-3">
       Google sign-in is not available right now.
     </p>
     <div
@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import UModal from '../ui/UModal.vue';
 import UInput from '../ui/UInput.vue';
 import UButton from '../ui/UButton.vue';
@@ -57,7 +57,9 @@ const props = withDefaults(defineProps<{ text?: GoogleButtonText }>(), { text: '
 const emit = defineEmits<{ (e: 'authenticated', isNewUser: boolean): void }>();
 
 const authStore = useAuthStore();
-const { isConfigured, renderButton } = useGoogleIdentity();
+const { resolveClientId, renderButton } = useGoogleIdentity();
+// 'loading' keeps the button slot in place (no layout jump) while the client ID is resolved.
+const state = ref<'loading' | 'ready' | 'unavailable'>('loading');
 
 const buttonSlot = ref<HTMLElement | null>(null);
 const busy = ref(false);
@@ -77,7 +79,13 @@ const maxDateFor18 = (() => {
 })();
 
 onMounted(async () => {
-  if (!isConfigured || !buttonSlot.value) return;
+  if (!(await resolveClientId())) {
+    state.value = 'unavailable';
+    return;
+  }
+  state.value = 'ready';
+  await nextTick();
+  if (!buttonSlot.value) return;
   try {
     await renderButton(buttonSlot.value, handleCredential, props.text);
   } catch (err: any) {

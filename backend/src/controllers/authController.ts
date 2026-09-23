@@ -1,3 +1,4 @@
+import { config } from '../config/env';
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/authService';
 import { SessionService } from '../services/sessionService';
@@ -68,6 +69,14 @@ export class AuthController {
   }
 
   /** Session restoration: always 200 so an anonymous visit is not reported as an error. */
+  /**
+   * Public sign-in settings for the client. A Google OAuth client ID is public by design (it is
+   * embedded in every page that shows the button); only the backend verifies tokens against it.
+   */
+  static config(_req: Request, res: Response): void {
+    res.status(200).json({ success: true, data: { googleClientId: config.googleClientId || null } });
+  }
+
   static async session(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const token = SessionService.tokenFromRequest(req);

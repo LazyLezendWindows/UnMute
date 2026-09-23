@@ -132,6 +132,12 @@ describe('Unmute API', () => {
   });
 
   describe('Google sign-in', () => {
+    it('publishes the Google client ID (and nothing else) for the sign-in button', async () => {
+      const res = await request(app).get('/api/v1/auth/config');
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual({ googleClientId: 'test-client-id.apps.googleusercontent.com' });
+    });
+
     it('rejects client-asserted identity without a verified credential', async () => {
       const res = await request(app).post('/api/v1/auth/google').send({ email: 'alice@example.com', googleId: 'attacker' });
       expect(res.status).toBe(400);
