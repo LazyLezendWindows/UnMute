@@ -8,8 +8,8 @@ COPY package*.json ./
 COPY backend/package*.json ./backend/
 COPY frontend/package*.json ./frontend/
 
-# Install dependencies across all packages
-RUN npm ci && npm --prefix backend ci && npm --prefix frontend ci
+# Install dependencies across all packages (root postinstall installs backend + frontend)
+RUN npm ci
 
 # Copy entire repository source
 COPY . .
