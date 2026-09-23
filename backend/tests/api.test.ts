@@ -18,6 +18,7 @@ vi.mock('../src/services/auth/googleIdentity', () => ({
 
 const app = createApp();
 const COOKIE = 'unmute_session';
+const MISSING_ID = '00000000-0000-4000-8000-000000000000';
 
 function sessionCookie(res: request.Response): string | undefined {
   const cookies = ([] as string[]).concat(res.headers['set-cookie'] || []);
@@ -323,9 +324,33 @@ describe('Unmute API', () => {
       }
     });
 
-    it('returns 404 when liking or passing on a user that does not exist', async () => {
-      expect((await a.agent.post('/api/v1/interactions/like').send({ targetUserId: 'missing-user' })).status).toBe(404);
-      expect((await a.agent.post('/api/v1/interactions/pass').send({ targetUserId: 'missing-user' })).status).toBe(404);
+    it('returns 404 when liking or passing on a user that does not exist, 400 for malformed ids', async () => {
+      expect((await a.agent.post('/api/v1/interactions/like').send({ targetUserId: MISSING_ID })).status).toBe(404);
+      expect((await a.agent.post('/api/v1/interactions/pass').send({ targetUserId: MISSING_ID })).status).toBe(404);
+      expect((await a.agent.post('/api/v1/interactions/like').send({ targetUserId: "1' OR '1'='1" })).status).toBe(400);
+    });
+
+    it('returns the most recent page of message history, oldest first', async () => {
+      const convs = await a.agent.get('/api/v1/conversations');
+      const conversationId = convs.body.data.find((c: any) => c.otherUser.id === b.id).id;
+      for (const content of ['second', 'third', 'fourth']) {
+        await a.agent.post(`/api/v1/conversations/${conversationId}/messages`).send({ content });
+      }
+      const page = await b.agent.get(`/api/v1/conversations/${conversationId}/messages?limit=2`);
+      expect(page.body.data.messages.map((m: any) => m.content)).toEqual(['third', 'fourth']);
+      const older = await b.agent.get(`/api/v1/conversations/${conversationId}/messages?limit=2&offset=2`);
+      expect(older.body.data.messages.map((m: any) => m.content)).toEqual(['Hello User B!', 'second']);
+    });
+
+    it('never exposes a conversation to a non-participant (IDOR)', async () => {
+      const outsider = await registerAgent('outsider@example.com', 'Outsider');
+      const convs = await a.agent.get('/api/v1/conversations');
+      const conversationId = convs.body.data[0].id;
+
+      expect((await outsider.agent.get(`/api/v1/conversations/${conversationId}/messages`)).status).toBe(404);
+      const send = await outsider.agent.post(`/api/v1/conversations/${conversationId}/messages`).send({ content: 'hi' });
+      expect(send.status).toBe(404);
+      expect((await outsider.agent.get('/api/v1/conversations')).body.data).toEqual([]);
     });
   });
 
@@ -356,6 +381,47 @@ describe('Unmute API', () => {
 
       const like = await target.agent.post('/api/v1/interactions/like').send({ targetUserId: blocker.id });
       expect(like.status).toBe(403);
+    });
+  });
+  describe('Input validation & error handling', () => {
+    let user: { agent: request.Agent; id: string };
+
+    beforeAll(async () => {
+      user = await registerAgent('validation@example.com', 'Validation User');
+    });
+
+    it('validates pagination parameters', async () => {
+      expect((await user.agent.get('/api/v1/discover?limit=abc')).status).toBe(400);
+      expect((await user.agent.get('/api/v1/discover?limit=100000')).status).toBe(400);
+      expect((await user.agent.get('/api/v1/discover?offset=-1')).status).toBe(400);
+      const page = await user.agent.get('/api/v1/discover?limit=1');
+      expect(page.status).toBe(200);
+      expect(page.body.data.length).toBeLessThanOrEqual(1);
+    });
+
+    it('validates route ids', async () => {
+      const res = await user.agent.get('/api/v1/conversations/not-a-uuid/messages');
+      expect(res.status).toBe(400);
+      expect((await user.agent.get(`/api/v1/conversations/${MISSING_ID}/messages`)).status).toBe(404);
+    });
+
+    it('returns 404 when blocking or reporting a user that does not exist', async () => {
+      expect((await user.agent.post('/api/v1/safety/block').send({ targetUserId: MISSING_ID })).status).toBe(404);
+      const report = await user.agent.post('/api/v1/safety/reports').send({ reportedUserId: MISSING_ID, category: 'Spam' });
+      expect(report.status).toBe(404);
+    });
+
+    it('rejects avatar URLs that are not https', async () => {
+      for (const avatarUrl of ['javascript:alert(1)', 'http://example.com/a.png', 'data:image/png;base64,AAAA']) {
+        expect((await user.agent.patch('/api/v1/users/me').send({ avatarUrl })).status).toBe(400);
+      }
+      expect((await user.agent.patch('/api/v1/users/me').send({ avatarUrl: 'https://example.com/a.png' })).status).toBe(200);
+    });
+
+    it('answers malformed JSON with a 400 that leaks no internals', async () => {
+      const res = await user.agent.post('/api/v1/interactions/like').set('Content-Type', 'application/json').send('{"targetUserId":');
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ success: false, error: 'Malformed JSON request body' });
     });
   });
 });

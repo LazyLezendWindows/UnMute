@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { idSchema } from './common';
 
 export const updateProfileSchema = z.object({
   displayName: z
@@ -15,9 +16,12 @@ export const updateProfileSchema = z.object({
     .string()
     .max(100, 'Location cannot exceed 100 characters')
     .optional(),
+  // Only https images: rejects javascript:, data: and plain-http URLs that would be rendered to other users.
   avatarUrl: z
     .string()
+    .max(500)
     .url('Invalid avatar URL')
+    .refine((url) => url.startsWith('https://'), 'Avatar URL must use https')
     .or(z.string().length(0))
     .optional(),
   interactionPreferences: z
@@ -25,7 +29,7 @@ export const updateProfileSchema = z.object({
     .max(10, 'Cannot select more than 10 interaction preferences')
     .optional(),
   interestIds: z
-    .array(z.string())
+    .array(idSchema)
     .max(15, 'Cannot select more than 15 interests')
     .optional(),
 });

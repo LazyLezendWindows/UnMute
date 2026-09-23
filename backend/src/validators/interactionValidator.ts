@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { idSchema } from './common';
 
 export const interactionSchema = z.object({
-  targetUserId: z.string().min(1, 'Target user ID is required'),
+  targetUserId: idSchema,
 });
 
 export type InteractionInput = z.infer<typeof interactionSchema>;

@@ -3,12 +3,32 @@ import { getDatabase } from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { calculateAge } from '../utils/age';
 import { ReportCategory } from '../config/constants';
+import { getSocketServer } from '../sockets/chatSocket';
+import { assertUserExists } from './userGuards';
+
+/**
+ * A block ends realtime delivery immediately: both users' live sockets leave every conversation
+ * room they share, so nothing already subscribed keeps flowing (REST sends are refused separately).
+ */
+async function evictFromSharedConversations(userX: string, userY: string): Promise<void> {
+  const io = getSocketServer();
+  if (!io) return;
+  const conversations = await getDatabase().query<{ id: string }>(
+    `SELECT id FROM conversations
+     WHERE (user_a_id = ? AND user_b_id = ?) OR (user_a_id = ? AND user_b_id = ?)`,
+    [userX, userY, userY, userX]
+  );
+  for (const { id } of conversations) {
+    io.in([`user:${userX}`, `user:${userY}`]).socketsLeave(`conversation:${id}`);
+  }
+}
 
 export class SafetyService {
   static async blockUser(blockerId: string, blockedId: string, reason = '') {
     if (blockerId === blockedId) {
       throw new AppError('Cannot block yourself', 400);
     }
+    await assertUserExists(blockedId);
 
     const db = getDatabase();
     const now = new Date().toISOString();
@@ -20,6 +40,7 @@ export class SafetyService {
       [crypto.randomUUID(), blockerId, blockedId, reason, now]
     );
 
+    await evictFromSharedConversations(blockerId, blockedId);
     return { success: true, message: 'User has been blocked' };
   }
 
@@ -64,6 +85,7 @@ export class SafetyService {
     if (reporterId === reportedId) {
       throw new AppError('Cannot report yourself', 400);
     }
+    await assertUserExists(reportedId);
 
     const db = getDatabase();
     const now = new Date().toISOString();
@@ -74,6 +96,7 @@ export class SafetyService {
        VALUES ($1, $2, $3, $4, $5, 'pending', $6)`,
       [reportId, reporterId, reportedId, category, details, now]
     );
+    console.info(`[Safety] Report ${reportId} filed (${category})`);
 
     return {
       success: true,

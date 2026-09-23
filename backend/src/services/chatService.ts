@@ -104,12 +104,16 @@ export class ChatService {
       throw new AppError('Access to this conversation is restricted', 403);
     }
 
+    // The newest `limit` messages (skipping `offset` newer ones), returned oldest-first for display.
     const messages = await db.query(
-      `SELECT id, conversation_id, sender_id, content, status, created_at
-       FROM messages
-       WHERE conversation_id = $1
-       ORDER BY created_at ASC
-       LIMIT $2 OFFSET $3`,
+      `SELECT * FROM (
+         SELECT id, conversation_id, sender_id, content, status, created_at
+         FROM messages
+         WHERE conversation_id = $1
+         ORDER BY created_at DESC, id DESC
+         LIMIT $2 OFFSET $3
+       ) recent
+       ORDER BY created_at ASC, id ASC`,
       [conversationId, limit, offset]
     );
 

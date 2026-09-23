@@ -11,22 +11,29 @@ export class AppError extends Error {
   }
 }
 
-export function errorHandler(
-  err: Error | AppError,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-): void {
-  const statusCode = err instanceof AppError ? err.statusCode : 500;
-  const message = err.message || 'An unexpected error occurred';
+// Errors raised by express.json() carry a `type` and an HTTP `status`.
+const BODY_PARSER_ERRORS: Record<string, [number, string]> = {
+  'entity.parse.failed': [400, 'Malformed JSON request body'],
+  'entity.too.large': [413, 'Request body is too large'],
+};
 
-  if (statusCode === 500) {
-    console.error('[Unhandled Server Error]:', err);
+export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ success: false, error: err.message });
+    return;
   }
 
-  res.status(statusCode).json({
+  const parserError = BODY_PARSER_ERRORS[(err as any).type];
+  if (parserError) {
+    res.status(parserError[0]).json({ success: false, error: parserError[1] });
+    return;
+  }
+
+  // Unexpected: log details server-side; clients never see SQL, paths or stack traces in production.
+  console.error(`[Error] ${req.method} ${req.originalUrl}:`, err);
+  res.status(500).json({
     success: false,
-    error: statusCode === 500 && config.env === 'production' ? 'Internal server error' : message,
-    ...(config.env !== 'production' && statusCode === 500 ? { stack: err.stack } : {}),
+    error: 'Internal server error',
+    ...(config.isProduction ? {} : { debug: err.message }),
   });
 }

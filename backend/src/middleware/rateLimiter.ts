@@ -1,4 +1,5 @@
 import rateLimit from 'express-rate-limit';
+import { AuthRequest } from './auth';
 
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -17,6 +18,19 @@ export const apiRateLimiter = rateLimit({
   message: {
     success: false,
     error: 'Too many requests. Please slow down.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/** Per-account cap on abuse reports (must run after requireAuth). */
+export const reportRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  keyGenerator: (req) => (req as AuthRequest).user!.userId,
+  message: {
+    success: false,
+    error: 'You have submitted many reports recently. Please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,

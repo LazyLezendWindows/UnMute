@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { ChatService } from '../services/chatService';
 import { AuthRequest } from '../middleware/auth';
+import { Pagination } from '../validators/common';
 
 export class ChatController {
   static async getConversations(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
@@ -18,8 +19,7 @@ export class ChatController {
   static async getMessages(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const limit = parseInt((req.query.limit as string) || '50', 10);
-      const offset = parseInt((req.query.offset as string) || '0', 10);
+      const { limit, offset } = req.query as unknown as Pagination;
       const data = await ChatService.getMessages(id, req.user!.userId, limit, offset);
       res.status(200).json({
         success: true,

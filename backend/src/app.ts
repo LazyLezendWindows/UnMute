@@ -9,6 +9,8 @@ import apiRouter from './routes';
 
 export function createApp(): Express {
   const app = express();
+  app.set('trust proxy', config.trustProxy);
+  app.disable('x-powered-by');
 
   // Security Headers
   app.use(

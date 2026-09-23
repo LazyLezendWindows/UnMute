@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 
-export function validateBody(schema: ZodSchema) {
+type RequestPart = 'body' | 'query' | 'params';
+
+/** Validates and replaces `req[part]` with the parsed value; invalid input gets a 400 with field issues. */
+function validate(part: RequestPart, schema: ZodSchema) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      req.body = await schema.parseAsync(req.body);
+      (req as any)[part] = await schema.parseAsync(req[part]);
       next();
     } catch (err) {
       if (err instanceof ZodError) {
@@ -20,3 +23,7 @@ export function validateBody(schema: ZodSchema) {
     }
   };
 }
+
+export const validateBody = (schema: ZodSchema) => validate('body', schema);
+export const validateQuery = (schema: ZodSchema) => validate('query', schema);
+export const validateParams = (schema: ZodSchema) => validate('params', schema);

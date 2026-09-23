@@ -19,6 +19,8 @@ export const config = {
   env,
   isProduction,
   port: parseInt(process.env.PORT || '5000', 10),
+  /** Number of reverse-proxy hops in front of the API (so req.ip and rate limits see the real client). */
+  trustProxy: parseInt(process.env.TRUST_PROXY || '0', 10),
   /** Browser origins allowed to call the API with credentials (comma-separated CORS_ORIGIN). */
   corsOrigins,
   minAge: parseInt(process.env.MIN_AGE || '18', 10),

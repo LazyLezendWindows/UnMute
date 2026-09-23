@@ -3,22 +3,7 @@ import { getDatabase } from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { calculateAge } from '../utils/age';
 import { getSocketServer } from '../sockets/chatSocket';
-
-/** Target must be an active user with no block in either direction. */
-async function assertInteractable(actorId: string, targetId: string): Promise<void> {
-  const db = getDatabase();
-  const target = await db.get('SELECT id FROM users WHERE id = ? AND is_active = 1', [targetId]);
-  if (!target) {
-    throw new AppError('User not found', 404);
-  }
-  const blocked = await db.get(
-    'SELECT id FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)',
-    [actorId, targetId, targetId, actorId]
-  );
-  if (blocked) {
-    throw new AppError('Action not allowed', 403);
-  }
-}
+import { assertInteractable } from './userGuards';
 
 /**
  * Creates the match and its conversation atomically, or returns the existing conversation.

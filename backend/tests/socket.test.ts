@@ -93,6 +93,24 @@ describe('Realtime chat authorization', () => {
     expect(await outsiderReceives).toBeNull();
   });
 
+  it('removes both users from shared conversation rooms when one blocks the other', async () => {
+    const bSocket = await openSocket(b.cookie);
+    bSocket.emit('join_conversation', conversationId);
+    await new Promise((r) => setTimeout(r, 200));
+
+    await request(app).post('/api/v1/safety/block').set('Cookie', b.cookie).send({ targetUserId: a.id });
+    await request(app).delete('/api/v1/safety/block').set('Cookie', b.cookie).send({ targetUserId: a.id });
+
+    // After the block the socket is no longer subscribed, even though messaging is allowed again.
+    const received = nextMessage(bSocket);
+    const sent = await request(app)
+      .post(`/api/v1/conversations/${conversationId}/messages`)
+      .set('Cookie', a.cookie)
+      .send({ content: 'after unblock' });
+    expect(sent.status).toBe(201);
+    expect(await received).toBeNull();
+  });
+
   it('disconnects sockets belonging to a session when it logs out', async () => {
     const aSocket = await openSocket(a.cookie);
     const disconnected = new Promise((resolve) => aSocket.once('disconnect', resolve));
