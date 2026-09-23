@@ -1,5 +1,5 @@
 <template>
-  <div class="min-vh-100 d-flex align-items-center justify-content-center p-3 position-relative overflow-hidden transition-colors u-page">
+  <div class="min-vh-100 flex-shrink-0 d-flex align-items-center justify-content-center p-3 position-relative transition-colors u-page auth-shell">
     <SpaceBackdrop />
 
     <div class="w-100 max-w-md position-relative z-10">

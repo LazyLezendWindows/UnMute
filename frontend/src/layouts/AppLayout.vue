@@ -1,5 +1,5 @@
 <template>
-  <div class="min-vh-100 d-flex flex-column position-relative overflow-hidden u-page">
+  <div class="app-shell min-vh-100 d-flex flex-column position-relative u-page">
     <SpaceBackdrop />
 
     <Navbar />
@@ -35,6 +35,13 @@ const showBottomNav = computed(() => !(route.name === 'chat' && route.params.id)
 </script>
 
 <style scoped lang="scss">
+// Grows with its content (the body is a full-height flex column, which would otherwise squeeze
+// this to one screen), and clips only sideways so the page itself keeps scrolling vertically.
+.app-shell {
+  flex-shrink: 0;
+  overflow-x: clip;
+}
+
 .app-main {
   z-index: 10;
   padding-bottom: 1rem;
