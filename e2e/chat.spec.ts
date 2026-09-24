@@ -30,7 +30,7 @@ test('live chat: notification badge elsewhere, live delivery, and catch-up after
 
   await page.goto('/login');
   await page.getByLabel('Email address').fill(kiranEmail);
-  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByLabel(/^Password/).fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).not.toHaveURL(/\/login/);
 
@@ -39,7 +39,7 @@ test('live chat: notification badge elsewhere, live delivery, and catch-up after
   await page.waitForTimeout(500); // let the realtime connection settle
   await say('hi from Devi');
   await expect(page.getByText('New message from Devi')).toBeVisible();
-  await expect(page.locator('.dock-badge').first()).toHaveText('1');
+  await expect(page.locator('.nav-badge').first()).toHaveText('1');
 
   // In the chat: history plus live delivery.
   await page.goto(`/chat/${conversationId}`);

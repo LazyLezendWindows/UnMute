@@ -75,7 +75,8 @@ describe('Schema migrations', () => {
     const userColumns = await columns('users');
     expect(userColumns).not.toContain('password_hash');
     expect(userColumns).not.toContain('google_id');
-  });
+    // Runs every migration against the legacy schema; MySQL's DDL is slower than MariaDB's.
+  }, 30_000);
 
   it('records every migration once and is a no-op when re-run', async () => {
     await runMigrations({ database: LEGACY_DB });
@@ -143,5 +144,37 @@ describe('Schema migrations', () => {
       [LEGACY_DB]
     );
     expect((rows as { cols: string }[])[0].cols).toBe('conversation_id,created_at');
+  });
+
+  it('keeps existing conversations as accepted chats, one per pair, stored in pair order', async () => {
+    const [rows] = await conn.query(
+      `SELECT id, user_a_id, user_b_id, status, requester_id, match_id FROM \`${LEGACY_DB}\`.conversations WHERE id = 'c-1'`
+    );
+    // The legacy row was stored (u-pass, u-off): normalised so the pair key is unique.
+    expect((rows as any[])[0]).toEqual({
+      id: 'c-1',
+      user_a_id: 'u-off',
+      user_b_id: 'u-pass',
+      status: 'accepted',
+      requester_id: null,
+      match_id: 'm-1',
+    });
+    const [keys] = await conn.query(
+      `SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS cols, MIN(non_unique) AS non_unique
+       FROM information_schema.statistics
+       WHERE table_schema = ? AND table_name = 'conversations' AND index_name = 'uq_conversations_pair'`,
+      [LEGACY_DB]
+    );
+    expect((keys as any[])[0]).toMatchObject({ cols: 'user_a_id,user_b_id', non_unique: 0 });
+    await expect(
+      conn.query(
+        `INSERT INTO \`${LEGACY_DB}\`.conversations (id, user_a_id, user_b_id, created_at) VALUES ('c-dup', 'u-off', 'u-pass', UTC_TIMESTAMP())`
+      )
+    ).rejects.toThrow(/Duplicate/);
+    const [events] = await conn.query(
+      "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema = ? AND table_name = 'conversation_events'",
+      [LEGACY_DB]
+    );
+    expect(Number((events as any[])[0].n)).toBe(1);
   });
 });

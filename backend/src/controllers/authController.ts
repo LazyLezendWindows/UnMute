@@ -90,6 +90,7 @@ export class AuthController {
         googleIosClientId: config.googleIosClientId || null,
         passwordSignup: config.passwordSignup,
         photoUploads: PhotoService.isEnabled(),
+        chatRequestMessageMax: config.chatRequests.messageMaxLength,
       },
     });
   }

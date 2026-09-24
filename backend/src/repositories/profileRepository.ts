@@ -6,7 +6,7 @@ import { Coordinates, boundingBox, haversineParams, haversineSql } from '../serv
 import { dbTimestamp } from '../utils/time';
 
 const PROFILE_COLUMNS = `p.user_id, p.id, p.display_name, p.date_of_birth, p.bio, p.approximate_location,
-  p.avatar_url, p.interaction_preferences, p.is_verified,
+  p.avatar_url, p.interaction_preferences, p.is_verified, p.profession, p.show_online,
   ul.place_id AS loc_place_id, ul.pincode AS loc_pincode, ul.source AS loc_source,
   ul.label_precision AS loc_precision, lp.kind AS loc_kind, lp.name AS loc_name,
   ld.name AS loc_district, ls.name AS loc_state,
@@ -35,6 +35,10 @@ export interface DiscoverFilters {
   /** ISO dates derived from an age range: `date_of_birth <= bornOnOrBefore` and `> bornAfter`. */
   bornOnOrBefore?: string;
   bornAfter?: string;
+  /** Only members who share at least one interest with the viewer. */
+  sharedInterestsOnly?: boolean;
+  /** Nearest first (needs `origin`), instead of most shared interests first. */
+  nearestFirst?: boolean;
 }
 
 export type DiscoverableRow = ProfileRow & { common_count: number; distance_km: number | null };
@@ -46,6 +50,8 @@ export interface ProfileChanges {
   approximate_location?: string;
   avatar_url?: string;
   interaction_preferences?: string;
+  profession?: string;
+  show_online?: number;
 }
 
 export class ProfileRepository {
@@ -130,6 +136,11 @@ export class ProfileRepository {
     }
     if (filters.bornOnOrBefore) where('p.date_of_birth <= ?', filters.bornOnOrBefore);
     if (filters.bornAfter) where('p.date_of_birth > ?', filters.bornAfter);
+    if (filters.sharedInterestsOnly) where('shared.common_count > 0');
+    const order =
+      filters.nearestFirst && origin
+        ? 'distance_km IS NULL, distance_km, common_count DESC, p.updated_at DESC, u.id'
+        : 'common_count DESC, distance_km IS NULL, distance_km, p.updated_at DESC, u.id';
 
     return getDatabase().query(
       `SELECT ${PROFILE_COLUMNS}, COALESCE(shared.common_count, 0) AS common_count, ${distanceExpr} AS distance_km
@@ -148,7 +159,7 @@ export class ProfileRepository {
          AND NOT EXISTS (SELECT 1 FROM passes ps WHERE ps.passer_id = ? AND ps.passee_id = u.id)
          AND NOT ${blockedBetween('?', 'u.id')}
          ${conditions.map((c) => `AND ${c}`).join('\n         ')}
-       ORDER BY common_count DESC, distance_km IS NULL, distance_km, p.updated_at DESC, u.id
+       ORDER BY ${order}
        LIMIT ? OFFSET ?`,
       [...selectParams, userId, userId, userId, userId, userId, userId, ...whereParams, limit, offset]
     );

@@ -29,6 +29,31 @@ export function uploadedPhotoId(url: string | null | undefined): string | null {
 }
 
 /**
+ * The Cloudinary public ID of any file this app stored (profile photos and chat photos), or null.
+ * Used to delete files; only profile photos may be used as avatars (uploadedPhotoId).
+ */
+export function cloudinaryAssetId(url: string | null | undefined): string | null {
+  const { cloudName } = config.cloudinary;
+  if (!url || !cloudName) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'https:' || parsed.hostname !== CLOUDINARY_HOST) return null;
+  const match = new RegExp(
+    `^/${cloudName}/image/upload/(?:[^/]+/)*v\\d+/(unmute/(?:avatars|chat)/[A-Za-z0-9-]+/[A-Za-z0-9_-]+)$`
+  ).exec(parsed.pathname);
+  return match ? match[1] : null;
+}
+
+/** The folder for photos sent in one conversation. */
+export function chatPhotoFolder(conversationId: string): string {
+  return `unmute/chat/${conversationId}`;
+}
+
+/**
  * Profile photos are only loaded from configured hosts (see AVATAR_URL_HOSTS), plus photos
  * uploaded to this app's own Cloudinary account. Every viewer's browser fetches the photo, so an
  * arbitrary URL would reveal viewers' IP addresses to its owner.

@@ -107,56 +107,45 @@ const sizeClass = computed(() => {
 
 <style scoped>
 .u-button {
-  overflow: hidden;
-  isolation: isolate;
   white-space: nowrap;
   letter-spacing: 0.005em;
-  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast),
-    background var(--unmute-transition-fast), color var(--unmute-transition-fast), filter var(--unmute-transition-fast);
+  min-height: 2.25rem;
+  transition: box-shadow var(--unmute-transition-fast), background var(--unmute-transition-fast),
+    color var(--unmute-transition-fast), filter var(--unmute-transition-fast), transform var(--unmute-transition-fast);
 }
 
-/* A curved-glass sheen over the top half of filled buttons */
-.u-btn-primary::before,
-.u-btn-danger::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 50% 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0));
-  pointer-events: none;
-  z-index: -1;
+.u-button.px-4.py-3 {
+  min-height: 3.25rem;
+  font-size: 1rem;
 }
 
 .u-btn-primary {
   background: var(--unmute-primary-gradient);
-  box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: var(--unmute-glow-primary);
 }
 
 .u-btn-danger {
-  background: linear-gradient(135deg, #ff7aa0 0%, var(--unmute-danger) 100%);
-  box-shadow: 0 12px 30px -12px var(--unmute-danger), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  background: var(--unmute-danger);
+  box-shadow: 0 8px 18px -10px var(--unmute-danger);
 }
 
 .u-btn-primary:hover:not(:disabled),
 .u-btn-danger:hover:not(:disabled) {
-  transform: translateY(-2px);
-  filter: brightness(1.06) saturate(1.05);
+  filter: brightness(1.06);
 }
 
-.u-btn-primary:active:not(:disabled),
-.u-btn-danger:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
+.u-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-/* Glass pills */
+/* White pills with a hairline border */
 .u-btn-secondary,
 .u-btn-glass,
 .u-btn-icon {
-  background: var(--unmute-glass-surface);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  background: var(--unmute-surface);
   color: var(--unmute-text-primary);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-sm);
+  border: 1px solid var(--unmute-glass-border) !important;
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 .u-btn-icon {
@@ -166,16 +155,9 @@ const sizeClass = computed(() => {
 .u-btn-secondary:hover:not(:disabled),
 .u-btn-glass:hover:not(:disabled),
 .u-btn-icon:hover:not(:disabled) {
-  transform: translateY(-2px);
   color: var(--unmute-text-primary);
-  background: var(--unmute-glass-strong);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
-}
-
-.u-btn-secondary:active:not(:disabled),
-.u-btn-glass:active:not(:disabled),
-.u-btn-icon:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
+  border-color: var(--unmute-glass-border-hover) !important;
+  background: var(--unmute-surface-raised);
 }
 
 .u-btn-ghost {
@@ -184,7 +166,7 @@ const sizeClass = computed(() => {
 }
 
 .u-btn-ghost:hover:not(:disabled) {
-  background: var(--unmute-glass-surface);
+  background: var(--unmute-surface-overlay);
   color: var(--unmute-text-primary);
 }
 
@@ -198,8 +180,9 @@ const sizeClass = computed(() => {
   height: 0.9rem;
 }
 
-.u-button-icon-lg {
-  width: 1.25rem;
-  height: 1.25rem;
+@media (prefers-reduced-motion: reduce) {
+  .u-button:active:not(:disabled) {
+    transform: none;
+  }
 }
 </style>

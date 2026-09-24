@@ -3,9 +3,11 @@
     class="stack-stage"
     tabindex="0"
     role="group"
-    :aria-label="`${top.displayName}, ${top.age}. Press right arrow to connect, left arrow to pass.`"
+    :aria-label="`${top.displayName}, ${top.age}. Right arrow to connect, left arrow to pass, up and down arrows for photos.`"
     @keydown.right.prevent="fling('right')"
     @keydown.left.prevent="fling('left')"
+    @keydown.up.prevent="photoIndex = Math.max(0, photoIndex - 1)"
+    @keydown.down.prevent="photoIndex = Math.min(topPhotos.length - 1, photoIndex + 1)"
   >
     <!-- Cards waiting behind, receding in depth -->
     <div
@@ -15,8 +17,8 @@
       :style="{ '--depth': depth + 1 }"
       aria-hidden="true"
     >
-      <div class="card-photo" :style="photoStyle(person)">
-        <span v-if="!person.avatarUrl" class="photo-initial">{{ person.displayName.charAt(0) }}</span>
+      <div class="card-photo" :style="photoStyle(photosOf(person)[0])">
+        <span v-if="!photosOf(person).length" class="photo-initial">{{ person.displayName.charAt(0) }}</span>
       </div>
     </div>
 
@@ -32,10 +34,29 @@
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
     >
-      <div class="card-photo" :style="photoStyle(top)">
-        <span v-if="!top.avatarUrl" class="photo-initial">{{ top.displayName.charAt(0) }}</span>
+      <div class="card-photo" :style="photoStyle(topPhotos[photoIndex])">
+        <span v-if="!topPhotos.length" class="photo-initial">{{ top.displayName.charAt(0) }}</span>
       </div>
       <div class="card-shade" aria-hidden="true"></div>
+
+      <!-- Which photo is showing (tap the left / right side of the card to page) -->
+      <div v-if="topPhotos.length > 1" class="photo-bars" aria-hidden="true">
+        <span v-for="(_, i) in topPhotos" :key="i" :class="{ 'is-current': i === photoIndex }"></span>
+      </div>
+      <div v-if="topPhotos.length > 1" class="visually-hidden" aria-live="polite">
+        Photo {{ photoIndex + 1 }} of {{ topPhotos.length }}
+      </div>
+
+      <div class="card-chips">
+        <span v-if="top.commonInterestsCount > 0" class="card-chip">
+          <i class="ri-heart-3-fill chip-heart" aria-hidden="true"></i>
+          {{ top.commonInterestsCount }} shared
+        </span>
+        <span v-if="top.distanceKm !== null" class="card-chip">
+          <i class="ri-map-pin-2-fill" aria-hidden="true"></i>
+          {{ top.distanceKm }} km
+        </span>
+      </div>
 
       <!-- Swipe verdict stamps -->
       <span class="verdict verdict-like" :style="{ opacity: likeOpacity }" aria-hidden="true">
@@ -64,23 +85,30 @@
             <span class="visually-hidden">Verified</span>
           </span>
         </div>
-        <p v-if="areaLine" class="caption-line mb-0">
-          <i class="ri-map-pin-2-fill" aria-hidden="true"></i>
-          <span>{{ areaLine }}</span>
+        <p v-if="top.approximateLocation" class="caption-line mb-0">
+          <i class="ri-map-pin-2-line" aria-hidden="true"></i>
+          <span class="text-truncate">{{ top.approximateLocation }}</span>
         </p>
-        <p v-if="educationLine" class="caption-line mb-0">
-          <i class="ri-graduation-cap-fill" aria-hidden="true"></i>
+        <p v-if="top.profession" class="caption-line mb-0">
+          <i class="ri-briefcase-4-line" aria-hidden="true"></i>
+          <span class="text-truncate">{{ top.profession }}</span>
+        </p>
+        <p v-else-if="educationLine" class="caption-line mb-0">
+          <i class="ri-graduation-cap-line" aria-hidden="true"></i>
           <span class="text-truncate">{{ educationLine }}</span>
         </p>
+        <div v-if="top.interests.length" class="caption-interests">
+          <span v-for="interest in top.interests.slice(0, 3)" :key="interest.id" class="caption-interest">{{ interest.name }}</span>
+          <span v-if="top.interests.length > 3" class="caption-interest">+{{ top.interests.length - 3 }}</span>
+        </div>
       </div>
     </article>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { DiscoveryCandidate } from '../../types';
-import { formatDistance } from '../../services/directory';
 
 const props = defineProps<{
   top: DiscoveryCandidate;
@@ -111,16 +139,35 @@ const topStyle = computed(() => ({
 const likeOpacity = computed(() => Math.max(0, Math.min(1, dx.value / SWIPE_THRESHOLD)));
 const passOpacity = computed(() => Math.max(0, Math.min(1, -dx.value / SWIPE_THRESHOLD)));
 
-const areaLine = computed(() =>
-  [props.top.approximateLocation, formatDistance(props.top.distanceKm)].filter(Boolean).join(' · ')
+/** Main photo first; members without an upload may still have a Google photo. */
+function photosOf(person: DiscoveryCandidate): string[] {
+  return person.photos?.length ? person.photos : person.avatarUrl ? [person.avatarUrl] : [];
+}
+const topPhotos = computed(() => photosOf(props.top));
+const photoIndex = ref(0);
+watch(
+  () => props.top.id,
+  () => {
+    photoIndex.value = 0;
+  }
 );
+
+/** A tap (not a drag) on the left / right third of the card shows the previous / next photo. */
+function pagePhoto(clientX: number) {
+  const rect = card.value?.getBoundingClientRect();
+  if (!rect || topPhotos.value.length < 2) return;
+  const x = (clientX - rect.left) / rect.width;
+  if (x < 0.33) photoIndex.value = Math.max(0, photoIndex.value - 1);
+  else if (x > 0.67) photoIndex.value = Math.min(topPhotos.value.length - 1, photoIndex.value + 1);
+}
+
 const educationLine = computed(() => {
   const edu = props.top.education;
   return edu ? [edu.institutionShortName || edu.institutionName, edu.course].filter(Boolean).join(' · ') : '';
 });
 
-function photoStyle(person: DiscoveryCandidate) {
-  return person.avatarUrl ? { backgroundImage: `url("${person.avatarUrl.replace(/"/g, '%22')}")` } : {};
+function photoStyle(url: string | undefined) {
+  return url ? { backgroundImage: `url("${url.replace(/"/g, '%22')}")` } : {};
 }
 
 function onPointerDown(e: PointerEvent) {
@@ -145,6 +192,7 @@ function onPointerUp(e: PointerEvent) {
   if (dx.value > SWIPE_THRESHOLD) fling('right');
   else if (dx.value < -SWIPE_THRESHOLD) fling('left');
   else {
+    if (Math.abs(dx.value) < 6 && Math.abs(dy.value) < 6) pagePhoto(e.clientX);
     dx.value = 0;
     dy.value = 0;
   }
@@ -177,20 +225,19 @@ defineExpose({ fling });
 .stack-stage {
   position: relative;
   // Sized from the viewport height so the action buttons always stay on screen.
-  height: clamp(18rem, calc(100svh - 28rem), 36rem);
-
-  @media (min-width: 768px) {
-    height: clamp(20rem, calc(100svh - 22rem), 36rem);
-  }
-  aspect-ratio: 3 / 4;
-  max-width: 100%;
+  height: clamp(20rem, calc(100svh - 17rem - var(--unmute-safe-top) - var(--unmute-safe-bottom)), 40rem);
+  // As wide as the screen allows, up to a 3:4 portrait card.
+  width: min(100%, 30rem);
   margin: 0 auto;
-  perspective: 1400px;
   outline: none;
   touch-action: pan-y;
 
+  @media (min-width: 768px) {
+    height: clamp(22rem, calc(100svh - 14rem), 38rem);
+  }
+
   &:focus-visible .stack-card-top {
-    box-shadow: 0 0 0 3px var(--unmute-accent-text), var(--unmute-shadow-3d);
+    box-shadow: 0 0 0 3px var(--unmute-accent-text), var(--unmute-shadow-lg);
   }
 }
 
@@ -200,22 +247,22 @@ defineExpose({ fling });
   border-radius: var(--unmute-radius-xl);
   overflow: hidden;
   background: var(--unmute-surface-overlay);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-3d);
+  box-shadow: var(--unmute-shadow-lg);
   user-select: none;
 }
 
-// Waiting cards sit further back and lower, like a deck seen in perspective.
+// Waiting cards peek out below the current one.
 .stack-card-behind {
-  transform: translate3d(0, calc(var(--depth) * 18px), calc(var(--depth) * -70px)) scale(calc(1 - var(--depth) * 0.05));
-  filter: saturate(0.8) brightness(calc(1 - var(--depth) * 0.08));
+  transform: translateY(calc(var(--depth) * 10px)) scale(calc(1 - var(--depth) * 0.04));
+  opacity: calc(1 - var(--depth) * 0.3);
   z-index: calc(10 - var(--depth));
-  transition: transform var(--unmute-transition-bounce), filter var(--unmute-transition-normal);
+  transition: transform var(--unmute-transition-normal);
 }
 
 .stack-card-top {
   z-index: 20;
   cursor: grab;
-  transition: transform 420ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+  transition: transform 380ms cubic-bezier(0.2, 0.9, 0.25, 1.05);
 
   &.is-dragging {
     cursor: grabbing;
@@ -223,7 +270,7 @@ defineExpose({ fling });
   }
 
   &.is-flying {
-    transition: transform 320ms cubic-bezier(0.5, 0, 0.75, 0);
+    transition: transform 300ms cubic-bezier(0.5, 0, 0.75, 0);
   }
 }
 
@@ -233,8 +280,7 @@ defineExpose({ fling });
   background-size: cover;
   background-position: center;
   background-color: var(--unmute-surface-active);
-  background-image: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.7), transparent 45%),
-    linear-gradient(150deg, #c9d3ea 0%, #8f9bbb 60%, #6c7797 100%);
+  background-image: linear-gradient(150deg, #ff8fb5 0%, #e3175c 55%, #8e1d8c 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -244,20 +290,75 @@ defineExpose({ fling });
   font-family: var(--unmute-font-display);
   font-weight: 800;
   font-size: 7rem;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 6px 30px rgba(20, 30, 60, 0.35);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .card-shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(8, 11, 20, 0.82) 0%, rgba(8, 11, 20, 0.2) 45%, transparent 70%);
+  background: linear-gradient(to top, rgba(20, 8, 20, 0.85) 0%, rgba(20, 8, 20, 0.35) 38%, transparent 62%),
+    linear-gradient(to bottom, rgba(20, 8, 20, 0.28) 0%, transparent 22%);
   pointer-events: none;
+}
+
+.photo-bars {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.3rem;
+  pointer-events: none;
+
+  span {
+    flex: 1;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.4);
+
+    &.is-current {
+      background: #fff;
+    }
+  }
+}
+
+.card-chips {
+  position: absolute;
+  top: 1.25rem;
+  left: 0.9rem;
+  right: 3.75rem;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--unmute-radius-pill);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1d1b3a;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.35);
+
+  &:last-child:not(:first-child) {
+    margin-left: auto;
+  }
+}
+
+.chip-heart {
+  color: #e3175c;
 }
 
 .verdict {
   position: absolute;
-  top: 1.5rem;
+  top: 4rem;
   z-index: 3;
   display: inline-flex;
   align-items: center;
@@ -266,39 +367,33 @@ defineExpose({ fling });
   border-radius: var(--unmute-radius-pill);
   font-weight: 800;
   font-size: 1rem;
-  letter-spacing: 0.02em;
   color: #fff;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   pointer-events: none;
 }
 
 .verdict-like {
   left: 1.25rem;
-  background: rgba(16, 185, 129, 0.75);
+  background: #e3175c;
   transform: rotate(-8deg);
 }
 
 .verdict-pass {
   right: 1.25rem;
-  background: rgba(224, 36, 94, 0.75);
+  background: #46445f;
   transform: rotate(8deg);
 }
 
 .card-more {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.1rem;
+  right: 0.8rem;
   z-index: 4;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.4rem;
+  height: 2.4rem;
   border: 0;
   border-radius: 50%;
   color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  background: rgba(20, 8, 20, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,32 +406,60 @@ defineExpose({ fling });
   right: 0;
   bottom: 0;
   z-index: 2;
-  padding: 1.5rem 1.5rem 1.4rem;
+  padding: 1.25rem 1.25rem 2.75rem;
   color: #fff;
   pointer-events: none;
 }
 
 .caption-name {
-  font-size: 1.9rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+  letter-spacing: -0.02em;
 }
 
 .caption-verified {
-  color: #8fb3ff;
-  font-size: 1.3rem;
-  filter: drop-shadow(0 0 6px rgba(143, 179, 255, 0.7));
+  color: #4c8dff;
+  background: #fff;
+  border-radius: 50%;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
 }
 
 .caption-line {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 0.3rem;
-  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
   min-width: 0;
+}
+
+.caption-interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.caption-interest {
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--unmute-radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-card-top,
+  .stack-card-behind {
+    transition: none;
+  }
 }
 </style>

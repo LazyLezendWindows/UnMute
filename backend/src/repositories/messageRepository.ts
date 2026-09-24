@@ -1,10 +1,10 @@
 import crypto from 'crypto';
-import { getDatabase, isDuplicateKeyError } from '../config/database';
+import { getDatabase, IDatabase, isDuplicateKeyError } from '../config/database';
 import { MessageRow } from '../mappers/messageMapper';
 import { placeholders } from './sql';
 import { isoToDbTimestamp } from '../utils/time';
 
-const MESSAGE_COLUMNS = 'id, conversation_id, sender_id, content, status, created_at';
+const MESSAGE_COLUMNS = 'id, conversation_id, sender_id, content, status, created_at, attachment_url';
 
 export class MessageRepository {
   /**
@@ -15,7 +15,9 @@ export class MessageRepository {
     conversationId: string,
     senderId: string,
     content: string,
-    clientMessageId?: string
+    clientMessageId?: string,
+    db: IDatabase = getDatabase(),
+    attachmentUrl: string | null = null
   ): Promise<{ row: MessageRow; created: boolean }> {
     const row: MessageRow = {
       id: crypto.randomUUID(),
@@ -24,16 +26,26 @@ export class MessageRepository {
       content,
       status: 'sent',
       created_at: new Date().toISOString(),
+      attachment_url: attachmentUrl,
     };
     try {
-      await getDatabase().run(
-        `INSERT INTO messages (${MESSAGE_COLUMNS}, client_message_id) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [row.id, row.conversation_id, row.sender_id, row.content, row.status, isoToDbTimestamp(row.created_at), clientMessageId ?? null]
+      await db.run(
+        `INSERT INTO messages (${MESSAGE_COLUMNS}, client_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          row.id,
+          row.conversation_id,
+          row.sender_id,
+          row.content,
+          row.status,
+          isoToDbTimestamp(row.created_at),
+          attachmentUrl,
+          clientMessageId ?? null,
+        ]
       );
       return { row, created: true };
     } catch (err) {
       if (!clientMessageId || !isDuplicateKeyError(err)) throw err;
-      const existing = await getDatabase().get<MessageRow>(
+      const existing = await db.get<MessageRow>(
         `SELECT ${MESSAGE_COLUMNS} FROM messages WHERE conversation_id = ? AND sender_id = ? AND client_message_id = ?`,
         [conversationId, senderId, clientMessageId]
       );
@@ -114,5 +126,14 @@ export class MessageRepository {
        ORDER BY seq ASC`,
       [...conversationIds, limit]
     );
+  }
+
+  /** Photos a member sent in chats (deleted from storage with their account). */
+  static async attachmentsSentBy(senderId: string): Promise<string[]> {
+    const rows = await getDatabase().query<{ attachment_url: string }>(
+      'SELECT attachment_url FROM messages WHERE sender_id = ? AND attachment_url IS NOT NULL',
+      [senderId]
+    );
+    return rows.map((r) => r.attachment_url);
   }
 }

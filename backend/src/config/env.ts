@@ -54,6 +54,13 @@ function parseCloudinaryUrl(raw: string) {
   return { apiKey: decodeURIComponent(match[1]), apiSecret: decodeURIComponent(match[2]), cloudName: match[3] };
 }
 
+function positiveInt(raw: string | undefined, fallback: number): number {
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) throw new Error(`Expected a positive whole number, got "${raw}"`);
+  return value;
+}
+
 export const config = {
   env,
   isProduction,
@@ -107,6 +114,17 @@ export const config = {
       .filter(Boolean),
   },
   cloudinary: parseCloudinaryUrl(process.env.CLOUDINARY_URL || ''),
+  /** Chat requests: a first message to someone who has not matched with you awaits their approval. */
+  chatRequests: {
+    /** Length limit of the one introductory message. */
+    messageMaxLength: positiveInt(process.env.CHAT_REQUEST_MESSAGE_MAX, 500),
+    /** Requests a member may have awaiting an answer at once (spam control). */
+    maxPending: positiveInt(process.env.CHAT_REQUEST_MAX_PENDING, 20),
+    /** New requests a member may send per 24 hours. */
+    perDay: positiveInt(process.env.CHAT_REQUESTS_PER_DAY, 30),
+    /** After a decline, how long before the same sender may ask the same member again. */
+    declineCooldownDays: positiveInt(process.env.CHAT_REQUEST_DECLINE_COOLDOWN_DAYS, 7),
+  },
   /** Sensitive account actions (deletion) need a session created at most this long ago. */
   recentAuthMinutes: parseInt(process.env.RECENT_AUTH_MINUTES || '15', 10),
   session: {

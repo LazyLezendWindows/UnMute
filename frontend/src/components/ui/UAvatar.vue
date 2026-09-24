@@ -22,14 +22,11 @@
       </div>
     </div>
 
-    <!-- Optional Online / Active status badge with pulse glow -->
+    <!-- Optional status dot, only when a status is actually known -->
     <span
-      v-if="online !== undefined"
+      v-if="status"
       class="u-avatar-status position-absolute rounded-circle"
-      :class="[
-        `status-${size}`,
-        online ? 'status-online' : 'status-offline'
-      ]"
+      :class="[`status-${size}`, status === 'online' ? 'status-online' : 'status-offline']"
     ></span>
   </div>
 </template>
@@ -44,7 +41,8 @@ const props = withDefaults(
     src?: string;
     name?: string;
     size?: AvatarSize;
-    online?: boolean;
+    /** Shows a dot; omit it when the member's status is unknown or hidden. */
+    status?: 'online' | 'offline';
     border?: boolean;
   }>(),
   {

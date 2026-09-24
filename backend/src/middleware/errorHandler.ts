@@ -5,11 +5,14 @@ export class AppError extends Error {
   statusCode: number;
   /** Optional machine-readable reason the client can act on (e.g. REAUTH_REQUIRED). */
   code?: string;
+  /** Optional context the client may use (never secrets), e.g. the id of an existing request. */
+  data?: Record<string, unknown>;
 
-  constructor(message: string, statusCode = 400, code?: string) {
+  constructor(message: string, statusCode = 400, code?: string, data?: Record<string, unknown>) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
+    this.data = data;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -22,7 +25,12 @@ const BODY_PARSER_ERRORS: Record<string, [number, string]> = {
 
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({ success: false, error: err.message, ...(err.code ? { code: err.code } : {}) });
+    res.status(err.statusCode).json({
+      success: false,
+      error: err.message,
+      ...(err.code ? { code: err.code } : {}),
+      ...(err.data ? { data: err.data } : {}),
+    });
     return;
   }
 

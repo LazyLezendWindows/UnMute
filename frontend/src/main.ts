@@ -1,7 +1,6 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
-import { vTilt } from './directives/tilt';
 import router from './router';
 import './style.css';
 import './styles/unmute.scss';
@@ -11,7 +10,6 @@ const pinia = createPinia();
 
 app.use(pinia);
 app.use(router);
-app.directive('tilt', vTilt);
 
 // Initialize theme from user preference
 import { useThemeStore } from './stores/theme';

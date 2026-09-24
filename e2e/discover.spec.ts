@@ -21,7 +21,7 @@ test('filter discovery by shared interests', async ({ page, baseURL }) => {
   await member(baseURL!, viewerEmail, 'Viewer');
   await page.goto('/login');
   await page.getByLabel('Email address').fill(viewerEmail);
-  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByLabel(/^Password/).fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).not.toHaveURL(/\/login/);
   await page.goto('/discover');

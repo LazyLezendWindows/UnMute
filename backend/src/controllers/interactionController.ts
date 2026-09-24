@@ -28,4 +28,12 @@ export class InteractionController {
       next(err);
     }
   }
+
+  static async incomingLikes(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      res.status(200).json({ success: true, data: await MatchingService.getIncomingLikes(req.user!.userId) });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

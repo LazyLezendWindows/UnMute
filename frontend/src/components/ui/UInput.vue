@@ -1,7 +1,7 @@
 <template>
   <div class="u-input-wrapper w-100 d-flex flex-column gap-1">
     <div v-if="label || $slots.label" class="d-flex align-items-center justify-content-between">
-      <label v-if="label" :for="inputId" class="form-label small fw-semibold mb-0 u-text-secondary">
+      <label v-if="label" :for="inputId" class="form-label small fw-semibold mb-0 u-text-secondary" :class="{ 'visually-hidden': hideLabel }">
         {{ label }}
         <span v-if="required" class="text-danger" aria-hidden="true">*</span>
       </label>
@@ -9,14 +9,20 @@
     </div>
 
     <div class="position-relative d-flex align-items-center">
-      <!-- Prefix Icon -->
-      <div v-if="icon" class="position-absolute start-0 ms-3 pe-none d-flex align-items-center justify-content-center text-muted">
-        <component :is="icon" class="u-input-icon" />
+      <!-- Prefix icon: a component, or a Remix icon class such as "ri-mail-line" -->
+      <div
+        v-if="icon || iconClass"
+        class="u-input-prefix position-absolute start-0 ms-3 pe-none d-flex align-items-center justify-content-center"
+        aria-hidden="true"
+      >
+        <component :is="icon" v-if="icon" class="u-input-icon" />
+        <i v-else :class="iconClass"></i>
       </div>
 
       <input
         :id="inputId"
-        :type="type"
+        :type="inputType"
+        :autocomplete="autocomplete"
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
@@ -29,7 +35,8 @@
         :aria-describedby="error ? errorId : hint ? hintId : undefined"
         class="u-input w-100 rounded-2xl py-2 small transition-all"
         :class="[
-          icon ? 'ps-5 pe-3' : 'px-3',
+          icon || iconClass ? 'ps-5' : 'ps-3',
+          canReveal || $slots.suffix ? 'pe-5' : 'pe-3',
           error ? 'u-input-error' : 'u-input-normal',
           { 'opacity-50 pe-none': disabled },
         ]"
@@ -38,8 +45,20 @@
         @focus="$emit('focus', $event)"
       />
 
+      <!-- Password fields: show / hide what was typed -->
+      <button
+        v-if="canReveal"
+        type="button"
+        class="u-input-reveal position-absolute end-0 me-2"
+        :aria-label="revealed ? 'Hide password' : 'Show password'"
+        :aria-pressed="revealed"
+        @click="revealed = !revealed"
+      >
+        <i :class="revealed ? 'ri-eye-off-line' : 'ri-eye-line'" aria-hidden="true"></i>
+      </button>
+
       <!-- Suffix icon or action -->
-      <div v-if="$slots.suffix" class="position-absolute end-0 me-3 d-flex align-items-center">
+      <div v-else-if="$slots.suffix" class="position-absolute end-0 me-3 d-flex align-items-center">
         <slot name="suffix" />
       </div>
     </div>
@@ -57,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -68,6 +87,13 @@ const props = withDefaults(
     error?: string | null;
     hint?: string;
     icon?: any;
+    /** A Remix icon class shown before the text, e.g. "ri-mail-line". */
+    iconClass?: string;
+    autocomplete?: string;
+    /** Keeps the label for assistive tech but shows only the placeholder (compact forms). */
+    hideLabel?: boolean;
+    /** Password fields get a show/hide toggle unless this is false. */
+    revealable?: boolean;
     id?: string;
     disabled?: boolean;
     required?: boolean;
@@ -80,8 +106,13 @@ const props = withDefaults(
     type: 'text',
     disabled: false,
     required: false,
+    revealable: true,
   }
 );
+
+const revealed = ref(false);
+const canReveal = computed(() => props.type === 'password' && props.revealable);
+const inputType = computed(() => (canReveal.value && revealed.value ? 'text' : props.type));
 
 // Labels, hints and errors are tied to the input so assistive tech announces them.
 const autoId = useId();
@@ -96,13 +127,15 @@ defineEmits<{
 }>();
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .u-input {
+  min-height: 3rem;
+  font-size: 0.9375rem !important;
   background-color: var(--unmute-input-bg);
   color: var(--unmute-text-primary);
   border: 1px solid var(--unmute-input-border);
-  box-shadow: inset 0 1px 3px rgba(20, 30, 60, 0.08), 0 1px 0 var(--unmute-glass-highlight);
-  backdrop-filter: blur(16px);
+  border-radius: var(--unmute-radius-sm) !important;
+  outline: none;
 }
 
 .u-input::placeholder {
@@ -115,16 +148,21 @@ defineEmits<{
 
 .u-input-normal:focus {
   border-color: var(--unmute-primary);
-  box-shadow: inset 0 1px 3px rgba(20, 30, 60, 0.08), 0 0 0 4px var(--unmute-primary-surface);
+  box-shadow: 0 0 0 4px var(--unmute-primary-surface);
 }
 
 .u-input-error {
-  border-color: #f43f5e;
-  background-color: rgba(244, 63, 94, 0.06);
+  border-color: var(--unmute-danger);
+  background-color: rgba(225, 29, 72, 0.04);
 }
 
 .u-input-error:focus {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3.5px rgba(244, 63, 94, 0.25);
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+}
+
+.u-input-prefix {
+  color: var(--unmute-text-muted);
+  font-size: 1.1rem;
 }
 
 .u-input-icon {
@@ -132,8 +170,25 @@ defineEmits<{
   height: 1rem;
 }
 
+.u-input-reveal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--unmute-text-muted);
+  font-size: 1.1rem;
+
+  &:hover {
+    color: var(--unmute-text-primary);
+    background: var(--unmute-surface-overlay);
+  }
+}
+
 .u-input-hint {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 </style>
-

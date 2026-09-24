@@ -10,7 +10,7 @@ test('export data, then permanently delete the account from Settings', async ({ 
 
   await page.goto('/login');
   await page.getByLabel('Email address').fill(email);
-  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByLabel(/^Password/).fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).not.toHaveURL(/\/login/);
   await page.goto('/settings');
@@ -34,7 +34,7 @@ test('export data, then permanently delete the account from Settings', async ({ 
 
   // The account is gone: signing in fails
   await page.getByLabel('Email address').fill(email);
-  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByLabel(/^Password/).fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByText('Invalid email or password')).toBeVisible();
 });

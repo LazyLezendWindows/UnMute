@@ -1,28 +1,82 @@
 <template>
-  <!-- Chrome sphere logo mark: polished metal ball with the voiceprint glyph -->
-  <span class="brand-mark" :style="{ '--mark-size': size }" aria-hidden="true">
-    <i class="ri-voiceprint-fill"></i>
+  <!-- Unmute mark: a heart carrying a voice (sound bars); optionally with the wordmark. -->
+  <span class="brand" :class="{ 'has-wordmark': wordmark, 'is-stacked': stacked }" :style="{ '--mark-size': size }">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient :id="gradientId" x1="6" y1="8" x2="58" y2="54" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ff5c93" />
+          <stop offset="0.5" stop-color="#e3175c" />
+          <stop offset="1" stop-color="#7d1b8a" />
+        </linearGradient>
+      </defs>
+      <path
+        :fill="`url(#${gradientId})`"
+        d="M32 57.5C29.6 57.5 6 43 4.4 26.6 3.2 14.6 10.3 6.5 19.4 6.5c5.4 0 9.8 2.9 12.6 7.3 2.8-4.4 7.2-7.3 12.6-7.3 9.1 0 16.2 8.1 15 20.1C58 43 34.4 57.5 32 57.5Z"
+      />
+      <g fill="#fff">
+        <rect x="30.2" y="23" width="4.6" height="13" rx="2.3" />
+        <rect x="38.2" y="17.5" width="4.6" height="24" rx="2.3" />
+        <rect x="46.2" y="22" width="4.6" height="15" rx="2.3" />
+      </g>
+    </svg>
+    <span v-if="wordmark" class="brand-wordmark"><span class="brand-un">Un</span><span class="brand-mute">mute</span></span>
+    <span v-else-if="label" class="visually-hidden">Unmute</span>
   </span>
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{ size?: string }>(), { size: '2.5rem' });
+import { useId } from 'vue';
+
+withDefaults(defineProps<{ size?: string; wordmark?: boolean; label?: boolean; stacked?: boolean }>(), {
+  size: '2.5rem',
+  wordmark: false,
+  label: false,
+  stacked: false,
+});
+
+// Each instance needs its own gradient id (several logos can be on screen at once).
+const gradientId = `brand-${useId()}`;
 </script>
 
-<style scoped>
-.brand-mark {
+<style scoped lang="scss">
+.brand {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: calc(var(--mark-size) * 0.18);
+  line-height: 1;
+}
+
+.brand.is-stacked {
+  flex-direction: column;
+  gap: calc(var(--mark-size) * 0.04);
+
+  .brand-wordmark {
+    font-size: calc(var(--mark-size) * 0.62);
+  }
+}
+
+.brand-mark {
   width: var(--mark-size);
   height: var(--mark-size);
-  border-radius: 50%;
-  color: #1a2236;
-  font-size: calc(var(--mark-size) * 0.46);
-  background: radial-gradient(circle at 32% 26%, #ffffff 0%, rgba(255, 255, 255, 0) 30%),
-    radial-gradient(circle at 70% 80%, rgba(123, 140, 255, 0.55) 0%, transparent 55%),
-    linear-gradient(145deg, #f4f6fb 0%, #c7cfdf 40%, #8792ad 70%, #e8ecf5 100%);
-  box-shadow: inset -3px -4px 8px rgba(20, 30, 60, 0.35), inset 2px 2px 5px rgba(255, 255, 255, 0.9),
-    0 8px 18px -6px rgba(20, 30, 60, 0.45);
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 8px rgba(227, 23, 92, 0.25));
+}
+
+.brand-wordmark {
+  font-family: var(--unmute-font-display);
+  font-weight: 800;
+  font-size: calc(var(--mark-size) * 0.72);
+  letter-spacing: -0.04em;
+}
+
+.brand-un {
+  color: var(--unmute-brand-ink);
+}
+
+.brand-mute {
+  background: var(--unmute-brand-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 </style>

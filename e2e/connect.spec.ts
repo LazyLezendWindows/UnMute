@@ -22,7 +22,7 @@ test('signed-out visitors are sent to login and returned afterwards', async ({ p
   await page.goto('/matches');
   await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)matches$/);
   await page.getByLabel('Email address').fill(email);
-  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByLabel(/^Password/).fill(PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/\/matches$/);
 });
@@ -51,7 +51,9 @@ test('register, set an area, discover someone nearby, filter, and connect', asyn
   await page.goto('/discover');
   const card = page.locator('.discover-card-3d');
   await expect(card).toContainText('Meera');
-  await expect(card).toContainText('Secunderabad, Telangana · within 10 km');
+  // The area, and the distance as a bucketed chip (never exact).
+  await expect(card).toContainText('Secunderabad, Telangana');
+  await expect(card.locator('.card-chip')).toContainText('10 km');
 
   // A 5 km radius excludes her (~6 km away); removing the filter brings her back
   await page.getByRole('button', { name: /^Filters/ }).click();

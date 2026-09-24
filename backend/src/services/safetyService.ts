@@ -9,6 +9,8 @@ import { MessageRepository } from '../repositories/messageRepository';
 import { ProfileRepository } from '../repositories/profileRepository';
 import { assertUserExists } from './userGuards';
 import { dbTimestamp } from '../utils/time';
+import { getDatabase } from '../config/database';
+import { ChatRequestRepository } from '../repositories/chatRequestRepository';
 
 /**
  * A block ends realtime delivery immediately: both users' live sockets leave every conversation
@@ -48,6 +50,7 @@ async function captureEvidence(reporterId: string, reportedId: string) {
       messages: messages.map((m) => ({
         from: m.sender_id === reportedId ? 'reported' : 'reporter',
         content: m.content,
+        attachmentUrl: m.attachment_url ?? null,
         createdAt: m.created_at,
       })),
     }),
@@ -61,6 +64,9 @@ export class SafetyService {
     }
     await assertUserExists(blockedId);
     await SafetyRepository.block(blockerId, blockedId, reason);
+    // An open request between the two closes for good (unblocking later does not reopen it).
+    const closedRequest = await getDatabase().transaction((tx) => ChatRequestRepository.closePendingBetween(tx, blockerId, blockedId));
+    if (closedRequest) getSocketServer()?.to(`user:${blockerId}`).emit('chat_request_removed', { requestId: closedRequest });
     await evictFromSharedConversations(blockerId, blockedId);
     return { success: true, message: 'User has been blocked' };
   }

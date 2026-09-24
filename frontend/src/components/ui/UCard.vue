@@ -1,15 +1,9 @@
 <template>
   <div
-    v-tilt="tilts"
     class="u-card glass-pane position-relative overflow-hidden"
     :class="[variantClass, paddingClass, { 'cursor-pointer user-select-none': interactive }]"
     @click="$emit('click', $event)"
   >
-    <!-- Subtle top specular highlight for 3D realism -->
-    <div
-      class="u-card-specular pe-none position-absolute top-0 start-0 end-0"
-    ></div>
-
     <slot />
   </div>
 </template>
@@ -36,9 +30,6 @@ const props = withDefaults(
 defineEmits<{
   (e: 'click', event: MouseEvent): void;
 }>();
-
-// Depth cards and clickable cards lean toward the pointer (desktop, motion allowed).
-const tilts = computed(() => (props.variant === 'depth3d' ? { max: 6 } : props.variant === 'interactive' ? { max: 4 } : false));
 
 const variantClass = computed(() => {
   switch (props.variant) {
@@ -73,32 +64,27 @@ const paddingClass = computed(() => {
 
 <style scoped>
 .u-card {
-  border-radius: var(--unmute-radius-lg, 28px);
+  border-radius: var(--unmute-radius-lg);
   color: var(--unmute-text-primary);
-  transition: transform var(--unmute-transition-normal), box-shadow var(--unmute-transition-normal);
+  transition: box-shadow var(--unmute-transition-normal), border-color var(--unmute-transition-normal);
 }
 
 .u-card-default {
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 .u-card-elevated,
 .u-card-glass,
 .u-card-3d {
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
+  box-shadow: var(--unmute-shadow-md);
 }
 
 .u-card-interactive {
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 .u-card-interactive:hover {
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-3d-hover);
-}
-
-.u-card-specular {
-  z-index: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--unmute-glass-highlight), transparent);
+  border-color: var(--unmute-glass-border-hover);
+  box-shadow: var(--unmute-shadow-md);
 }
 </style>

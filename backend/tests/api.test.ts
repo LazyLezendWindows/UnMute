@@ -179,7 +179,7 @@ describe('Unmute API', () => {
   });
 
   describe('Google sign-in', () => {
-    it('publishes only public client settings (client IDs, password sign-up, photo uploads)', async () => {
+    it('publishes only public client settings (client IDs, sign-up, photo uploads, request limit)', async () => {
       const res = await request(app).get('/api/v1/auth/config');
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual({
@@ -187,6 +187,7 @@ describe('Unmute API', () => {
         googleIosClientId: null,
         passwordSignup: true,
         photoUploads: false,
+        chatRequestMessageMax: 500,
       });
     });
 
@@ -435,6 +436,7 @@ describe('Unmute API', () => {
         content: 'Hello User B!',
         status: 'sent',
         createdAt: sent.body.data.createdAt,
+        attachmentUrl: null,
       });
 
       const conversations = await b.agent.get('/api/v1/conversations');

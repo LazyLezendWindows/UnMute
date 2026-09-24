@@ -28,6 +28,10 @@ export const discoverQuerySchema = paginationSchema(20, 50)
     interestIds: interestIdsSchema.optional(),
     minAge: ageSchema.optional(),
     maxAge: ageSchema.optional(),
+    /** Feed tabs: "forYou" (most shared interests first) or "nearby" (nearest first). */
+    sort: z.enum(['forYou', 'nearby']).optional(),
+    /** Only people who share at least one of your interests. */
+    sharedInterests: booleanQuery.optional(),
   })
   .refine((q) => q.minAge === undefined || q.maxAge === undefined || q.minAge <= q.maxAge, {
     message: 'Minimum age cannot be above maximum age',

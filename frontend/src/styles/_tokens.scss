@@ -1,137 +1,150 @@
-// Unmute "Spatial" design tokens: liquid chrome & glass.
-// Bright translucent panes floating over a live 3D scene, with chrome edges, soft refraction and
-// calm, luxurious contrast. Components consume only these tokens.
+// Unmute design tokens: soft, flat and warm.
+// A pink-tinted white page, white cards with light borders and subtle shadows, dark navy text and
+// a pink-to-purple accent (the theme store swaps the accent per preset). Components consume only
+// these tokens. Names are kept from the previous glass theme so every component follows along;
+// the "glass" and "3d" tokens now resolve to flat surfaces and no-op effects.
 
-@mixin spatial-light {
+@mixin theme-light {
   color-scheme: light;
 
-  --unmute-bg: #e8ecf4;
+  --unmute-bg: #fdf6f9;
   --unmute-surface: #ffffff;
-  --unmute-surface-raised: #f7f9fc;
-  --unmute-surface-overlay: #eef1f7;
-  --unmute-surface-active: #e3e8f1;
+  --unmute-surface-raised: #fdf8fa;
+  --unmute-surface-overlay: #f9eff4;
+  --unmute-surface-active: #fbe8f0;
 
-  // Liquid glass: bright, heavily blurred, with a white specular edge
-  --unmute-glass-bg: rgba(255, 255, 255, 0.46);
-  --unmute-glass-surface: rgba(255, 255, 255, 0.58);
-  --unmute-glass-strong: rgba(255, 255, 255, 0.78);
-  --unmute-glass-border: rgba(20, 30, 60, 0.09);
-  --unmute-glass-border-hover: rgba(20, 30, 60, 0.2);
-  --unmute-glass-highlight: rgba(255, 255, 255, 0.95);
-  --unmute-glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.45),
-    inset 0 -1px 0 rgba(20, 30, 60, 0.06);
+  --unmute-glass-bg: #ffffff;
+  --unmute-glass-surface: #ffffff;
+  --unmute-glass-strong: #ffffff;
+  --unmute-glass-border: #f0e3ea;
+  --unmute-glass-border-hover: #e3cdd8;
+  --unmute-glass-highlight: transparent;
+  --unmute-glass-edge: 0 0 0 1px var(--unmute-glass-border);
 
-  --unmute-3d-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(20, 30, 60, 0.06);
-  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  --unmute-3d-specular: 0 0 0 0 transparent;
+  --unmute-3d-bottom-lip: 0 0 0 0 transparent;
+  --unmute-3d-card-rim: 0 0 0 1px var(--unmute-glass-border);
 
-  --unmute-text-primary: #0c1222;
-  --unmute-text-secondary: #384158;
-  --unmute-text-muted: #636c84;
-  --unmute-text-dim: #98a0b5;
-  --unmute-success: #0b9d6c;
-  --unmute-danger: #e0245e;
+  --unmute-text-primary: #1d1b3a;
+  --unmute-text-secondary: #46445f;
+  --unmute-text-muted: #6f6d86;
+  --unmute-text-dim: #716f88;
+  --unmute-success: #15a34a;
+  --unmute-danger: #e11d48;
 
-  --unmute-input-bg: rgba(255, 255, 255, 0.62);
-  --unmute-input-border: rgba(20, 30, 60, 0.12);
+  --unmute-input-bg: #ffffff;
+  --unmute-input-border: #eadce4;
   --unmute-border: var(--unmute-glass-border);
 
-  // Soft, wide, cool shadows: panes float rather than sit
-  --unmute-shadow-sm: 0 2px 8px rgba(20, 30, 60, 0.06);
-  --unmute-shadow-md: 0 10px 30px -10px rgba(20, 30, 60, 0.18), 0 2px 6px rgba(20, 30, 60, 0.05);
-  --unmute-shadow-lg: 0 30px 70px -20px rgba(20, 30, 60, 0.28), 0 8px 20px -8px rgba(20, 30, 60, 0.1);
-  --unmute-shadow-3d: 0 40px 80px -30px rgba(20, 30, 60, 0.35), 0 12px 30px -14px rgba(20, 30, 60, 0.18);
-  --unmute-shadow-3d-hover: 0 50px 100px -30px rgba(20, 30, 60, 0.42), 0 18px 40px -16px rgba(20, 30, 60, 0.22);
+  --unmute-shadow-sm: 0 1px 2px rgba(70, 25, 55, 0.05), 0 1px 3px rgba(70, 25, 55, 0.04);
+  --unmute-shadow-md: 0 4px 14px -4px rgba(70, 25, 55, 0.1), 0 1px 3px rgba(70, 25, 55, 0.04);
+  --unmute-shadow-lg: 0 12px 32px -10px rgba(70, 25, 55, 0.14), 0 2px 6px rgba(70, 25, 55, 0.04);
+  --unmute-shadow-3d: var(--unmute-shadow-lg);
+  --unmute-shadow-3d-hover: 0 16px 40px -12px rgba(70, 25, 55, 0.18), 0 2px 6px rgba(70, 25, 55, 0.05);
 
-  --unmute-btn-3d-shadow: 0 10px 24px -10px rgba(20, 30, 60, 0.45);
-  --unmute-btn-3d-shadow-active: 0 4px 10px -4px rgba(20, 30, 60, 0.35);
+  --unmute-btn-3d-shadow: 0 8px 18px -10px rgba(70, 25, 55, 0.35);
+  --unmute-btn-3d-shadow-active: 0 3px 8px -4px rgba(70, 25, 55, 0.3);
 
-  // Chrome: polished silver used for edges, the logo and metallic accents
-  --unmute-chrome: linear-gradient(135deg, #ffffff 0%, #d7deeb 22%, #8e9ab4 48%, #f2f5fb 64%, #b3bdd2 100%);
-  --unmute-chrome-text: linear-gradient(120deg, #0c1222 0%, #58647f 45%, #1b2336 70%, #6b7898 100%);
-  --unmute-ink: linear-gradient(160deg, #2a3246 0%, #0c1222 100%);
+  // Brand wordmark: deep plum.
+  --unmute-chrome: linear-gradient(135deg, #5b1257 0%, #8c1c7e 100%);
+  --unmute-chrome-text: linear-gradient(120deg, #4a0f47 0%, #7a1a6f 100%);
+  --unmute-ink: #1d1b3a;
   --unmute-on-ink: #ffffff;
 
-  --unmute-scrim: rgba(210, 218, 232, 0.45);
-  --unmute-modal-bg: rgba(255, 255, 255, 0.82);
-  --unmute-scene-fallback: radial-gradient(60% 50% at 75% 20%, #d9e1ff 0%, transparent 70%),
-    radial-gradient(50% 45% at 15% 85%, #f6dcf2 0%, transparent 70%), #e8ecf4;
+  // Brand wordmark ("Un" + "mute") and the welcome tagline.
+  --unmute-brand-ink: #4a0f47;
+  --unmute-brand-accent: linear-gradient(100deg, #e3175c 0%, #b0166f 100%);
+  --unmute-brand-tagline: #9a3d7d;
+  --unmute-hero-bg: radial-gradient(80% 45% at 85% 100%, rgba(142, 29, 140, 0.22) 0%, transparent 70%),
+    radial-gradient(90% 50% at 10% 95%, rgba(244, 51, 111, 0.22) 0%, transparent 70%),
+    linear-gradient(180deg, #fff6fa 0%, #fdeef5 55%, #f8dbe9 100%);
+  --unmute-hero-panel: rgba(255, 255, 255, 0.6);
+  --unmute-hero-panel-border: rgba(255, 255, 255, 0.9);
+
+  --unmute-scrim: rgba(35, 16, 38, 0.38);
+  --unmute-modal-bg: #ffffff;
+  --unmute-scene-fallback: var(--unmute-bg);
 }
 
-@mixin spatial-dark {
+@mixin theme-dark {
   color-scheme: dark;
 
-  --unmute-bg: #07090f;
-  --unmute-surface: #121622;
-  --unmute-surface-raised: #171c2a;
-  --unmute-surface-overlay: #1d2334;
-  --unmute-surface-active: #262d42;
+  --unmute-bg: #120e18;
+  --unmute-surface: #1b1623;
+  --unmute-surface-raised: #211a2b;
+  --unmute-surface-overlay: #282034;
+  --unmute-surface-active: #33283f;
 
-  --unmute-glass-bg: rgba(28, 33, 48, 0.46);
-  --unmute-glass-surface: rgba(40, 46, 64, 0.5);
-  --unmute-glass-strong: rgba(30, 35, 50, 0.78);
-  --unmute-glass-border: rgba(255, 255, 255, 0.1);
-  --unmute-glass-border-hover: rgba(255, 255, 255, 0.24);
-  --unmute-glass-highlight: rgba(255, 255, 255, 0.22);
-  --unmute-glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  --unmute-glass-bg: #1b1623;
+  --unmute-glass-surface: #1b1623;
+  --unmute-glass-strong: #1b1623;
+  --unmute-glass-border: rgba(255, 255, 255, 0.08);
+  --unmute-glass-border-hover: rgba(255, 255, 255, 0.16);
+  --unmute-glass-highlight: transparent;
+  --unmute-glass-edge: 0 0 0 1px var(--unmute-glass-border);
 
-  --unmute-3d-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
-  --unmute-3d-bottom-lip: inset 0 -2px 0 0 rgba(0, 0, 0, 0.4);
-  --unmute-3d-card-rim: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --unmute-3d-specular: 0 0 0 0 transparent;
+  --unmute-3d-bottom-lip: 0 0 0 0 transparent;
+  --unmute-3d-card-rim: 0 0 0 1px var(--unmute-glass-border);
 
-  --unmute-text-primary: #f3f5fa;
-  --unmute-text-secondary: #c4cadb;
-  --unmute-text-muted: #8f97ad;
-  --unmute-text-dim: #5f6780;
-  --unmute-success: #3ee0a1;
-  --unmute-danger: #ff5a86;
+  --unmute-text-primary: #f7f2f9;
+  --unmute-text-secondary: #d8cfe0;
+  --unmute-text-muted: #a99db6;
+  --unmute-text-dim: #948aa3;
+  --unmute-success: #4ade80;
+  --unmute-danger: #fb7185;
 
-  --unmute-input-bg: rgba(10, 13, 22, 0.55);
+  --unmute-input-bg: #16111d;
   --unmute-input-border: rgba(255, 255, 255, 0.12);
   --unmute-border: var(--unmute-glass-border);
 
-  --unmute-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --unmute-shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --unmute-shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, 0.75), 0 8px 20px -8px rgba(0, 0, 0, 0.4);
-  --unmute-shadow-3d: 0 40px 80px -30px rgba(0, 0, 0, 0.85), 0 12px 30px -14px rgba(0, 0, 0, 0.5);
-  --unmute-shadow-3d-hover: 0 50px 100px -30px rgba(0, 0, 0, 0.9), 0 18px 40px -16px rgba(0, 0, 0, 0.55);
+  --unmute-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --unmute-shadow-md: 0 4px 14px -4px rgba(0, 0, 0, 0.5);
+  --unmute-shadow-lg: 0 12px 32px -10px rgba(0, 0, 0, 0.6);
+  --unmute-shadow-3d: var(--unmute-shadow-lg);
+  --unmute-shadow-3d-hover: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
 
-  --unmute-btn-3d-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.7);
-  --unmute-btn-3d-shadow-active: 0 4px 10px -4px rgba(0, 0, 0, 0.6);
+  --unmute-btn-3d-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.7);
+  --unmute-btn-3d-shadow-active: 0 3px 8px -4px rgba(0, 0, 0, 0.6);
 
-  --unmute-chrome: linear-gradient(135deg, #ffffff 0%, #c3cbdc 22%, #6d7792 48%, #e7ebf4 64%, #8e98b0 100%);
-  --unmute-chrome-text: linear-gradient(120deg, #ffffff 0%, #b8c2d8 45%, #f3f5fa 70%, #9aa5bf 100%);
-  --unmute-ink: linear-gradient(160deg, #ffffff 0%, #d9dfeb 100%);
-  --unmute-on-ink: #0c1222;
+  --unmute-chrome: linear-gradient(135deg, #f7c6ea 0%, #e58ad1 100%);
+  --unmute-chrome-text: linear-gradient(120deg, #fbd9f0 0%, #f0a3dc 100%);
+  --unmute-ink: #f7f2f9;
+  --unmute-on-ink: #1d1b3a;
 
-  --unmute-scrim: rgba(3, 5, 10, 0.55);
-  --unmute-modal-bg: rgba(24, 28, 42, 0.82);
-  --unmute-scene-fallback: radial-gradient(60% 50% at 75% 20%, #1c2550 0%, transparent 70%),
-    radial-gradient(50% 45% at 15% 85%, #33183f 0%, transparent 70%), #07090f;
+  --unmute-brand-ink: #fbe7f5;
+  --unmute-brand-accent: linear-gradient(100deg, #ff8fb5 0%, #f0a3dc 100%);
+  --unmute-brand-tagline: #f0b3d8;
+  --unmute-hero-bg: radial-gradient(80% 40% at 85% 100%, rgba(142, 29, 140, 0.22) 0%, transparent 70%),
+    radial-gradient(90% 45% at 10% 100%, rgba(244, 51, 111, 0.14) 0%, transparent 70%), var(--unmute-bg);
+  --unmute-hero-panel: rgba(255, 255, 255, 0.04);
+  --unmute-hero-panel-border: rgba(255, 255, 255, 0.08);
+
+  --unmute-scrim: rgba(5, 3, 8, 0.6);
+  --unmute-modal-bg: #1f1928;
+  --unmute-scene-fallback: var(--unmute-bg);
 }
 
 :root {
-  @include spatial-light;
+  @include theme-light;
 
-  // Accent (the theme store overrides per preset): a soft iris that reads as light, not neon.
-  --unmute-primary: #4f5bff;
-  --unmute-primary-light: #8d97ff;
-  --unmute-primary-dark: #3a44e0;
-  --unmute-primary-bevel: #2c34b8;
-  --unmute-primary-gradient: linear-gradient(135deg, #7b8cff 0%, #4f5bff 55%, #8b5cf6 100%);
-  --unmute-primary-surface: rgba(79, 91, 255, 0.12);
-  --unmute-accent-text: #4f5bff;
-  --unmute-glow-primary: 0 12px 30px -12px rgba(79, 91, 255, 0.7);
+  // Accent (the theme store overrides per preset): brand pink into deep purple.
+  --unmute-primary: #e5195f;
+  --unmute-primary-light: #f67aa6;
+  --unmute-primary-dark: #c0124f;
+  --unmute-primary-bevel: #9c0f41;
+  --unmute-primary-gradient: linear-gradient(100deg, #f4336f 0%, #d61c73 45%, #8e1d8c 100%);
+  --unmute-primary-surface: rgba(229, 25, 95, 0.1);
+  --unmute-accent-text: #d0145a;
+  --unmute-glow-primary: 0 10px 22px -12px rgba(229, 25, 95, 0.65);
 
-  // Legacy alias kept for components that still reference it.
   --unmute-holo-rim: var(--unmute-chrome);
 
-  --unmute-radius-xs: 10px;
-  --unmute-radius-sm: 14px;
-  --unmute-radius-md: 18px;
-  --unmute-radius-lg: 28px;
-  --unmute-radius-xl: 36px;
+  --unmute-radius-xs: 8px;
+  --unmute-radius-sm: 12px;
+  --unmute-radius-md: 16px;
+  --unmute-radius-lg: 20px;
+  --unmute-radius-xl: 28px;
   --unmute-radius-pill: 9999px;
 
   --unmute-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -145,18 +158,21 @@
   --font-2xl: 1.75rem;
   --font-display: 2.25rem;
 
-  --unmute-transition-fast: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --unmute-transition-normal: 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --unmute-transition-bounce: 520ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  --unmute-transition-fast: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --unmute-transition-normal: 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --unmute-transition-bounce: 320ms cubic-bezier(0.34, 1.3, 0.64, 1);
 
-  // Layout
+  // Layout: the desktop navigation rail, and the mobile bottom bar with the device's safe area.
   --unmute-dock-width: 5.25rem;
+  --unmute-tabbar-height: 4.25rem;
+  --unmute-safe-top: env(safe-area-inset-top, 0px);
+  --unmute-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 [data-theme='light'] {
-  @include spatial-light;
+  @include theme-light;
 }
 
 [data-theme='dark'] {
-  @include spatial-dark;
+  @include theme-dark;
 }

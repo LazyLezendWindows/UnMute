@@ -76,6 +76,10 @@ export interface Profile {
   isVerified?: boolean;
   location?: OwnLocation | null;
   education?: OwnEducation | null;
+  profession?: string;
+  /** Whether others may see when you are online. */
+  showOnline?: boolean;
+  photos?: OwnPhoto[];
 }
 
 export interface DiscoveryCandidate {
@@ -93,12 +97,43 @@ export interface DiscoveryCandidate {
   education: PublicEducation | null;
   /** Bucketed upper bound in km (never exact); null when either side has no area. */
   distanceKm: number | null;
+  /** Main photo first; empty when the member has none. */
+  photos?: string[];
+  profession?: string;
+}
+
+/** Whether someone is online; null when they hide it. */
+export type Presence = { online: boolean; lastSeenAt: string | null } | null;
+
+export interface OwnPhoto {
+  id: string;
+  url: string;
+  isMain: boolean;
+}
+
+/** Someone who liked you and is waiting for your answer. */
+export interface IncomingLike {
+  likedAt: string;
+  user: {
+    id: string;
+    displayName: string;
+    age: number;
+    avatarUrl: string;
+    approximateLocation: string;
+    isVerified: boolean;
+    profession: string;
+    photos: string[];
+    presence: Presence;
+    distanceKm: number | null;
+  };
 }
 
 export interface Match {
   matchId: string;
   conversationId: string;
   createdAt: string;
+  /** Matched in the last week and nobody has written yet. */
+  isNew?: boolean;
   lastMessageAt: string | null;
   lastMessage: Message | null;
   user: {
@@ -110,6 +145,9 @@ export interface Match {
     avatarUrl: string;
     isVerified: boolean;
     interests: string[];
+    profession?: string;
+    presence?: Presence;
+    distanceKm?: number | null;
   };
 }
 
@@ -126,6 +164,7 @@ export interface Conversation {
     avatarUrl: string;
     approximateLocation: string;
     isVerified: boolean;
+    presence?: Presence;
   };
 }
 
@@ -136,6 +175,8 @@ export interface Message {
   content: string;
   status: 'sent' | 'delivered' | 'read';
   createdAt: string;
+  /** A photo sent in the chat (the text may then be empty). */
+  attachmentUrl?: string | null;
 }
 
 export interface BlockedUser {
@@ -147,3 +188,37 @@ export interface BlockedUser {
   age: number;
   avatarUrl?: string;
 }
+
+/** A chat request as listed in the Requests tab (incoming) or the Sent section. */
+export interface ChatRequestSummary {
+  /** The conversation id; it becomes the chat's id once accepted. */
+  id: string;
+  direction: 'incoming' | 'sent';
+  /** Always 'pending' to the sender, even when quietly declined. */
+  status: 'pending';
+  requestedAt: string;
+  preview: string;
+  otherUser: {
+    id: string;
+    displayName: string;
+    age: number;
+    avatarUrl: string;
+    approximateLocation: string;
+    isVerified: boolean;
+    distanceKm: number | null;
+  };
+}
+
+/** One request opened for review: the full introduction and the other member's public profile. */
+export interface ChatRequestDetail {
+  id: string;
+  direction: 'incoming' | 'sent';
+  status: 'pending';
+  requestedAt: string;
+  message: { content: string; createdAt: string; fromMe: boolean } | null;
+  otherUser: DiscoveryCandidate;
+}
+
+export type ChatRequestOutcome =
+  | { status: 'pending'; conversationId: string }
+  | { status: 'accepted'; conversationId: string; delivered: boolean };

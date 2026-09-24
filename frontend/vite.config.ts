@@ -18,9 +18,9 @@ export default defineConfig({
       manifest: {
         name: 'Unmute - Connect without the pressure',
         short_name: 'Unmute',
-        description: 'A conversation-first social connection platform based on shared interests and intentions.',
-        theme_color: '#e8ecf4',
-        background_color: '#e8ecf4',
+        description: 'Real people, real conversations. Meet people who share your interests.',
+        theme_color: '#fdf6f9',
+        background_color: '#fdf6f9',
         id: '/',
         start_url: '/',
         scope: '/',

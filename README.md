@@ -105,17 +105,33 @@ Unmute
 * `GET  /api/v1/discover` — Fetch discovery feed (filters out self, liked, passed, and blocked users; sorts by common interests, then distance). Optional filters, all applied in SQL and combined with AND: `radiusKm` (needs your own area), `placeId` (any level: state, district, sub-district, city, town or village), `pincode`, `institutionId` or `sameInstitution=true`, `minAge` / `maxAge`.
 * `POST /api/v1/interactions/like` — Like a user (triggers mutual match and creates conversation if reciprocal)
 * `POST /api/v1/interactions/pass` — Pass on a user
+* `GET  /api/v1/interactions/incoming` — People who liked you and are waiting for your answer (liking back makes a match)
+* Discover also takes `sort=nearby` (nearest first; needs your area) and `sharedInterests=true` (only people who share an interest), used by the For You / Nearby / Interests tabs. Cards include `photos` (main first) and `profession`.
 
 ### Matches & Real-Time Chat
 * `GET  /api/v1/matches` — Get active mutual matches
 * `GET  /api/v1/conversations` — Get user conversations with latest message & unread badge
 * `GET  /api/v1/conversations/:id/messages` — Get messages for conversation (auto-marks as read)
-* `POST /api/v1/conversations/:id/messages` — Send message in conversation (broadcasts via Socket.io)
+* `POST /api/v1/conversations/:id/messages` — Send a message (`content`, and/or a photo as `attachment: { publicId, version, signature }`; broadcasts via Socket.io)
+* `POST /api/v1/conversations/:id/attachments` — Signed permission to upload one photo into this approved chat (Cloudinary); requests cannot carry photos
+* Online status: matches and chats include `presence` (`{ online, lastSeenAt }`, or `null` when the member hides it). Chat partners receive `presence_changed` in real time.
 
 ### Push notifications
 * `GET    /api/v1/push/config` — Whether push is available, and the VAPID public key
 * `PUT    /api/v1/push/subscription` — Register this device's browser push subscription (one per signed-in session; replaces the previous one)
 * `DELETE /api/v1/push/subscription` — Stop notifications to this device
+
+### Chat Requests
+Messaging someone you have not matched with sends a **request** with one introductory message; the recipient decides before a chat exists. A mutual like still opens a chat directly (both have already said yes).
+* `POST   /api/v1/chat-requests` — `{ recipientId, content, clientMessageId? }`. Returns `201 { status: 'pending' }` for a new request, or `200 { status: 'accepted', delivered }` when a chat already exists (`delivered: false`: send the message there) or when they had already asked you (the two requests merge into one accepted chat). `409 REQUEST_PENDING` if you already asked (also during the cooldown after a decline, which is never revealed); `429 TOO_MANY_PENDING` / `REQUEST_LIMIT` for the spam limits; `404` for unknown, inactive or blocked members alike.
+* `GET    /api/v1/chat-requests/incoming` — Requests awaiting your decision, newest first (sender's public profile, approximate distance, message preview)
+* `GET    /api/v1/chat-requests/sent` — Requests you sent that are still open
+* `GET    /api/v1/chat-requests/:id` — One request with the full message and the other member's public profile (viewing never accepts it or marks it read)
+* `POST   /api/v1/chat-requests/:id/accept` — Recipient only; idempotent. The request becomes a chat for both
+* `POST   /api/v1/chat-requests/:id/decline` — Recipient only; quiet (the sender is not told, and cannot ask again for `CHAT_REQUEST_DECLINE_COOLDOWN_DAYS`)
+* `POST   /api/v1/chat-requests/:id/cancel` — Sender only
+
+Only accepted conversations appear in `GET /conversations` and accept messages (REST and Socket.IO rooms alike); a request's conversation answers `403 REQUEST_NOT_ACCEPTED`. Blocking closes an open request for good. Realtime events on the member's own channel: `chat_request_received`, `chat_request_accepted`, `chat_request_removed`, `chat_request_sent` (ids only: clients re-fetch). State lives in `conversations.status` (`pending` / `accepted` / `declined` / `cancelled`) with the history in `conversation_events`.
 
 ### Safety
 * `POST   /api/v1/safety/block` — Block a user immediately
@@ -127,6 +143,9 @@ Unmute
 * `POST   /api/v1/users/me/photo/upload` — A signed, one-time permission to upload a profile photo directly to Cloudinary
 * `PUT    /api/v1/users/me/photo` — Confirm an upload (`{ publicId, version, signature }` from Cloudinary's response); it becomes the profile photo
 * `DELETE /api/v1/users/me/photo` — Remove the profile photo
+* `POST   /api/v1/users/me/photos` — Add an uploaded photo to your grid (up to 6; the first becomes your main photo)
+* `PUT    /api/v1/users/me/photos/:photoId/main` / `DELETE /api/v1/users/me/photos/:photoId` — Choose the main photo / remove one (the next becomes main)
+* `PATCH  /api/v1/users/me` also takes `profession` (up to 80 characters) and `showOnline` (whether others see when you are online)
 * `GET    /api/v1/users/me/export` — Download everything Unmute stores about you (JSON)
 * `POST   /api/v1/users/me/deactivate` — Hide your account and sign out everywhere; signing in again reactivates it
 * `DELETE /api/v1/users/me` — Permanently delete your account (body `{ "confirm": "DELETE" }`, requires a sign-in within `RECENT_AUTH_MINUTES`); reports stay as moderation records without your account reference

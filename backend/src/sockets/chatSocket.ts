@@ -3,6 +3,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { config } from '../config/env';
 import { SessionService } from '../services/sessionService';
 import { ChatService } from '../services/chatService';
+import { PresenceService } from '../services/presenceService';
 
 let ioInstance: SocketIOServer | null = null;
 
@@ -45,6 +46,21 @@ export function initSocketServer(server: HttpServer): SocketIOServer {
   ioInstance.on('connection', (socket: Socket) => {
     const userId: string = socket.data.userId;
     socket.join(`user:${userId}`);
+    // First connection of this member: they are now online.
+    void (async () => {
+      try {
+        if ((await ioInstance!.in(`user:${userId}`).fetchSockets()).length === 1) await PresenceService.changed(userId, true);
+      } catch (err) {
+        console.error('[Socket] presence update failed:', err);
+      }
+    })();
+    socket.on('disconnect', async () => {
+      try {
+        if ((await ioInstance!.in(`user:${userId}`).fetchSockets()).length === 0) await PresenceService.changed(userId, false);
+      } catch (err) {
+        console.error('[Socket] presence update failed:', err);
+      }
+    });
     // Lets logout disconnect exactly the sockets opened with the revoked session.
     socket.join(`session:${socket.data.sessionId}`);
 

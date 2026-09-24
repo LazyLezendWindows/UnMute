@@ -1,4 +1,4 @@
-// Unmute global stylesheet: Bootstrap 5 under the "Spatial" liquid-glass tokens.
+// Unmute global stylesheet: Bootstrap 5 under the Unmute design tokens (see _tokens.scss).
 
 @use "./tokens";
 @use "./mixins";
@@ -6,20 +6,20 @@
 @use "./utilities";
 
 @use "bootstrap/scss/bootstrap.scss" with (
-  $primary: #4f5bff,
-  $secondary: #636c84,
-  $success: #0b9d6c,
-  $info: #0ea5c6,
+  $primary: #e5195f,
+  $secondary: #6f6d86,
+  $success: #15a34a,
+  $info: #0ea5e9,
   $warning: #f59e0b,
-  $danger: #e0245e,
-  $light: #f7f9fc,
-  $dark: #0c1222,
-  $body-bg: #e8ecf4,
-  $body-color: #0c1222,
+  $danger: #e11d48,
+  $light: #fdf8fa,
+  $dark: #1d1b3a,
+  $body-bg: #fdf6f9,
+  $body-color: #1d1b3a,
   $font-family-sans-serif: ('Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif),
-  $border-radius: 18px,
+  $border-radius: 16px,
   $border-radius-sm: 12px,
-  $border-radius-lg: 28px,
+  $border-radius-lg: 20px,
   $border-radius-pill: 9999px
 );
 
@@ -49,55 +49,32 @@ h1, h2, h3, h4, .font-display, .brand-heading {
 }
 
 // ---------------------------------------------------------------------------
-// Liquid glass: the one surface everything floats on.
-// Heavy blur + saturation, bright specular edges, a top sheen, and a soft wide shadow.
+// Cards: the one surface everything sits on. White, a hairline border, a soft shadow.
+// (`glass-pane` keeps its name so existing markup follows the design.)
 // ---------------------------------------------------------------------------
 .glass-pane {
   position: relative;
-  background: var(--unmute-glass-bg);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 0;
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
-
-  // Specular sheen across the upper part of the pane, like light on curved glass.
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(180deg, var(--unmute-glass-highlight) 0%, transparent 38%);
-    opacity: 0.35;
-  }
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 .glass-pane-strong {
-  background: var(--unmute-glass-strong);
+  background: var(--unmute-surface);
 }
 
-// People who ask the system for less transparency get solid panes (also the cheapest to draw).
-@media (prefers-reduced-transparency: reduce) {
-  .glass-pane,
-  .surface-glass {
-    background: var(--unmute-surface-raised);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-// Chrome text (logo, hero headings)
+// Brand wordmark colour (logo, hero headings)
 .text-chrome {
   background: var(--unmute-chrome-text);
-  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .surface-3d {
-  background: var(--unmute-glass-surface);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 .btn {
@@ -107,10 +84,10 @@ h1, h2, h3, h4, .font-display, .brand-heading {
 }
 
 .card {
-  background: var(--unmute-glass-bg);
-  border: 0;
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
   border-radius: var(--unmute-radius-lg);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-lg);
+  box-shadow: var(--unmute-shadow-sm);
 }
 
 * {

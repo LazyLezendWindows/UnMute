@@ -8,6 +8,8 @@ export interface AuthConfig {
   passwordSignup: boolean;
   /** Whether members can upload their own profile photo (Cloudinary configured). */
   photoUploads: boolean;
+  /** Length limit of a chat request's introductory message. */
+  chatRequestMessageMax: number;
 }
 
 let loader: Promise<AuthConfig> | null = null;
@@ -21,6 +23,7 @@ export function loadAuthConfig(): Promise<AuthConfig> {
         googleIosClientId: res.data.data?.googleIosClientId || '',
         passwordSignup: res.data.data?.passwordSignup === true,
         photoUploads: res.data.data?.photoUploads === true,
+        chatRequestMessageMax: Number(res.data.data?.chatRequestMessageMax) || 500,
       }))
       .catch((err) => {
         loader = null; // try again next time

@@ -1,11 +1,9 @@
 // Unmute SCSS Mixins
 
-@mixin surface-glass($blur: 16px, $bg: var(--unmute-glass-bg), $border: var(--unmute-glass-border)) {
+// Flat surface (name kept from the glass theme; `$blur` is ignored).
+@mixin surface-glass($blur: 0, $bg: var(--unmute-surface), $border: var(--unmute-glass-border)) {
   background: $bg;
-  backdrop-filter: blur($blur);
-  -webkit-backdrop-filter: blur($blur);
   border: 1px solid $border;
-  box-shadow: inset 0 1px 0 var(--unmute-glass-highlight);
 }
 
 @mixin surface-raised {
@@ -41,7 +39,7 @@
   outline: none;
 
   &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+    box-shadow: 0 0 0 3px var(--unmute-primary-surface);
     border-color: $color;
   }
 }

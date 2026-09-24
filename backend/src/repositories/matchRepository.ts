@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getDatabase } from '../config/database';
 import { activeUser, blockedBetween } from './sql';
 import { dbTimestamp } from '../utils/time';
+import { ChatRequestRepository, orderedPair } from './chatRequestRepository';
 
 export interface MatchSummaryRow {
   match_id: string;
@@ -13,35 +14,32 @@ export interface MatchSummaryRow {
 
 export class MatchRepository {
   /**
-   * Creates the match and its conversation atomically, or returns the existing conversation.
-   * The upsert waits on a concurrent insert of the same pair and then yields to it, and the
-   * locking reads see that committed row, so concurrent calls converge on one match/conversation.
+   * Creates the match and makes the pair's conversation an accepted chat, atomically; returns the
+   * conversation id. A mutual like is consent from both sides, so an open request between the two
+   * (either direction) is accepted too. The upsert waits on a concurrent insert of the same pair
+   * and the locking reads see that committed row, so concurrent calls converge on one match and
+   * one conversation.
    */
   static ensure(userX: string, userY: string): Promise<string> {
-    const [userA, userB] = userX < userY ? [userX, userY] : [userY, userX];
-    const now = dbTimestamp();
+    const [userA, userB] = orderedPair(userX, userY);
 
     return getDatabase().transaction(async (tx) => {
       await tx.run(
         'INSERT INTO matches (id, user_a_id, user_b_id, created_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id',
-        [crypto.randomUUID(), userA, userB, now]
+        [crypto.randomUUID(), userA, userB, dbTimestamp()]
       );
       const match = await tx.get<{ id: string }>(
         'SELECT id FROM matches WHERE user_a_id = ? AND user_b_id = ? FOR UPDATE',
         [userA, userB]
       );
 
-      await tx.run(
-        `INSERT INTO conversations (id, match_id, user_a_id, user_b_id, last_message_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE id = id`,
-        [crypto.randomUUID(), match!.id, userA, userB, now, now]
-      );
-      const conversation = await tx.get<{ id: string }>(
-        'SELECT id FROM conversations WHERE match_id = ? FOR UPDATE',
-        [match!.id]
-      );
-      return conversation!.id;
+      const { row } = await ChatRequestRepository.lockPair(tx, userA, userB);
+      await tx.run('UPDATE conversations SET match_id = ? WHERE id = ? AND match_id IS NULL', [match!.id, row.id]);
+      if (row.status !== 'accepted') {
+        await ChatRequestRepository.setStatus(tx, row.id, 'accepted');
+        await ChatRequestRepository.recordEvent(tx, row.id, null, 'matched');
+      }
+      return row.id;
     });
   }
 

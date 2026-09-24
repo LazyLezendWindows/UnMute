@@ -2,19 +2,24 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-/**
- * How much the 3D backdrop may move. `auto` animates only while the person is interacting and
- * holds still on low battery, data saver or reduced motion; `calm` is always a still frame;
- * `off` skips WebGL entirely.
- */
-export type MotionPreference = 'auto' | 'full' | 'calm' | 'off';
-const MOTION_PREFERENCES: MotionPreference[] = ['auto', 'full', 'calm', 'off'];
-export type AccentColor = 'iris' | 'aqua' | 'rose' | 'mint' | 'amber' | 'graphite';
+export type AccentColor =
+  | 'orchid'
+  | 'pink'
+  | 'coral'
+  | 'blush'
+  | 'tangerine'
+  | 'magenta'
+  | 'violet'
+  | 'blue'
+  | 'sky'
+  | 'green';
 
 export interface AccentPreset {
   id: AccentColor;
   name: string;
-  subtitle: string;
+  /** The colour shown in the picker. */
+  swatch: string;
+  /** Buttons, badges and fills; white text on it meets WCAG AA (4.5:1). */
   primary: string;
   light: string;
   dark: string;
@@ -22,146 +27,98 @@ export interface AccentPreset {
   gradient: string;
   glow: string;
   surface: string;
-  /** Lighter tone used for accent text/icons on dark glass. */
+  /** Accent text and icons on light backgrounds (AA on the page and card colours). */
+  text: string;
+  /** Accent text and icons on dark backgrounds (AA in dark mode). */
   preview: string;
 }
 
-const glow = (rgb: string) => `0 12px 30px -12px rgba(${rgb}, 0.7)`;
+function preset(
+  id: AccentColor,
+  name: string,
+  colours: { swatch: string; primary: string; end: string; light: string; text: string; preview: string; rgb: string }
+): AccentPreset {
+  return {
+    id,
+    name,
+    swatch: colours.swatch,
+    primary: colours.primary,
+    light: colours.light,
+    dark: colours.end,
+    bevel: colours.end,
+    gradient: `linear-gradient(100deg, ${colours.primary} 0%, ${colours.end} 100%)`,
+    glow: `0 10px 22px -12px rgba(${colours.rgb}, 0.65)`,
+    surface: `rgba(${colours.rgb}, 0.1)`,
+    text: colours.text,
+    preview: colours.preview,
+  };
+}
 
-export const DEFAULT_ACCENT: AccentColor = 'iris';
+export const DEFAULT_ACCENT: AccentColor = 'pink';
 
+/** In picker order. Light swatches (sky, green, blush…) use a deeper working colour for legibility. */
 export const ACCENT_PRESETS: Record<AccentColor, AccentPreset> = {
-  iris: {
-    id: 'iris',
-    name: 'Iris',
-    subtitle: 'Soft periwinkle light',
-    primary: '#4f5bff',
-    light: '#8d97ff',
-    dark: '#3a44e0',
-    bevel: '#2c34b8',
-    gradient: 'linear-gradient(135deg, #7b8cff 0%, #4f5bff 55%, #8b5cf6 100%)',
-    glow: glow('79, 91, 255'),
-    surface: 'rgba(79, 91, 255, 0.12)',
-    preview: '#a3acff',
-  },
-  aqua: {
-    id: 'aqua',
-    name: 'Aqua',
-    subtitle: 'Glacier cyan',
-    primary: '#0891b2',
-    light: '#67e8f9',
-    dark: '#0e7490',
-    bevel: '#155e75',
-    gradient: 'linear-gradient(135deg, #5ee7f5 0%, #0ea5c6 55%, #3b82f6 100%)',
-    glow: glow('14, 165, 198'),
-    surface: 'rgba(14, 165, 198, 0.12)',
-    preview: '#7ce9f7',
-  },
-  rose: {
-    id: 'rose',
-    name: 'Rose',
-    subtitle: 'Pearl pink',
-    primary: '#e0457b',
-    light: '#f9a8c9',
-    dark: '#be2d63',
-    bevel: '#9d174d',
-    gradient: 'linear-gradient(135deg, #ffa3c4 0%, #e0457b 55%, #a855f7 100%)',
-    glow: glow('224, 69, 123'),
-    surface: 'rgba(224, 69, 123, 0.12)',
-    preview: '#ffa9c8',
-  },
-  mint: {
-    id: 'mint',
-    name: 'Mint',
-    subtitle: 'Fresh jade',
-    primary: '#0f9f75',
-    light: '#6ee7b7',
-    dark: '#047857',
-    bevel: '#065f46',
-    gradient: 'linear-gradient(135deg, #7af0c3 0%, #10b981 55%, #0ea5a4 100%)',
-    glow: glow('16, 185, 129'),
-    surface: 'rgba(16, 185, 129, 0.12)',
-    preview: '#7cf0c7',
-  },
-  amber: {
-    id: 'amber',
-    name: 'Amber',
-    subtitle: 'Warm sunlight',
-    primary: '#d97706',
-    light: '#fcd34d',
-    dark: '#b45309',
-    bevel: '#92400e',
-    gradient: 'linear-gradient(135deg, #fde68a 0%, #f59e0b 50%, #f97316 100%)',
-    glow: glow('245, 158, 11'),
-    surface: 'rgba(245, 158, 11, 0.13)',
-    preview: '#fcd668',
-  },
-  graphite: {
-    id: 'graphite',
-    name: 'Graphite',
-    subtitle: 'Monochrome chrome',
-    primary: '#2a3246',
-    light: '#8e9ab4',
-    dark: '#0c1222',
-    bevel: '#05080f',
-    gradient: 'linear-gradient(135deg, #5b6680 0%, #2a3246 55%, #0c1222 100%)',
-    glow: glow('20, 30, 60'),
-    surface: 'rgba(42, 50, 70, 0.1)',
-    preview: '#d7deeb',
-  },
+  orchid: preset('orchid', 'Orchid', { swatch: '#d13cdd', primary: '#a21caf', end: '#86198f', light: '#e9a6f0', text: '#9d1fae', preview: '#e9a6f0', rgb: '162, 28, 175' }),
+  pink: preset('pink', 'Unmute Pink', { swatch: '#e5195f', primary: '#e3175c', end: '#8e1d8c', light: '#f67aa6', text: '#c0124f', preview: '#ff8fb5', rgb: '227, 23, 92' }),
+  coral: preset('coral', 'Coral', { swatch: '#f0506e', primary: '#e11d48', end: '#be123c', light: '#fda4af', text: '#c81e45', preview: '#ff9aa8', rgb: '225, 29, 72' }),
+  blush: preset('blush', 'Blush', { swatch: '#f7a1c0', primary: '#c9306c', end: '#9d174d', light: '#f9b8d0', text: '#b8215e', preview: '#f9b8d0', rgb: '201, 48, 108' }),
+  tangerine: preset('tangerine', 'Tangerine', { swatch: '#f15a24', primary: '#c2410c', end: '#9a3412', light: '#fdba74', text: '#b13c0b', preview: '#fdba74', rgb: '194, 65, 12' }),
+  magenta: preset('magenta', 'Magenta', { swatch: '#d63384', primary: '#be1a6c', end: '#9d174d', light: '#f6a3cb', text: '#a8175f', preview: '#f6a3cb', rgb: '190, 26, 108' }),
+  violet: preset('violet', 'Violet', { swatch: '#7c3aed', primary: '#7c3aed', end: '#5b21b6', light: '#c4b5fd', text: '#6d28d9', preview: '#c4b5fd', rgb: '124, 58, 237' }),
+  blue: preset('blue', 'Blue', { swatch: '#2563eb', primary: '#2563eb', end: '#1e40af', light: '#93c5fd', text: '#1d4ed8', preview: '#93c5fd', rgb: '37, 99, 235' }),
+  sky: preset('sky', 'Sky', { swatch: '#0ea5e9', primary: '#0369a1', end: '#075985', light: '#7dd3fc', text: '#036596', preview: '#7dd3fc', rgb: '3, 105, 161' }),
+  green: preset('green', 'Green', { swatch: '#22a55a', primary: '#15803d', end: '#166534', light: '#86efac', text: '#13733a', preview: '#86efac', rgb: '21, 128, 61' }),
 };
 
-export const useThemeStore = defineStore('theme', () => {
-  // Bright liquid glass is the default; accents from retired designs fall back to Iris.
-  const savedMode = (localStorage.getItem('unmute_theme_mode') as ThemeMode) || 'light';
-  const rawAccent = localStorage.getItem('unmute_theme_accent') as AccentColor;
-  const initialAccent: AccentColor = rawAccent && ACCENT_PRESETS[rawAccent] ? rawAccent : DEFAULT_ACCENT;
+const MODE_KEY = 'unmute_theme_mode';
+const ACCENT_KEY = 'unmute_theme_accent';
 
-  const mode = ref<ThemeMode>(savedMode);
-  const savedMotion = localStorage.getItem('unmute_motion') as MotionPreference;
-  const motion = ref<MotionPreference>(MOTION_PREFERENCES.includes(savedMotion) ? savedMotion : 'auto');
-
-  function setMotion(value: MotionPreference) {
-    motion.value = value;
-    try {
-      localStorage.setItem('unmute_motion', value);
-    } catch {
-      // Not persisting is fine; the choice still applies for this visit.
-    }
+function read(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
   }
-  const accent = ref<AccentColor>(initialAccent);
+}
 
-  const activePreset = computed(() => ACCENT_PRESETS[accent.value] || ACCENT_PRESETS[DEFAULT_ACCENT]);
+function write(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Not persisting is fine; the choice still applies for this visit.
+  }
+}
 
-  const isDarkMode = computed(() => {
-    if (mode.value === 'system') {
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return mode.value === 'dark';
-  });
+export const useThemeStore = defineStore('theme', () => {
+  const savedMode = read(MODE_KEY) as ThemeMode | null;
+  const savedAccent = read(ACCENT_KEY) as AccentColor | null;
+
+  const mode = ref<ThemeMode>(savedMode && ['light', 'dark', 'system'].includes(savedMode) ? savedMode : 'light');
+  // Accents from earlier designs fall back to the brand pink.
+  const accent = ref<AccentColor>(savedAccent && ACCENT_PRESETS[savedAccent] ? savedAccent : DEFAULT_ACCENT);
+  const systemPrefersDark = ref(window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
+
+  const activePreset = computed(() => ACCENT_PRESETS[accent.value]);
+  const isDarkMode = computed(() => (mode.value === 'system' ? systemPrefersDark.value : mode.value === 'dark'));
 
   function applyTheme() {
     const root = document.documentElement;
+    root.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light');
 
-    // 1. Set data-theme attribute on <html>
-    const effectiveTheme = isDarkMode.value ? 'dark' : 'light';
-    root.setAttribute('data-theme', effectiveTheme);
+    const p = activePreset.value;
+    root.style.setProperty('--unmute-primary', p.primary);
+    root.style.setProperty('--unmute-primary-light', p.light);
+    root.style.setProperty('--unmute-primary-dark', p.dark);
+    root.style.setProperty('--unmute-primary-bevel', p.bevel);
+    root.style.setProperty('--unmute-primary-gradient', p.gradient);
+    root.style.setProperty('--unmute-primary-surface', p.surface);
+    root.style.setProperty('--unmute-glow-primary', p.glow);
+    root.style.setProperty('--unmute-accent-text', isDarkMode.value ? p.preview : p.text);
+    // The browser/OS chrome (Android status bar, installed PWA title bar) follows the page.
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDarkMode.value ? '#120e18' : '#fdf6f9');
 
-    // 2. Set dynamic accent variables on <html>
-    const preset = activePreset.value;
-    root.style.setProperty('--unmute-primary', preset.primary);
-    root.style.setProperty('--unmute-primary-light', preset.light);
-    root.style.setProperty('--unmute-primary-dark', preset.dark);
-    root.style.setProperty('--unmute-primary-bevel', preset.bevel);
-    root.style.setProperty('--unmute-primary-gradient', preset.gradient);
-    root.style.setProperty('--unmute-primary-surface', preset.surface);
-    root.style.setProperty('--unmute-glow-primary', preset.glow);
-    // Accent as text/icon colour: the bright tone on dark surfaces, the deep tone on light ones.
-    root.style.setProperty('--unmute-accent-text', isDarkMode.value ? preset.preview : preset.primary);
-
-    // 3. Persist
-    localStorage.setItem('unmute_theme_mode', mode.value);
-    localStorage.setItem('unmute_theme_accent', accent.value);
+    write(MODE_KEY, mode.value);
+    write(ACCENT_KEY, accent.value);
   }
 
   function setMode(newMode: ThemeMode) {
@@ -170,8 +127,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function toggleMode() {
-    const next = isDarkMode.value ? 'light' : 'dark';
-    setMode(next);
+    setMode(isDarkMode.value ? 'light' : 'dark');
   }
 
   function setAccent(newAccent: AccentColor) {
@@ -181,22 +137,16 @@ export const useThemeStore = defineStore('theme', () => {
 
   function initTheme() {
     applyTheme();
-
-    // Listen to OS system preference changes if in system mode
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (mode.value === 'system') {
-          applyTheme();
-        }
-      });
-    }
+    // In System mode the app follows the device as it switches between light and dark.
+    window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      systemPrefersDark.value = event.matches;
+      if (mode.value === 'system') applyTheme();
+    });
   }
 
   return {
     mode,
     accent,
-    motion,
-    setMotion,
     isDarkMode,
     activePreset,
     presets: ACCENT_PRESETS,

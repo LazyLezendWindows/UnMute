@@ -29,4 +29,28 @@ export class PhotoController {
       next(err);
     }
   }
+
+  static async addPhoto(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      res.status(201).json({ success: true, data: await PhotoService.addPhoto(req.user!.userId, req.body) });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async setMain(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      res.status(200).json({ success: true, data: await PhotoService.setMain(req.user!.userId, req.params.photoId) });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async removeById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      res.status(200).json({ success: true, data: await PhotoService.removePhotoById(req.user!.userId, req.params.photoId) });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

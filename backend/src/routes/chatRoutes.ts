@@ -4,7 +4,7 @@ import { requireAuth } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validate';
 import { idParamsSchema } from '../validators/common';
 import { messagePageSchema, sendMessageSchema } from '../validators/chatValidator';
-import { messageRateLimiter } from '../middleware/rateLimiter';
+import { chatPhotoRateLimiter, messageRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -24,5 +24,8 @@ router.post(
   validateBody(sendMessageSchema),
   ChatController.sendMessage
 );
+
+// A photo for a chat message: signed permission to upload it to Cloudinary, then send it above.
+router.post('/:id/attachments', chatPhotoRateLimiter, validateParams(idParamsSchema), ChatController.createAttachmentUpload);
 
 export default router;

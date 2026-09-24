@@ -1,11 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="unmute-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8b5cf6" />
-      <stop offset="100%" stop-color="#ec4899" />
+    <linearGradient id="g" x1="6" y1="8" x2="58" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff5c93"/>
+      <stop offset="0.5" stop-color="#e3175c"/>
+      <stop offset="1" stop-color="#7d1b8a"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="24" fill="#0f172a" />
-  <!-- Wave / Unmute Symbol -->
-  <path d="M30 40V60M43 30V70M57 20V80M70 35V65" stroke="url(#unmute-grad)" stroke-width="8" stroke-linecap="round" />
+  <path fill="url(#g)" d="M32 57.5C29.6 57.5 6 43 4.4 26.6 3.2 14.6 10.3 6.5 19.4 6.5c5.4 0 9.8 2.9 12.6 7.3 2.8-4.4 7.2-7.3 12.6-7.3 9.1 0 16.2 8.1 15 20.1C58 43 34.4 57.5 32 57.5Z"/>
+  <g fill="#fff">
+    <rect x="30.2" y="23" width="4.6" height="13" rx="2.3"/>
+    <rect x="38.2" y="17.5" width="4.6" height="24" rx="2.3"/>
+    <rect x="46.2" y="22" width="4.6" height="15" rx="2.3"/>
+  </g>
 </svg>

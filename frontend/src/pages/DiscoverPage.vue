@@ -1,16 +1,33 @@
 <template>
   <div class="discover-page d-flex flex-column flex-grow-1">
-    <PageHeader title="Discover" subtitle="People who share your interests, near and far.">
-      <template #actions>
-        <UButton variant="glass" size="sm" :aria-label="filterButtonLabel" @click="isFiltersOpen = true">
-          <i class="ri-equalizer-2-line me-1" aria-hidden="true"></i>
-          <span>Filters</span>
-          <span v-if="discoverStore.activeFilterCount" class="filter-count ms-2" aria-hidden="true">
-            {{ discoverStore.activeFilterCount }}
-          </span>
-        </UButton>
-      </template>
-    </PageHeader>
+    <header class="discover-header">
+      <h1 class="visually-hidden">Discover</h1>
+      <BrandMark size="2rem" wordmark class="d-md-none" />
+      <span class="discover-title d-none d-md-block" aria-hidden="true">Discover</span>
+      <button type="button" class="filter-button" :aria-label="filterButtonLabel" @click="isFiltersOpen = true">
+        <i class="ri-equalizer-2-line" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline">Filters</span>
+        <span v-if="discoverStore.activeFilterCount" class="filter-count" aria-hidden="true">
+          {{ discoverStore.activeFilterCount }}
+        </span>
+      </button>
+    </header>
+
+    <!-- For You / Nearby / Interests -->
+    <div class="discover-tabs" role="tablist" aria-label="Show people">
+      <button
+        v-for="option in TABS"
+        :key="option.id"
+        type="button"
+        role="tab"
+        class="discover-tab"
+        :class="{ 'is-active': discoverStore.tab === option.id }"
+        :aria-selected="discoverStore.tab === option.id"
+        @click="discoverStore.setTab(option.id)"
+      >
+        {{ option.label }}
+      </button>
+    </div>
 
     <!-- Active filters, each removable -->
     <div v-if="activeChips.length" class="discover-toolbar d-flex align-items-center gap-2 flex-wrap mb-3">
@@ -28,8 +45,22 @@
     </div>
 
     <div class="flex-grow-1 d-flex flex-column justify-content-center">
+      <!-- Nearby needs the viewer's own area -->
+      <UEmptyState
+        v-if="discoverStore.tabNeedsArea"
+        title="Set your area to see people nearby"
+        description="Only your town or city is used, and others only ever see an approximate distance."
+      >
+        <template #icon>
+          <i class="ri-map-pin-2-line fs-2"></i>
+        </template>
+        <template #action>
+          <UButton variant="primary" size="md" @click="$router.push('/profile')">Set my area</UButton>
+        </template>
+      </UEmptyState>
+
       <!-- Loading -->
-      <div v-if="discoverStore.loading" class="discover-grid">
+      <div v-else-if="discoverStore.loading" class="discover-grid">
         <USkeleton type="card" height="34rem" class="stack-skeleton" />
         <USkeleton type="card" height="20rem" class="d-none d-lg-block" />
       </div>
@@ -46,10 +77,19 @@
             @open-safety="openSafety"
           />
 
-          <!-- Action orbs -->
+          <!-- Pass / message / connect -->
           <div class="deck-actions">
             <button type="button" class="action-orb orb-pass" aria-label="Pass" title="Pass" @click="stack?.fling('left')">
               <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="action-orb orb-message"
+              :aria-label="`Message ${discoverStore.currentCandidate.displayName}`"
+              title="Message"
+              @click="openMessage"
+            >
+              <i class="ri-chat-heart-fill" aria-hidden="true"></i>
             </button>
             <button type="button" class="action-orb orb-like" aria-label="Connect" title="Connect" @click="stack?.fling('right')">
               <i class="ri-heart-3-fill" aria-hidden="true"></i>
@@ -115,6 +155,13 @@
       @apply="applyFilters"
     />
 
+    <MessageRequestModal
+      v-if="messageTarget"
+      :is-open="isMessageOpen"
+      :recipient="messageTarget"
+      @close="isMessageOpen = false"
+    />
+
     <SafetyModal
       v-if="safetyTarget"
       :is-open="isSafetyOpen"
@@ -130,7 +177,9 @@
 import { computed, ref, onMounted } from 'vue';
 import DiscoverStack from '../components/discovery/DiscoverStack.vue';
 import CandidateDetails from '../components/discovery/CandidateDetails.vue';
-import PageHeader from '../components/layout/PageHeader.vue';
+import MessageRequestModal from '../components/chat/MessageRequestModal.vue';
+import BrandMark from '../components/layout/BrandMark.vue';
+import type { DiscoverTab } from '../stores/discover';
 import DiscoverFilters from '../components/discovery/DiscoverFilters.vue';
 import SafetyModal from '../components/safety/SafetyModal.vue';
 import USkeleton from '../components/ui/USkeleton.vue';
@@ -141,6 +190,12 @@ import { useDiscoverStore, DiscoverFilters as Filters } from '../stores/discover
 const discoverStore = useDiscoverStore();
 
 const isFiltersOpen = ref(false);
+
+const TABS: { id: DiscoverTab; label: string }[] = [
+  { id: 'forYou', label: 'For You' },
+  { id: 'nearby', label: 'Nearby' },
+  { id: 'interests', label: 'Interests' },
+];
 
 type ChipKey = 'radius' | 'place' | 'college' | 'age' | 'interests';
 
@@ -213,6 +268,17 @@ function handlePass() {
   discoverStore.passCurrent();
 }
 
+// Message someone without matching first: a request they approve (see MessageRequestModal).
+const isMessageOpen = ref(false);
+const messageTarget = ref<{ id: string; displayName: string } | null>(null);
+
+function openMessage() {
+  const candidate = discoverStore.currentCandidate;
+  if (!candidate) return;
+  messageTarget.value = { id: candidate.id, displayName: candidate.displayName };
+  isMessageOpen.value = true;
+}
+
 function openSafety() {
   if (discoverStore.currentCandidate) {
     safetyTarget.value = {
@@ -231,6 +297,7 @@ function onSafetyActionCompleted() {
 <style scoped lang="scss">
 .discover-grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 
@@ -251,13 +318,19 @@ function onSafetyActionCompleted() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
+  width: 100%;
 }
 
 .deck-actions {
+  position: relative;
+  z-index: 30;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 1.4rem;
+  gap: 1.25rem;
+  // The buttons overlap the bottom of the card, as in the reference.
+  margin-top: -2.25rem;
 }
 
 .action-orb {
@@ -266,10 +339,10 @@ function onSafetyActionCompleted() {
   justify-content: center;
   border: 0;
   border-radius: 50%;
-  transition: transform var(--unmute-transition-bounce), box-shadow var(--unmute-transition-fast);
+  transition: transform var(--unmute-transition-fast), box-shadow var(--unmute-transition-fast);
 
   &:hover {
-    transform: translateY(-3px) scale(1.05);
+    transform: translateY(-2px);
   }
 
   &:active {
@@ -277,24 +350,39 @@ function onSafetyActionCompleted() {
   }
 }
 
-.orb-pass {
+.orb-pass,
+.orb-message {
   width: 3.75rem;
   height: 3.75rem;
-  font-size: 1.6rem;
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-md);
+}
+
+.orb-pass {
+  font-size: 1.75rem;
   color: var(--unmute-text-secondary);
-  background: var(--unmute-glass-strong);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-md);
+}
+
+.orb-message {
+  font-size: 1.5rem;
+  color: var(--unmute-primary);
 }
 
 .orb-like {
-  width: 4.5rem;
-  height: 4.5rem;
-  font-size: 1.8rem;
+  width: 4.25rem;
+  height: 4.25rem;
+  font-size: 1.9rem;
   color: #fff;
-  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.55), transparent 42%), var(--unmute-primary-gradient);
-  box-shadow: var(--unmute-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -3px 8px rgba(0, 0, 0, 0.18);
+  background: var(--unmute-primary-gradient);
+  box-shadow: var(--unmute-glow-primary), 0 0 0 4px var(--unmute-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-orb:hover,
+  .action-orb:active {
+    transform: none;
+  }
 }
 
 .deck-hint {
@@ -321,18 +409,82 @@ function onSafetyActionCompleted() {
   align-items: center;
   gap: 0.3rem;
   padding: 0.35rem 0.75rem;
-  border: 0;
+  border: 1px solid var(--unmute-glass-border);
   border-radius: 9999px;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--unmute-text-primary);
-  background: var(--unmute-glass-strong);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-sm);
+  background: var(--unmute-surface);
 
   &:hover {
     background: var(--unmute-primary-surface);
+  }
+}
+
+.discover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.discover-title {
+  font-family: var(--unmute-font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--unmute-text-primary);
+}
+
+.filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--unmute-glass-border);
+  border-radius: var(--unmute-radius-pill);
+  background: var(--unmute-surface);
+  color: var(--unmute-text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+
+  i {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    border-color: var(--unmute-glass-border-hover);
+  }
+}
+
+.discover-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin: 0 auto 1rem;
+  width: 100%;
+  max-width: 26rem;
+  border-radius: var(--unmute-radius-pill);
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+}
+
+.discover-tab {
+  border: 0;
+  border-radius: var(--unmute-radius-pill);
+  padding: 0.45rem 0.5rem;
+  background: transparent;
+  color: var(--unmute-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &.is-active {
+    color: var(--unmute-accent-text);
+    background: var(--unmute-primary-surface);
+    font-weight: 700;
   }
 }
 </style>

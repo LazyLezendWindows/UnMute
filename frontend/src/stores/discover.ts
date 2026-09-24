@@ -20,6 +20,9 @@ export interface DiscoverFilters {
 
 export const RADIUS_OPTIONS_KM = [5, 10, 25, 50, 100, 200] as const;
 
+/** Feed tabs: best matches, nearest first, or only people who share an interest with you. */
+export type DiscoverTab = 'forYou' | 'nearby' | 'interests';
+
 export function emptyFilters(): DiscoverFilters {
   return { radiusKm: null, place: null, sameInstitution: false, institution: null, minAge: null, maxAge: null, interestIds: [] };
 }
@@ -69,6 +72,7 @@ export const useDiscoverStore = defineStore('discover', () => {
   const hasMore = computed(() => currentIndex.value < feed.value.length);
 
   const filters = ref<DiscoverFilters>(emptyFilters());
+  const tab = ref<DiscoverTab>('forYou');
   let filtersOwner: string | null = null;
 
   /** Loads the signed-in viewer's saved filters once, and again if a different member signs in. */
@@ -106,7 +110,24 @@ export const useDiscoverStore = defineStore('discover', () => {
     if (f.minAge !== null) params.minAge = f.minAge;
     if (f.maxAge !== null) params.maxAge = f.maxAge;
     if (f.interestIds.length) params.interestIds = f.interestIds.join(',');
+    if (tab.value === 'nearby') params.sort = 'nearby';
+    if (tab.value === 'interests') params.sharedInterests = true;
     return params;
+  }
+
+  /** Nearby needs the viewer's own area; the page asks them to set one instead of loading. */
+  const tabNeedsArea = computed(() => tab.value === 'nearby' && !useAuthStore().profile?.location);
+
+  function setTab(next: DiscoverTab) {
+    if (tab.value === next) return;
+    tab.value = next;
+    if (tabNeedsArea.value) {
+      feed.value = [];
+      currentIndex.value = 0;
+      error.value = null;
+      return;
+    }
+    return loadFeed();
   }
 
   function setFilters(next: DiscoverFilters) {
@@ -122,6 +143,7 @@ export const useDiscoverStore = defineStore('discover', () => {
 
   async function loadFeed() {
     syncFiltersOwner();
+    if (tabNeedsArea.value) return;
     loading.value = true;
     error.value = null;
     try {
@@ -186,6 +208,9 @@ export const useDiscoverStore = defineStore('discover', () => {
     hasMore,
     activeMatch,
     filters,
+    tab,
+    tabNeedsArea,
+    setTab,
     activeFilterCount,
     setFilters,
     clearFilters,

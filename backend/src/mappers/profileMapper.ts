@@ -12,6 +12,8 @@ export interface ProfileRow {
   avatar_url: string | null;
   interaction_preferences: string | null;
   is_verified: number;
+  profession: string | null;
+  show_online: number;
   // user_locations + places (all NULL when the member has not set an area)
   loc_place_id: string | null;
   loc_pincode: string | null;
@@ -106,6 +108,8 @@ export function toOwnProfile(row: ProfileRow, interests: Interest[]) {
     interactionPreferences: parsePreferences(row.interaction_preferences),
     interests,
     isVerified: Boolean(row.is_verified),
+    profession: row.profession || '',
+    showOnline: row.show_online !== 0,
   };
 }
 
@@ -119,6 +123,13 @@ export function toPublicProfile(userId: string, row: ProfileRow | undefined | nu
     approximateLocation: row ? publicArea(row) : '',
     avatarUrl: safeAvatarUrl(row?.avatar_url),
     isVerified: Boolean(row?.is_verified),
+    profession: row?.profession || '',
     education: publicEducation(row),
   };
+}
+
+/** A member's photos as others see them: the main photo first, then their other uploads. */
+export function publicPhotos(avatarUrl: string | null | undefined, uploads: string[] = []): string[] {
+  const main = safeAvatarUrl(avatarUrl);
+  return [...new Set([main, ...uploads.map((u) => safeAvatarUrl(u))].filter(Boolean))];
 }

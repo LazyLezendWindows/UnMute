@@ -1,91 +1,53 @@
 <template>
-  <AuthStage title="Create your account" subtitle="Unmute is for adults 18 and over.">
-    <div class="d-flex flex-column gap-4">
-      <!-- Error Alert -->
-      <div v-if="error" class="alert alert-danger py-2 px-3 small rounded-3 mb-0 d-flex align-items-center gap-2">
-        <i class="ri-error-warning-line fs-5 flex-shrink-0"></i>
+  <AuthStage title="Create your account" subtitle="Unmute is for adults 18 and over">
+    <div class="d-flex flex-column gap-3">
+      <div v-if="error" class="auth-error" role="alert">
+        <i class="ri-error-warning-line" aria-hidden="true"></i>
         <span>{{ error }}</span>
       </div>
 
       <GoogleSignIn text="signup_with" @authenticated="onGoogleAuthenticated" />
 
       <!-- Production: accounts are created with Google, whose email addresses are verified. -->
-      <p v-if="passwordSignup === false" class="small text-center lh-base mb-0 u-text-secondary">
+      <p v-if="passwordSignup === false" class="auth-note">
         Unmute accounts are created with Google, so your email is already verified. You'll confirm your date of birth next.
       </p>
 
       <template v-if="passwordSignup">
-        <!-- Divider -->
-        <div class="d-flex align-items-center gap-3">
-          <hr class="flex-grow-1 my-0 opacity-25" />
-          <span class="extra-small text-uppercase tracking-widest fw-semibold u-text-dim">
-            or register with email
-          </span>
-          <hr class="flex-grow-1 my-0 opacity-25" />
-        </div>
+        <div class="auth-divider" aria-hidden="true"><span>or sign up with email</span></div>
 
-        <!-- Registration Form -->
-        <form @submit.prevent="handleRegister" class="d-flex flex-column gap-3">
-          <UInput
-            v-model="displayName"
-            label="Preferred Name"
-            type="text"
-            required
-            placeholder="e.g. Julian"
-          />
-
-          <UInput
-            v-model="email"
-            label="Email address"
-            type="email"
-            required
-            placeholder="you@domain.com"
-          />
-
+        <form class="d-flex flex-column gap-3" @submit.prevent="handleRegister">
+          <UInput v-model="displayName" label="Preferred Name" hide-label icon-class="ri-user-3-line" placeholder="Preferred name" autocomplete="nickname" required />
+          <UInput v-model="email" label="Email address" hide-label type="email" icon-class="ri-mail-line" placeholder="Email address" autocomplete="email" required />
           <UInput
             v-model="dateOfBirth"
             label="Date of Birth"
             type="date"
             required
             :max="maxDateFor18"
-            hint="Only your age is visible to peers (Strict 18+ policy)"
+            hint="Only your age is shown to others"
           />
-
           <UInput
             v-model="password"
             label="Password (min 8 characters)"
+            hide-label
             type="password"
+            icon-class="ri-lock-2-line"
+            placeholder="Password (min 8 characters)"
+            autocomplete="new-password"
             required
             :minlength="8"
-            placeholder="••••••••"
           />
-
-          <div class="pt-2">
-            <UButton
-              type="submit"
-              variant="primary"
-              size="lg"
-              block
-              :loading="loading"
-            >
-              Create Account
-            </UButton>
-          </div>
+          <UButton type="submit" variant="primary" size="lg" block :loading="loading" class="mt-1">Create Account</UButton>
         </form>
       </template>
 
-      <!-- Safe Community Pledge -->
-      <p class="extra-small text-center lh-base mb-0 u-text-muted">
-        By joining, you confirm you are 18+ and adhere to the Unmute Community Respect Guidelines.
-      </p>
+      <p class="auth-note">By joining, you confirm you are 18+ and agree to the Unmute Community Respect Guidelines.</p>
 
-      <!-- Switch to Login -->
-      <div class="text-center small pt-1 u-text-muted">
+      <p class="auth-switch">
         Already a member?
-        <router-link to="/login" class="fw-bold ms-1 text-decoration-none u-link-strong">
-          Log in
-        </router-link>
-      </div>
+        <router-link to="/login">Sign in</router-link>
+      </p>
     </div>
   </AuthStage>
 </template>
@@ -151,7 +113,5 @@ async function handleRegister() {
 </script>
 
 <style scoped lang="scss">
-.extra-small {
-  font-size: 0.6875rem;
-}
+@use '../components/auth/auth-form';
 </style>

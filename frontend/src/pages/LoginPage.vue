@@ -1,61 +1,43 @@
 <template>
-  <AuthStage title="Welcome back" subtitle="Sign in to pick up your conversations.">
-    <div class="d-flex flex-column gap-4">
-      <!-- Error Alert -->
-      <div v-if="error" class="alert alert-danger py-2 px-3 small rounded-3 mb-0 d-flex align-items-center gap-2">
-        <i class="ri-error-warning-line fs-5 flex-shrink-0"></i>
+  <AuthStage title="Welcome back" subtitle="Sign in to continue your conversations">
+    <div class="d-flex flex-column gap-3">
+      <div v-if="error" class="auth-error" role="alert">
+        <i class="ri-error-warning-line" aria-hidden="true"></i>
         <span>{{ error }}</span>
       </div>
 
-      <GoogleSignIn text="continue_with" @authenticated="onGoogleAuthenticated" />
-
-      <!-- Divider -->
-      <div class="d-flex align-items-center gap-3">
-        <hr class="flex-grow-1 my-0 opacity-25" />
-        <span class="extra-small text-uppercase tracking-widest fw-semibold u-text-dim">
-          or with email
-        </span>
-        <hr class="flex-grow-1 my-0 opacity-25" />
-      </div>
-
-      <!-- Email / Password Form -->
-      <form @submit.prevent="handleLogin" class="d-flex flex-column gap-3">
+      <form class="d-flex flex-column gap-3" novalidate @submit.prevent="handleLogin">
         <UInput
           v-model="email"
           label="Email address"
+          hide-label
           type="email"
+          autocomplete="email"
+          icon-class="ri-mail-line"
+          placeholder="Email address"
           required
-          placeholder="you@domain.com"
         />
-
         <UInput
           v-model="password"
           label="Password"
+          hide-label
           type="password"
+          autocomplete="current-password"
+          icon-class="ri-lock-2-line"
+          placeholder="Password"
           required
-          placeholder="••••••••"
         />
-
-        <div class="pt-2">
-          <UButton
-            type="submit"
-            variant="primary"
-            size="lg"
-            block
-            :loading="loading"
-          >
-            Sign in
-          </UButton>
-        </div>
+        <UButton type="submit" variant="primary" size="lg" block :loading="loading" class="mt-2">Sign in</UButton>
       </form>
 
-      <!-- Switch to Register -->
-      <div class="text-center small pt-1 u-text-muted">
+      <div class="auth-divider" aria-hidden="true"><span>or continue with</span></div>
+
+      <GoogleSignIn text="continue_with" @authenticated="onGoogleAuthenticated" />
+
+      <p class="auth-switch">
         Don't have an account?
-        <router-link to="/register" class="fw-bold ms-1 text-decoration-none u-link-strong">
-          Create account
-        </router-link>
-      </div>
+        <router-link to="/register">Create account</router-link>
+      </p>
     </div>
   </AuthStage>
 </template>
@@ -89,6 +71,10 @@ function onGoogleAuthenticated(isNewUser: boolean) {
 }
 
 async function handleLogin() {
+  if (!email.value.trim() || !password.value) {
+    error.value = 'Enter your email address and password.';
+    return;
+  }
   loading.value = true;
   error.value = null;
   try {
@@ -103,7 +89,5 @@ async function handleLogin() {
 </script>
 
 <style scoped lang="scss">
-.extra-small {
-  font-size: 0.6875rem;
-}
+@use '../components/auth/auth-form';
 </style>

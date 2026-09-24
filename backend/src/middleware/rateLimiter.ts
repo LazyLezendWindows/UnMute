@@ -83,3 +83,28 @@ export const photoRateLimiter = limiter({
     error: 'You have changed your photo many times recently. Please try again later.',
   },
 });
+
+/**
+ * Per-account burst cap on sending chat requests (must run after requireAuth). The daily and
+ * pending limits are enforced from the database in ChatRequestService, so they survive restarts.
+ */
+export const chatRequestRateLimiter = limiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+  keyGenerator: (req) => (req as AuthRequest).user!.userId,
+  message: {
+    success: false,
+    error: 'You are sending requests too quickly. Please slow down.',
+  },
+});
+
+/** Per-account cap on photos sent in chats (must run after requireAuth). */
+export const chatPhotoRateLimiter = limiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 60,
+  keyGenerator: (req) => (req as AuthRequest).user!.userId,
+  message: {
+    success: false,
+    error: 'You have sent many photos recently. Please try again later.',
+  },
+});

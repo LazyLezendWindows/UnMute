@@ -6,8 +6,8 @@ import { AccountController } from '../controllers/accountController';
 import { PhotoController } from '../controllers/photoController';
 import { requireAuth } from '../middleware/auth';
 import { locationRateLimiter, photoRateLimiter } from '../middleware/rateLimiter';
-import { validateBody } from '../middleware/validate';
-import { updateProfileSchema, deleteAccountSchema, confirmPhotoSchema } from '../validators/profileValidator';
+import { validateBody, validateParams } from '../middleware/validate';
+import { updateProfileSchema, deleteAccountSchema, confirmPhotoSchema, photoParamsSchema } from '../validators/profileValidator';
 import { setLocationSchema, updatePrecisionSchema } from '../validators/locationValidator';
 import { setEducationSchema } from '../validators/educationValidator';
 
@@ -23,6 +23,10 @@ router.get('/interests', ProfileController.getInterests);
 router.post('/me/photo/upload', photoRateLimiter, PhotoController.createUpload);
 router.put('/me/photo', validateBody(confirmPhotoSchema), PhotoController.confirmUpload);
 router.delete('/me/photo', PhotoController.removePhoto);
+// The photo grid (up to 6): add an upload, choose the main photo, remove one.
+router.post('/me/photos', validateBody(confirmPhotoSchema), PhotoController.addPhoto);
+router.put('/me/photos/:photoId/main', validateParams(photoParamsSchema), PhotoController.setMain);
+router.delete('/me/photos/:photoId', validateParams(photoParamsSchema), PhotoController.removeById);
 
 router.get('/me/export', AccountController.exportData);
 router.post('/me/deactivate', AccountController.deactivate);

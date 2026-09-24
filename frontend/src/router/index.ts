@@ -6,8 +6,14 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      // Unauthenticated visitors are sent on to /login by the guard below.
+      // Signed-out visitors are sent on to /welcome by the guard below.
       redirect: '/discover',
+    },
+    {
+      path: '/welcome',
+      name: 'welcome',
+      component: () => import('../pages/WelcomePage.vue'),
+      meta: { guestOnly: true },
     },
     {
       path: '/login',
@@ -66,7 +72,8 @@ router.beforeEach(async (to) => {
   await authStore.ensureSession();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return { path: '/login', query: to.fullPath !== '/discover' ? { redirect: to.fullPath } : undefined };
+    // Opening the app signed out shows the welcome screen; a deep link signs in and comes back.
+    return to.fullPath === '/discover' ? '/welcome' : { path: '/login', query: { redirect: to.fullPath } };
   }
   if (to.meta.guestOnly && authStore.isAuthenticated) {
     return '/discover';

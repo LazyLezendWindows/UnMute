@@ -80,30 +80,10 @@
                 <span class="preset-name small fw-bold font-display">
                   {{ preset.name }}
                 </span>
-                <span class="extra-small fw-medium lh-sm u-text-dim">
-                  {{ preset.subtitle }}
-                </span>
               </div>
             </button>
           </div>
         </div>
-      </div>
-    </UCard>
-
-    <!-- Motion & 3D: how much the live backdrop may move (battery) -->
-    <UCard variant="elevated" padding="lg">
-      <div class="d-flex flex-column gap-3">
-        <div class="d-flex align-items-center gap-2">
-          <i class="ri-landscape-line fs-5 u-text-accent" aria-hidden="true"></i>
-          <h2 class="font-display fw-bold fs-6 mb-0 u-text-primary">Motion &amp; 3D</h2>
-        </div>
-        <p class="small mb-0 u-text-secondary">{{ motionDescriptions[themeStore.motion] }}</p>
-        <UChipGroup
-          :model-value="themeStore.motion"
-          :options="motionOptions"
-          label="Motion and 3D background"
-          @update:model-value="themeStore.setMotion"
-        />
       </div>
     </UCard>
 
@@ -301,8 +281,6 @@
 </template>
 
 <script setup lang="ts">
-import UChipGroup from '../components/ui/UChipGroup.vue';
-import type { MotionPreference } from '../stores/theme';
 import PageHeader from '../components/layout/PageHeader.vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
@@ -448,19 +426,6 @@ async function handleDelete() {
   }
 }
 
-const motionOptions: { value: MotionPreference; label: string }[] = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'full', label: 'Full' },
-  { value: 'calm', label: 'Calm' },
-  { value: 'off', label: 'Off' },
-];
-
-const motionDescriptions: Record<MotionPreference, string> = {
-  auto: 'The 3D scene moves while you use the app and rests when you stop. It holds still on low battery, data saver or reduced motion.',
-  full: 'The 3D scene moves whenever you are using the app, even on low battery. It still rests when you stop.',
-  calm: 'The 3D scene is shown as a still image. Lowest energy while keeping the look.',
-  off: 'No 3D scene; a soft gradient instead.',
-};
 </script>
 
 <style scoped lang="scss">

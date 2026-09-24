@@ -1,5 +1,6 @@
 import { AppError } from '../middleware/errorHandler';
-import { parsePreferences, toPublicProfile } from '../mappers/profileMapper';
+import { parsePreferences, publicPhotos, toPublicProfile } from '../mappers/profileMapper';
+import { PhotoRepository } from '../repositories/photoRepository';
 import { DiscoverFilters, ProfileRepository } from '../repositories/profileRepository';
 import { InterestRepository } from '../repositories/interestRepository';
 import { DiscoverQuery } from '../validators/discoverValidator';
@@ -18,7 +19,7 @@ export class DiscoverService {
   /** Turns validated query options into repository filters, resolving anything relative to the viewer. */
   static async resolveFilters(viewerId: string, query: Partial<DiscoverQuery>): Promise<DiscoverFilters> {
     const origin = await UserLocationService.originFor(viewerId);
-    if (query.radiusKm !== undefined && !origin) {
+    if ((query.radiusKm !== undefined || query.sort === 'nearby') && !origin) {
       throw new AppError('Set your area on your profile to filter by distance.', 400);
     }
 
@@ -40,6 +41,8 @@ export class DiscoverService {
       // Age a ⇔ born on or before (today − a years); age ≤ b ⇔ born after (today − (b+1) years).
       bornOnOrBefore: query.minAge !== undefined ? yearsAgo(query.minAge) : undefined,
       bornAfter: query.maxAge !== undefined ? yearsAgo(query.maxAge + 1) : undefined,
+      sharedInterestsOnly: query.sharedInterests === true,
+      nearestFirst: query.sort === 'nearby',
     };
   }
 
@@ -51,7 +54,10 @@ export class DiscoverService {
       query.limit ?? 20,
       query.offset ?? 0
     );
-    const interestsByUser = await InterestRepository.forUsers([currentUserId, ...candidates.map((c) => c.user_id)]);
+    const [interestsByUser, photosByUser] = await Promise.all([
+      InterestRepository.forUsers([currentUserId, ...candidates.map((c) => c.user_id)]),
+      PhotoRepository.forUsers(candidates.map((c) => c.user_id)),
+    ]);
     const myInterestIds = new Set((interestsByUser.get(currentUserId) ?? []).map((i) => i.id));
 
     return candidates.map((candidate) => {
@@ -59,6 +65,7 @@ export class DiscoverService {
       const common = interests.filter((i) => myInterestIds.has(i.id));
       return {
         ...toPublicProfile(candidate.user_id, candidate),
+        photos: publicPhotos(candidate.avatar_url, photosByUser.get(candidate.user_id)),
         interactionPreferences: parsePreferences(candidate.interaction_preferences),
         interests,
         commonInterestsCount: common.length,

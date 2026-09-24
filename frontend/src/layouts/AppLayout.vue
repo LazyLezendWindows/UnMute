@@ -1,8 +1,7 @@
 <template>
   <div class="app-shell min-vh-100 d-flex flex-column position-relative u-page">
-    <SpatialScene mode="ambient" />
 
-    <SpatialDock :show-mobile-dock="showMobileDock" />
+    <AppNav :show-mobile-dock="showMobileDock" />
 
     <main
       :class="{ 'has-mobile-dock': showMobileDock }"
@@ -21,8 +20,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import SpatialScene from '../components/scene/SpatialScene.vue';
-import SpatialDock from '../components/layout/SpatialDock.vue';
+import AppNav from '../components/layout/AppNav.vue';
 import MatchModal from '../components/matching/MatchModal.vue';
 import { useDiscoverStore } from '../stores/discover';
 import { useChatStore } from '../stores/chat';
@@ -42,13 +40,14 @@ watch(
     if (!signedIn) return;
     chatStore.initSocketHandlers();
     chatStore.loadConversations();
+    chatStore.loadRequests();
     if (authStore.user) resyncPush(authStore.user.id);
   },
   { immediate: true }
 );
 
-// Inside an open conversation the message composer owns the bottom of the screen.
-const showMobileDock = computed(() => !(route.name === 'chat' && route.params.id));
+// Inside an open conversation (or request) its composer / actions own the bottom of the screen.
+const showMobileDock = computed(() => !(route.name === 'chat' && (route.params.id || route.query.request)));
 </script>
 
 <style scoped lang="scss">
@@ -61,18 +60,18 @@ const showMobileDock = computed(() => !(route.name === 'chat' && route.params.id
 
 .app-main {
   z-index: 10;
-  padding: 0.5rem 1rem 1.5rem;
+  padding: calc(var(--unmute-safe-top) + 0.75rem) 1rem 1.5rem;
 
-  // Clearance for the floating mobile dock (and the home indicator).
+  // Clearance for the bottom tab bar (and the home indicator).
   &.has-mobile-dock {
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--unmute-tabbar-height) + var(--unmute-safe-bottom) + 1rem);
   }
 
-  // Desktop: content sits to the right of the dock rail.
+  // Desktop: content sits to the right of the navigation rail.
   @media (min-width: 768px) {
     &,
     &.has-mobile-dock {
-      padding: 2rem 2rem 2rem calc(var(--unmute-dock-width) + 3rem);
+      padding: 2rem 2rem 2rem calc(var(--unmute-dock-width) + 2rem);
     }
   }
 }

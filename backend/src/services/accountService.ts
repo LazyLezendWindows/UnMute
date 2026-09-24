@@ -10,6 +10,8 @@ import { AccountDataRepository } from '../repositories/accountDataRepository';
 import { getSocketServer } from '../sockets/chatSocket';
 import { ProfileRepository } from '../repositories/profileRepository';
 import { PhotoService } from './photoService';
+import { PhotoRepository } from '../repositories/photoRepository';
+import { MessageRepository } from '../repositories/messageRepository';
 
 function disconnectEverywhere(userId: string): void {
   getSocketServer()?.in(`user:${userId}`).disconnectSockets(true);
@@ -85,10 +87,15 @@ export class AccountService {
     if (session.ageSeconds > config.recentAuthMinutes * 60) {
       throw new AppError('For your security, please sign in again before deleting your account.', 403, 'REAUTH_REQUIRED');
     }
-    const profile = await ProfileRepository.findByUserId(session.userId);
+    const [profile, photos, chatPhotos] = await Promise.all([
+      ProfileRepository.findByUserId(session.userId),
+      PhotoRepository.list(session.userId),
+      MessageRepository.attachmentsSentBy(session.userId),
+    ]);
     await getDatabase().transaction((tx) => UserRepository.delete(tx, session.userId));
     disconnectEverywhere(session.userId);
-    void PhotoService.deleteUploaded(profile?.avatar_url);
+    const files = new Set([profile?.avatar_url ?? '', ...photos.map((p) => p.url), ...chatPhotos].filter(Boolean));
+    void PhotoService.deleteAllFor([...files]);
     console.info(`[Account] ${session.userId} deleted their account`);
   }
 }

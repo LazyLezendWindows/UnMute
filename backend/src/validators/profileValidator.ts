@@ -29,6 +29,9 @@ export const updateProfileSchema = z.object({
     .array(idSchema)
     .max(15, 'Cannot select more than 15 interests')
     .optional(),
+  profession: z.string().trim().max(80, 'Profession cannot exceed 80 characters').optional(),
+  /** Whether other members may see when you are online. */
+  showOnline: z.boolean().optional(),
 });
 
 /** Deleting an account is irreversible, so the client must send an explicit confirmation. */
@@ -44,3 +47,5 @@ export const confirmPhotoSchema = z.object({
   version: z.number().int().positive(),
   signature: z.string().regex(/^[a-f0-9]{40}$/, 'Invalid photo'),
 });
+
+export const photoParamsSchema = z.object({ photoId: idSchema });

@@ -10,5 +10,7 @@ router.use(requireAuth);
 
 router.post('/like', validateBody(interactionSchema), InteractionController.like);
 router.post('/pass', validateBody(interactionSchema), InteractionController.pass);
+// People who liked you and are waiting for your answer.
+router.get('/incoming', InteractionController.incomingLikes);
 
 export default router;
