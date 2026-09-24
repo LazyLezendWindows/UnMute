@@ -52,6 +52,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/profile/edit',
+      name: 'profile-edit',
+      component: () => import('../pages/EditProfilePage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile/interests',
+      name: 'profile-interests',
+      component: () => import('../pages/InterestsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/safety',
       name: 'safety',
       component: () => import('../pages/SafetyPage.vue'),
@@ -61,6 +73,12 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: () => import('../pages/SettingsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings/appearance',
+      name: 'settings-appearance',
+      component: () => import('../pages/AppearancePage.vue'),
       meta: { requiresAuth: true },
     },
   ],

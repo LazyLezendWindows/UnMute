@@ -169,9 +169,14 @@
             <span class="status-dot" aria-hidden="true"></span>{{ headerStatus }}
           </span>
         </div>
-        <button type="button" class="header-icon" aria-label="Block or report" title="Block or report" @click="isSafetyOpen = true">
-          <i class="ri-more-2-fill" aria-hidden="true"></i>
-        </button>
+        <div class="d-flex align-items-center gap-1">
+          <button type="button" class="header-icon" aria-label="Call" title="Call" @click="handleCall">
+            <i class="ri-phone-fill text-muted" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="header-icon" aria-label="Block or report" title="Block or report" @click="isSafetyOpen = true">
+            <i class="ri-more-2-fill" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Messages Stream -->
@@ -252,6 +257,9 @@
                 <i class="ri-image-line" aria-hidden="true"></i>
               </button>
             </template>
+            <button type="button" class="composer-icon" aria-label="Add emoji" @click="toggleEmoji">
+              <i class="ri-emotion-line" aria-hidden="true"></i>
+            </button>
           </div>
           <button type="submit" class="composer-send" aria-label="Send" :disabled="!inputContent.trim() || chatStore.sending">
             <i class="ri-send-plane-2-fill" aria-hidden="true"></i>
@@ -308,6 +316,14 @@ const chatStore = useChatStore();
 const inputContent = ref('');
 const isSafetyOpen = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
+
+function handleCall() {
+  useToastStore().info('Audio & video calls are coming in the next update!');
+}
+
+function toggleEmoji() {
+  inputContent.value += ' 😊';
+}
 
 const activeConversationId = computed(() => {
   return (route.params.id as string) || chatStore.activeConversationId;

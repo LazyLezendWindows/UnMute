@@ -2,6 +2,11 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
+import nodeCrypto from 'node:crypto';
+
+if (typeof (global as any).crypto === 'undefined') {
+  (global as any).crypto = (nodeCrypto as any).webcrypto || nodeCrypto;
+}
 
 // Where the dev server proxies /api and /socket.io (the e2e suite runs its own backend).
 const apiProxyTarget = process.env.API_PROXY_TARGET || 'http://localhost:5000';

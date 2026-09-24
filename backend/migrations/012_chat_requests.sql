@@ -15,13 +15,13 @@ SET c.user_a_id = s.b, c.user_b_id = s.a;
 
 -- 2. Request lifecycle columns.
 SET @sql = (SELECT IF(COUNT(*) = 0,
-  "ALTER TABLE conversations
-     ADD COLUMN status ENUM('pending', 'accepted', 'declined', 'cancelled') NOT NULL DEFAULT 'accepted',
+  'ALTER TABLE conversations
+     ADD COLUMN status ENUM(\'pending\', \'accepted\', \'declined\', \'cancelled\') NOT NULL DEFAULT \'accepted\',
      ADD COLUMN requester_id VARCHAR(64) NULL,
      ADD COLUMN recipient_id VARCHAR(64) NULL,
      ADD COLUMN requested_at DATETIME(3) NULL,
      ADD COLUMN responded_at DATETIME(3) NULL,
-     ADD COLUMN declined_at DATETIME(3) NULL",
+     ADD COLUMN declined_at DATETIME(3) NULL',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'conversations' AND COLUMN_NAME = 'status');

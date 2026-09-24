@@ -37,7 +37,7 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 3. Staff roles. Granted from the command line (npm run grant-role), never through the API.
 SET @sql = (SELECT IF(COUNT(*) = 0,
-  "ALTER TABLE users ADD COLUMN role ENUM('member', 'moderator', 'admin') NOT NULL DEFAULT 'member'",
+  'ALTER TABLE users ADD COLUMN role ENUM(\'member\', \'moderator\', \'admin\') NOT NULL DEFAULT \'member\'',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role');
@@ -46,15 +46,15 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 -- 4. Reports: a review workflow, the conversation they concern, and an evidence snapshot taken
 --    when the report is filed (so it survives message or account deletion).
 SET @sql = (SELECT IF(COUNT(*) = 0,
-  "ALTER TABLE reports
-     MODIFY status ENUM('pending', 'reviewed', 'resolved', 'rejected') NOT NULL DEFAULT 'pending',
+  'ALTER TABLE reports
+     MODIFY status ENUM(\'pending\', \'reviewed\', \'resolved\', \'rejected\') NOT NULL DEFAULT \'pending\',
      ADD COLUMN conversation_id VARCHAR(64) NULL,
      ADD COLUMN evidence MEDIUMTEXT NULL,
      ADD COLUMN reviewed_by VARCHAR(64) NULL,
      ADD COLUMN reviewed_at DATETIME NULL,
      ADD COLUMN resolution_note TEXT NULL,
      ADD INDEX idx_reports_status (status, created_at),
-     ADD CONSTRAINT fk_reports_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL",
+     ADD CONSTRAINT fk_reports_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'reports' AND COLUMN_NAME = 'evidence');

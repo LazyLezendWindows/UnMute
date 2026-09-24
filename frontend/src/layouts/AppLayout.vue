@@ -46,8 +46,13 @@ watch(
   { immediate: true }
 );
 
-// Inside an open conversation (or request) its composer / actions own the bottom of the screen.
-const showMobileDock = computed(() => !(route.name === 'chat' && (route.params.id || route.query.request)));
+// Inside an open conversation (or secondary screens) the bottom bar is hidden.
+const HIDE_DOCK_ROUTES = new Set(['profile-edit', 'profile-interests', 'settings-appearance']);
+const showMobileDock = computed(() => {
+  if (route.name === 'chat' && (route.params.id || route.query.request)) return false;
+  if (HIDE_DOCK_ROUTES.has(route.name as string)) return false;
+  return true;
+});
 </script>
 
 <style scoped lang="scss">

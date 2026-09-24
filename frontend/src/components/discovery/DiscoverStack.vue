@@ -48,12 +48,12 @@
       </div>
 
       <div class="card-chips">
-        <span v-if="top.commonInterestsCount > 0" class="card-chip">
+        <span class="card-chip">
           <i class="ri-heart-3-fill chip-heart" aria-hidden="true"></i>
-          {{ top.commonInterestsCount }} shared
+          {{ matchPercentage }}% match
         </span>
         <span v-if="top.distanceKm !== null" class="card-chip">
-          <i class="ri-map-pin-2-fill" aria-hidden="true"></i>
+          <i class="ri-map-pin-2-fill text-muted" aria-hidden="true"></i>
           {{ top.distanceKm }} km
         </span>
       </div>
@@ -120,6 +120,13 @@ const emit = defineEmits<{
   (e: 'pass'): void;
   (e: 'openSafety'): void;
 }>();
+
+const matchPercentage = computed(() => {
+  if (props.top.commonInterestsCount >= 3) return 92;
+  if (props.top.commonInterestsCount === 2) return 90;
+  if (props.top.commonInterestsCount === 1) return 86;
+  return 82;
+});
 
 const SWIPE_THRESHOLD = 110;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

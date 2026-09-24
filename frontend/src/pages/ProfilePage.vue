@@ -1,514 +1,369 @@
 <template>
-  <div class="profile-page d-flex flex-column w-100">
-    <PageHeader title="Profile" subtitle="How you appear to people you meet.">
-      <template #actions>
-        <UButton variant="glass" size="sm" @click="router.push('/settings')">
-          <i class="ri-settings-3-line me-1" aria-hidden="true"></i>
-          Settings
-        </UButton>
-        <UButton variant="ghost" size="sm" @click="handleLogout">Log out</UButton>
-      </template>
-    </PageHeader>
+  <div class="profile-page d-flex flex-column w-100 pb-5">
+    <!-- Header -->
+    <header class="profile-header d-flex justify-content-between align-items-center mb-3">
+      <h1 class="page-title mb-0">Profile</h1>
+      <router-link to="/settings" class="settings-btn" aria-label="Settings">
+        <i class="ri-settings-3-line" aria-hidden="true"></i>
+      </router-link>
+    </header>
 
-    <div class="profile-grid">
-      <!-- Identity: how others see you, and what would make the profile stronger -->
-      <aside class="identity glass-pane enter-rise" style="--i: 0">
-        <div class="identity-avatar">
-          <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="xl" />
+    <div class="profile-body enter-rise d-flex flex-column gap-3">
+      <!-- Centered Avatar, Name, Location, Education -->
+      <div class="profile-hero d-flex flex-column align-items-center text-center">
+        <div class="avatar-wrapper position-relative mb-2">
+          <div class="avatar-ring">
+            <UAvatar :src="authStore.profile?.avatarUrl" :name="displayName" size="xl" />
+          </div>
+          <!-- Camera badge icon at bottom right -->
+          <button type="button" class="avatar-camera-badge" @click="router.push('/profile/edit')" aria-label="Change photo">
+            <i class="ri-camera-fill" aria-hidden="true"></i>
+          </button>
         </div>
-        <h2 class="identity-name mb-0">
-          {{ authStore.profile?.displayName || 'You' }}<span v-if="authStore.profile?.age">, {{ authStore.profile.age }}</span>
-        </h2>
-        <p v-if="authStore.profile?.approximateLocation" class="identity-line mb-0">
-          <i class="ri-map-pin-2-line" aria-hidden="true"></i> {{ authStore.profile.approximateLocation }}
-        </p>
-        <p v-if="authStore.profile?.education" class="identity-line mb-0">
-          <i class="ri-graduation-cap-line" aria-hidden="true"></i>
-          {{ authStore.profile.education.institutionShortName || authStore.profile.education.institutionName }}
-        </p>
 
-        <div class="strength">
-          <svg class="strength-ring" viewBox="0 0 120 120" role="img" :aria-label="`Profile ${strength.percent}% complete`">
-            <defs>
-              <linearGradient id="strength-gradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="var(--unmute-primary-light)" />
-                <stop offset="100%" stop-color="var(--unmute-primary)" />
-              </linearGradient>
-            </defs>
-            <circle class="ring-track" cx="60" cy="60" r="52" />
-            <circle
-              class="ring-value"
-              cx="60"
-              cy="60"
-              r="52"
-              :stroke-dasharray="`${(strength.percent / 100) * RING_LENGTH} ${RING_LENGTH}`"
-            />
-          </svg>
-          <div class="strength-label">
-            <strong>{{ strength.percent }}%</strong>
-            <span>profile strength</span>
+        <div class="d-flex align-items-center justify-content-center gap-1">
+          <h2 class="hero-name mb-0">
+            {{ displayName }}<span v-if="authStore.profile?.age">, {{ authStore.profile.age }}</span>
+          </h2>
+          <i v-if="authStore.profile?.isVerified" class="ri-verified-badge-fill verified-badge" title="Verified"></i>
+        </div>
+
+        <p v-if="authStore.profile?.approximateLocation" class="hero-sub mb-1 mt-1">
+          <i class="ri-map-pin-2-fill text-muted me-1"></i>
+          {{ authStore.profile.approximateLocation }}
+        </p>
+        <router-link v-else to="/profile/edit" class="hero-sub-action mb-1 mt-1 text-decoration-none">
+          <i class="ri-map-pin-2-line me-1"></i>
+          Add your location
+        </router-link>
+
+        <p v-if="educationText" class="hero-sub mb-0">
+          <i class="ri-graduation-cap-fill text-muted me-1"></i>
+          {{ educationText }}
+        </p>
+        <router-link v-else to="/profile/edit" class="hero-sub-action mb-0 text-decoration-none">
+          <i class="ri-graduation-cap-line me-1"></i>
+          Add your education
+        </router-link>
+      </div>
+
+      <!-- Profile Strength Card -->
+      <div class="profile-strength-card p-3 d-flex align-items-center gap-3">
+        <div class="strength-icon-box flex-shrink-0 d-flex align-items-center justify-content-center">
+          <i class="ri-heart-3-fill" aria-hidden="true"></i>
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="strength-label">Profile strength</span>
+            <span class="strength-percent">{{ strengthPercent }}%</span>
+          </div>
+          <div class="strength-bar-bg">
+            <div class="strength-bar-fill" :style="{ width: `${strengthPercent}%` }"></div>
           </div>
         </div>
-
-        <ul v-if="strength.missing.length" class="strength-todo list-unstyled mb-0">
-          <li v-for="item in strength.missing" :key="item">
-            <i class="ri-add-circle-line" aria-hidden="true"></i> {{ item }}
-          </li>
-        </ul>
-        <p v-else class="identity-line mb-0 justify-content-center">
-          <i class="ri-checkbox-circle-line" aria-hidden="true"></i> Your profile is complete
-        </p>
-      </aside>
-
-      <div class="d-flex flex-column gap-4 min-w-0 enter-rise" style="--i: 1">
-        <!-- Feedback Message -->
-        <div v-if="errorMsg" class="alert alert-danger py-2 px-3 small rounded-3 mb-0">
-          {{ errorMsg }}
-        </div>
-
-        <!-- Profile Form in UCard -->
-        <form @submit.prevent="saveProfile">
-          <UCard variant="elevated" padding="lg">
-            <div class="d-flex flex-column gap-4">
-              <!-- Avatar Section with UAvatar -->
-              <div class="d-flex align-items-center gap-3 p-3 rounded-4 surface-raised border u-border-default">
-                <UAvatar
-                  :src="authStore.profile?.avatarUrl"
-                  :name="form.displayName || 'User'"
-                  size="xl"
-                  :border="true"
-                />
-
-                <div class="flex-grow-1 d-flex flex-column gap-2 min-w-0">
-                  <span class="small fw-bold u-text-primary">Profile photo</span>
-                  <div class="d-flex flex-wrap gap-2">
-                    <template v-if="photoUploads">
-                      <input
-                        ref="photoInput"
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
-                        class="visually-hidden"
-                        tabindex="-1"
-                        aria-hidden="true"
-                        @change="onPhotoChosen"
-                      />
-                      <UButton variant="secondary" size="sm" :loading="photoBusy === 'upload'" :disabled="photoBusy !== null" @click="photoInput?.click()">
-                        <i class="ri-upload-2-line me-1" aria-hidden="true"></i>
-                        {{ authStore.profile?.avatarUrl ? 'Change photo' : 'Upload photo' }}
-                      </UButton>
-                    </template>
-                    <UButton
-                      v-if="authStore.profile?.avatarUrl"
-                      variant="ghost"
-                      size="sm"
-                      :loading="photoBusy === 'remove'"
-                      :disabled="photoBusy !== null"
-                      @click="removePhoto"
-                    >
-                      <i class="ri-delete-bin-6-line me-1" aria-hidden="true"></i> Remove photo
-                    </UButton>
-                  </div>
-                  <p class="extra-small mb-0 u-text-muted">
-                    {{
-                      photoUploads
-                        ? 'JPEG, PNG, WebP or HEIC, up to 10 MB. Location and camera details are removed.'
-                        : 'Your Google profile photo is used when you sign in with Google.'
-                    }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Display Name & Age Info -->
-              <div class="row g-3">
-                <div class="col-12 col-sm-6">
-                  <UInput
-                    v-model="form.displayName"
-                    label="Display Name"
-                    required
-                    placeholder="Your name"
-                  />
-                </div>
-
-                <div class="col-12 col-sm-6">
-                  <UInput
-                    :model-value="authStore.profile?.age ? `${authStore.profile.age} years old` : '18+'"
-                    label="Age (Verified 18+)"
-                    disabled
-                    hint="Calculated from date of birth"
-                  />
-                </div>
-              </div>
-
-              <!-- Bio / About You -->
-              <div>
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                  <label class="form-label small fw-semibold mb-0 u-text-secondary">
-                    About You & Conversation Prompts
-                  </label>
-                  <span class="extra-small u-text-dim">{{ (form.bio || '').length }}/500</span>
-                </div>
-                <textarea
-                  v-model="form.bio"
-                  rows="3"
-                  maxlength="500"
-                  placeholder="What kind of topics spark your curiosity? Favorite books, coffee habits, creative projects..."
-                  class="form-control rounded-3 p-3 small u-input-surface"
-                ></textarea>
-              </div>
-
-              <!-- Preferred Interaction Types -->
-              <div>
-                <label class="form-label small fw-semibold mb-2 u-text-secondary">
-                  What kind of interactions are you open to?
-                </label>
-                <div class="d-flex flex-wrap gap-2">
-                  <button
-                    v-for="pref in availablePreferences"
-                    :key="pref"
-                    type="button"
-                    @click="togglePreference(pref)"
-                    class="pref-chip-btn btn btn-sm py-1 px-3 border-0 small fw-semibold rounded-pill user-select-none"
-                    :class="
-                      form.interactionPreferences.includes(pref)
-                        ? 'pref-selected'
-                        : 'surface-raised u-text-secondary'
-                    "
-                  >
-                    {{ pref }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Interests Selector -->
-              <div class="pt-3 border-top u-border-default">
-                <label class="form-label small fw-semibold mb-2 u-text-secondary">Interests & Hobbies</label>
-                <InterestSelector v-model="form.interestIds" />
-              </div>
-
-              <!-- Save Button -->
-              <div class="pt-3 border-top d-flex justify-content-end u-border-default">
-                <UButton
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  :loading="saving"
-                >
-                  Save Profile
-                </UButton>
-              </div>
-            </div>
-          </UCard>
-        </form>
-
-        <!-- Area and education save on their own, separately from the form above. -->
-        <UCard variant="elevated" padding="lg">
-          <h2 class="fs-6 fw-bold mb-1 u-text-primary">Your area</h2>
-          <p class="small mb-3 u-text-muted">Used for "near me" and area filters in Discover.</p>
-          <LocationPicker />
-        </UCard>
-
-        <UCard variant="elevated" padding="lg">
-          <h2 class="fs-6 fw-bold mb-1 u-text-primary">Education</h2>
-          <p class="small mb-3 u-text-muted">Optional. Helps classmates and alumni find you.</p>
-          <EducationPicker />
-        </UCard>
       </div>
+
+      <!-- Real Stats Card -->
+      <div class="profile-stats-card p-3 d-flex align-items-center justify-content-around text-center">
+        <div class="stat-col flex-1">
+          <span class="stat-num">{{ chatStore.conversations.length }}</span>
+          <span class="stat-txt">Conversations</span>
+        </div>
+        <div class="stat-separator"></div>
+        <div class="stat-col flex-1">
+          <span class="stat-num">{{ chatStore.matches.length }}</span>
+          <span class="stat-txt">Matches</span>
+        </div>
+        <div class="stat-separator"></div>
+        <div class="stat-col flex-1">
+          <span class="stat-num">{{ chatStore.incomingLikes.length }}</span>
+          <span class="stat-txt">Likes</span>
+        </div>
+      </div>
+
+      <!-- Edit Profile Action Card -->
+      <router-link to="/profile/edit" class="edit-profile-card p-3 d-flex align-items-center justify-content-between text-decoration-none">
+        <div class="d-flex align-items-center gap-3">
+          <div class="edit-icon-box flex-shrink-0 d-flex align-items-center justify-content-center">
+            <i class="ri-article-line" aria-hidden="true"></i>
+          </div>
+          <div class="d-flex flex-column text-start">
+            <span class="edit-title">Edit profile</span>
+            <span class="edit-subtitle">Update your photos, bio and interests</span>
+          </div>
+        </div>
+        <i class="ri-arrow-right-s-line chevron-icon" aria-hidden="true"></i>
+      </router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted } from 'vue';
-import PageHeader from '../components/layout/PageHeader.vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import UCard from '../components/ui/UCard.vue';
 import UAvatar from '../components/ui/UAvatar.vue';
-import UInput from '../components/ui/UInput.vue';
-import UButton from '../components/ui/UButton.vue';
-import InterestSelector from '../components/profile/InterestSelector.vue';
-import LocationPicker from '../components/location/LocationPicker.vue';
-import EducationPicker from '../components/education/EducationPicker.vue';
 import { useAuthStore } from '../stores/auth';
-import { useToastStore } from '../stores/toast';
-import { loadAuthConfig } from '../services/authConfig';
+import { useChatStore } from '../stores/chat';
 
 const router = useRouter();
 const authStore = useAuthStore();
-
-const RING_LENGTH = 2 * Math.PI * 52;
-
-/** What a complete profile has; drives the strength ring and the "add this" list. */
-const strength = computed(() => {
-  const p = authStore.profile;
-  const checks: [boolean, string][] = [
-    [Boolean(p?.avatarUrl), 'Add a profile photo'],
-    [(p?.bio || '').trim().length >= 20, 'Write a short bio'],
-    [(p?.interests?.length ?? 0) >= 3, 'Pick at least 3 interests'],
-    [(p?.interactionPreferences?.length ?? 0) > 0, 'Say what you are open to'],
-    [Boolean(p?.location), 'Set your area'],
-    [Boolean(p?.education), 'Add your college (optional)'],
-  ];
-  const done = checks.filter(([ok]) => ok).length;
-  return { percent: Math.round((done / checks.length) * 100), missing: checks.filter(([ok]) => !ok).map(([, label]) => label) };
-});
-
-const saving = ref(false);
-const errorMsg = ref<string | null>(null);
-
-const availablePreferences = [
-  'Deep conversations',
-  'Casual chats',
-  'Shared hobbies',
-  'Creative collaboration',
-  'Book/Movie discussions',
-  'Coding & Tech talk',
-  'Philosophy & Ideas',
-  'Language exchange',
-];
-
-const form = reactive({
-  displayName: '',
-  bio: '',
-  interactionPreferences: [] as string[],
-  interestIds: [] as string[],
-});
-
-onMounted(() => {
-  const profile = authStore.profile;
-  if (profile) {
-    form.displayName = profile.displayName || '';
-    form.bio = profile.bio || '';
-    form.interactionPreferences = [...(profile.interactionPreferences || [])];
-    form.interestIds = (profile.interests || []).map((i) => i.id);
-  }
-});
-
-function togglePreference(pref: string) {
-  if (form.interactionPreferences.includes(pref)) {
-    form.interactionPreferences = form.interactionPreferences.filter((p) => p !== pref);
-  } else {
-    form.interactionPreferences.push(pref);
-  }
-}
-
-async function saveProfile() {
-  saving.value = true;
-  errorMsg.value = null;
-  try {
-    await authStore.updateProfile({
-      displayName: form.displayName,
-      bio: form.bio,
-      interactionPreferences: form.interactionPreferences,
-      interestIds: form.interestIds,
-    });
-    useToastStore().success('Profile updated.');
-  } catch (err: any) {
-    errorMsg.value = err.message || 'Failed to update profile';
-  } finally {
-    saving.value = false;
-  }
-}
-
-// Photo changes apply immediately (they are not part of the Save button's form).
-const photoUploads = ref(false);
-const photoBusy = ref<'upload' | 'remove' | null>(null);
-const photoInput = ref<HTMLInputElement | null>(null);
+const chatStore = useChatStore();
 
 onMounted(async () => {
-  try {
-    photoUploads.value = (await loadAuthConfig()).photoUploads;
-  } catch {
-    photoUploads.value = false;
-  }
+  await Promise.allSettled([
+    authStore.fetchMe(),
+    chatStore.loadMatches(),
+    chatStore.loadIncomingLikes(),
+    chatStore.loadConversations(),
+  ]);
 });
 
-async function onPhotoChosen(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = ''; // choosing the same file again still triggers a change
-  if (!file) return;
-  photoBusy.value = 'upload';
-  try {
-    await authStore.uploadPhoto(file);
-    useToastStore().success('Photo updated.');
-  } catch (err) {
-    useToastStore().error(err instanceof Error && err.message ? err.message : 'The upload failed. Please try again.');
-  } finally {
-    photoBusy.value = null;
-  }
-}
+const displayName = computed(() => {
+  return authStore.profile?.displayName || authStore.user?.email?.split('@')[0] || 'Member';
+});
 
-async function removePhoto() {
-  photoBusy.value = 'remove';
-  try {
-    await authStore.removePhoto();
-    useToastStore().success('Photo removed.');
-  } catch (err) {
-    useToastStore().error(err instanceof Error && err.message ? err.message : 'Could not remove the photo.');
-  } finally {
-    photoBusy.value = null;
-  }
-}
+const educationText = computed(() => {
+  const edu = authStore.profile?.education;
+  if (!edu) return null;
+  const name = edu.institutionShortName || edu.institutionName;
+  return edu.course ? `${name} · ${edu.course}` : name;
+});
 
-async function handleLogout() {
-  await authStore.logout();
-  router.push('/login');
-}
+const strengthPercent = computed(() => {
+  const p = authStore.profile;
+  if (!p) return 0;
+  const checks: boolean[] = [
+    Boolean(p.avatarUrl),
+    (p.bio || '').trim().length >= 20,
+    (p.interests?.length ?? 0) >= 3,
+    (p.interactionPreferences?.length ?? 0) > 0,
+    Boolean(p.location),
+    Boolean(p.education),
+  ];
+  const done = checks.filter((ok) => ok).length;
+  return Math.round((done / checks.length) * 100);
+});
 </script>
 
 <style scoped lang="scss">
-.profile-grid {
-  display: grid;
-  gap: 1.5rem;
-  align-items: start;
-
-  @media (min-width: 992px) {
-    grid-template-columns: 19rem minmax(0, 1fr);
-    gap: 2rem;
-  }
+.profile-page {
+  max-width: 28rem;
+  margin: 0 auto;
 }
 
-.identity {
-  border-radius: var(--unmute-radius-xl);
-  padding: 2rem 1.5rem;
+.profile-header {
+  padding: 0.5rem 0.25rem;
+}
+
+.page-title {
+  font-family: var(--unmute-font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--unmute-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.settings-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  color: var(--unmute-text-secondary);
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: var(--unmute-shadow-sm);
+  font-size: 1.25rem;
+  text-decoration: none;
+  transition: all var(--unmute-transition-fast);
 
-  @media (min-width: 992px) {
-    position: sticky;
-    top: 2rem;
+  &:hover {
+    color: var(--unmute-text-primary);
+    border-color: var(--unmute-glass-border-hover);
   }
 }
 
-.identity-avatar {
-  padding: 5px;
+.profile-hero {
+  padding: 0.5rem 0 1rem;
+}
+
+.avatar-wrapper {
+  display: inline-block;
+}
+
+.avatar-ring {
+  padding: 3px;
   border-radius: 50%;
-  background: var(--unmute-chrome);
-  box-shadow: var(--unmute-shadow-lg);
-  margin-bottom: 0.75rem;
+  background: var(--unmute-primary-gradient);
 
   :deep(.u-avatar),
   :deep(img),
   :deep(div) {
     border-radius: 50% !important;
+    border: 3px solid var(--unmute-surface);
   }
 }
 
-.identity-name {
-  font-size: 1.5rem;
+.avatar-camera-badge {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--unmute-text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform var(--unmute-transition-fast);
+
+  &:hover {
+    transform: scale(1.08);
+  }
+}
+
+.hero-name {
+  font-family: var(--unmute-font-display);
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
   color: var(--unmute-text-primary);
 }
 
-.identity-line {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.88rem;
+.verified-badge {
+  color: #3b82f6;
+  font-size: 1.15rem;
+}
+
+.hero-sub {
+  font-size: 0.875rem;
   color: var(--unmute-text-muted);
 }
 
-.strength {
-  position: relative;
-  width: 8.5rem;
-  height: 8.5rem;
-  margin: 1.25rem 0 0.75rem;
+.hero-sub-action {
+  font-size: 0.8125rem;
+  color: var(--unmute-primary);
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
-.strength-ring {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
+/* Cards */
+.profile-strength-card,
+.profile-stats-card,
+.edit-profile-card {
+  background: var(--unmute-surface);
+  border: 1px solid var(--unmute-glass-border);
+  border-radius: var(--unmute-radius-lg);
+  box-shadow: 0 4px 14px -4px rgba(70, 25, 55, 0.06);
 }
 
-.ring-track {
-  fill: none;
-  stroke: var(--unmute-glass-border);
-  stroke-width: 10;
-}
-
-.ring-value {
-  fill: none;
-  stroke: url(#strength-gradient);
-  stroke-width: 10;
-  stroke-linecap: round;
-  transition: stroke-dasharray 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Profile Strength */
+.strength-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--unmute-radius-sm);
+  background: #fdf2f8;
+  color: var(--unmute-primary);
+  font-size: 1.25rem;
 }
 
 .strength-label {
-  position: absolute;
-  inset: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--unmute-text-secondary);
+}
+
+.strength-percent {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--unmute-text-primary);
+}
+
+.strength-bar-bg {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #f3e8ee;
+  overflow: hidden;
+}
+
+.strength-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--unmute-primary-gradient);
+  transition: width 0.4s ease;
+}
+
+/* Stats Card */
+.stat-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-
-  strong {
-    font-family: var(--unmute-font-display);
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: var(--unmute-text-primary);
-    line-height: 1;
-  }
-
-  span {
-    font-size: 0.68rem;
-    color: var(--unmute-text-muted);
-    margin-top: 0.2rem;
-  }
+  gap: 0.15rem;
 }
 
-.strength-todo {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  text-align: left;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--unmute-radius-sm);
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--unmute-text-secondary);
-    background: var(--unmute-glass-surface);
-    box-shadow: var(--unmute-glass-edge);
-
-    i {
-      color: var(--unmute-accent-text);
-    }
-  }
+.stat-num {
+  font-family: var(--unmute-font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--unmute-text-primary);
+  line-height: 1.1;
 }
 
-.min-w-0 {
-  min-width: 0;
+.stat-txt {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--unmute-text-muted);
 }
 
-.extra-small {
-  font-size: 0.6875rem;
+.stat-separator {
+  width: 1px;
+  height: 2rem;
+  background: var(--unmute-glass-border);
 }
 
-.pref-chip-btn {
-  border: 1px solid var(--unmute-border, rgba(255, 255, 255, 0.08)) !important;
-  transition: all 0.18s ease;
+/* Edit Profile Card */
+.edit-profile-card {
+  transition: background var(--unmute-transition-fast), border-color var(--unmute-transition-fast);
+  cursor: pointer;
 
   &:hover {
-    transform: translateY(-1px);
-    color: #ffffff;
+    background: var(--unmute-surface-raised);
+    border-color: var(--unmute-glass-border-hover);
   }
+}
 
-  &.pref-selected {
-    background: var(--unmute-primary-gradient);
-    box-shadow: var(--unmute-glow-primary);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.25) !important;
-  }
+.edit-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--unmute-radius-sm);
+  background: #fdf2f8;
+  color: var(--unmute-primary);
+  font-size: 1.25rem;
+}
+
+.edit-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--unmute-text-primary);
+}
+
+.edit-subtitle {
+  font-size: 0.8125rem;
+  color: var(--unmute-text-muted);
+}
+
+.chevron-icon {
+  font-size: 1.25rem;
+  color: var(--unmute-text-muted);
 }
 </style>

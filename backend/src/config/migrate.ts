@@ -20,6 +20,7 @@ export async function runMigrations(options: { database?: string } = {}): Promis
     multipleStatements: true,
   });
   try {
+    await conn.query("SET SESSION sql_mode = REPLACE(REPLACE(@@sql_mode, 'ANSI_QUOTES', ''), 'ANSI', '')");
     const [lockRows] = await conn.query('SELECT GET_LOCK(?, 30) AS acquired', [LOCK_NAME]);
     if ((lockRows as any[])[0]?.acquired !== 1) {
       throw new Error('Could not acquire the schema migration lock');

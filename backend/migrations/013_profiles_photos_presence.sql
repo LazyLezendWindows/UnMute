@@ -3,9 +3,9 @@
 
 -- 1. Profession (optional, shown on cards) and whether others may see when you are online.
 SET @sql = (SELECT IF(COUNT(*) = 0,
-  "ALTER TABLE profiles
-     ADD COLUMN profession VARCHAR(80) NOT NULL DEFAULT '',
-     ADD COLUMN show_online TINYINT(1) NOT NULL DEFAULT 1",
+  'ALTER TABLE profiles
+     ADD COLUMN profession VARCHAR(80) NOT NULL DEFAULT \'\',
+     ADD COLUMN show_online TINYINT(1) NOT NULL DEFAULT 1',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'profession');

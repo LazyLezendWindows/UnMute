@@ -151,6 +151,22 @@ export const useAuthStore = defineStore('auth', () => {
     return applyProfile(api.delete('/users/me/photo'));
   }
 
+  async function addPhoto(file: File): Promise<Profile> {
+    const { preparePhoto, uploadToCloudinary } = await import('../platform/photoUpload');
+    const photo = await preparePhoto(file);
+    const signed = await api.post('/users/me/photo/upload');
+    const uploaded = await uploadToCloudinary(signed.data.data, photo);
+    return applyProfile(api.post('/users/me/photos', uploaded));
+  }
+
+  function setMainPhoto(photoId: string): Promise<Profile> {
+    return applyProfile(api.put(`/users/me/photos/${photoId}/main`));
+  }
+
+  function removePhotoById(photoId: string): Promise<Profile> {
+    return applyProfile(api.delete(`/users/me/photos/${photoId}`));
+  }
+
   /** Location and education endpoints respond with the updated own profile. */
   async function applyProfile(request: Promise<{ data: { data: Profile } }>): Promise<Profile> {
     const res = await request;
@@ -234,6 +250,9 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfile,
     uploadPhoto,
     removePhoto,
+    addPhoto,
+    setMainPhoto,
+    removePhotoById,
     setLocation,
     setLocationPrecision,
     clearLocation,

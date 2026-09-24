@@ -77,19 +77,19 @@
             @open-safety="openSafety"
           />
 
-          <!-- Pass / message / connect -->
+          <!-- Pass / Star / Heart -->
           <div class="deck-actions">
             <button type="button" class="action-orb orb-pass" aria-label="Pass" title="Pass" @click="stack?.fling('left')">
               <i class="ri-close-line" aria-hidden="true"></i>
             </button>
             <button
               type="button"
-              class="action-orb orb-message"
-              :aria-label="`Message ${discoverStore.currentCandidate.displayName}`"
-              title="Message"
+              class="action-orb orb-star"
+              :aria-label="`Star ${discoverStore.currentCandidate.displayName}`"
+              title="Star"
               @click="openMessage"
             >
-              <i class="ri-chat-heart-fill" aria-hidden="true"></i>
+              <i class="ri-star-fill" aria-hidden="true"></i>
             </button>
             <button type="button" class="action-orb orb-like" aria-label="Connect" title="Connect" @click="stack?.fling('right')">
               <i class="ri-heart-3-fill" aria-hidden="true"></i>
@@ -351,31 +351,34 @@ function onSafetyActionCompleted() {
 }
 
 .orb-pass,
-.orb-message {
-  width: 3.75rem;
-  height: 3.75rem;
+.orb-star,
+.orb-like {
   background: var(--unmute-surface);
   border: 1px solid var(--unmute-glass-border);
-  box-shadow: var(--unmute-shadow-md);
+  box-shadow: 0 8px 24px -6px rgba(70, 25, 55, 0.12);
 }
 
 .orb-pass {
-  font-size: 1.75rem;
-  color: var(--unmute-text-secondary);
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.6rem;
+  color: #64748b;
 }
 
-.orb-message {
-  font-size: 1.5rem;
-  color: var(--unmute-primary);
+.orb-star {
+  width: 3.25rem;
+  height: 3.25rem;
+  font-size: 1.4rem;
+  color: #f43f5e;
 }
 
 .orb-like {
-  width: 4.25rem;
-  height: 4.25rem;
-  font-size: 1.9rem;
-  color: #fff;
-  background: var(--unmute-primary-gradient);
-  box-shadow: var(--unmute-glow-primary), 0 0 0 4px var(--unmute-surface);
+  width: 3.9rem;
+  height: 3.9rem;
+  font-size: 1.95rem;
+  color: #e11d48;
+  box-shadow: 0 10px 26px -6px rgba(225, 29, 72, 0.35);
+  border-color: rgba(225, 29, 72, 0.2);
 }
 
 @media (prefers-reduced-motion: reduce) {

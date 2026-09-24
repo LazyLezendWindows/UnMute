@@ -4,7 +4,7 @@
 -- Re-runnable: every step checks information_schema first (MySQL has no ADD/DROP ... IF EXISTS).
 
 SET @sql = (SELECT IF(COUNT(*) = 0,
-  "ALTER TABLE users ADD COLUMN status ENUM('active', 'deactivated', 'suspended') NOT NULL DEFAULT 'active', ADD COLUMN status_changed_at DATETIME NULL DEFAULT NULL",
+  'ALTER TABLE users ADD COLUMN status ENUM(\'active\', \'deactivated\', \'suspended\') NOT NULL DEFAULT \'active\', ADD COLUMN status_changed_at DATETIME NULL DEFAULT NULL',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'status');
@@ -14,7 +14,7 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 UPDATE users SET status = 'deactivated' WHERE is_active = 0 AND status = 'active';
 
 SET @sql = (SELECT IF(COUNT(*) > 0,
-  "ALTER TABLE users DROP COLUMN is_active, ADD COLUMN is_active TINYINT(1) AS (status = 'active') STORED",
+  'ALTER TABLE users DROP COLUMN is_active, ADD COLUMN is_active TINYINT(1) AS (status = \'active\') STORED',
   'DO 0')
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'is_active'
