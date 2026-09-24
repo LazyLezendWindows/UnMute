@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import { isAtLeast18YearsOld } from '../utils/age';
+import { isAtLeast18YearsOld, isPlausibleDateOfBirth } from '../utils/age';
+
+/** Enforced server-side for every signup path: a real calendar date, then the 18+ policy. */
+const dateOfBirthSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+  .refine((dob) => isPlausibleDateOfBirth(dob), { message: 'Please enter a valid date of birth' })
+  .refine((dob) => !isPlausibleDateOfBirth(dob) || isAtLeast18YearsOld(dob), {
+    message: 'You must be at least 18 years of age to join Unmute',
+  });
 
 export const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -12,12 +21,7 @@ export const registerSchema = z.object({
     .trim()
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name cannot exceed 50 characters'),
-  dateOfBirth: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
-    .refine((dob) => isAtLeast18YearsOld(dob), {
-      message: 'You must be at least 18 years of age to join Unmute',
-    }),
+  dateOfBirth: dateOfBirthSchema,
 });
 
 export const loginSchema = z.object({
@@ -30,13 +34,7 @@ export const loginSchema = z.object({
 export const googleAuthSchema = z
   .object({
     credential: z.string().min(20, 'Google credential is required').max(4096),
-    dateOfBirth: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
-      .refine((dob) => isAtLeast18YearsOld(dob), {
-        message: 'You must be at least 18 years of age to join Unmute',
-      })
-      .optional(),
+    dateOfBirth: dateOfBirthSchema.optional(),
   })
   .strict();
 

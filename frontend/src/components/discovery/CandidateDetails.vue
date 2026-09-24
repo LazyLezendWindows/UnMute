@@ -34,6 +34,11 @@
       </div>
     </div>
 
+    <div v-if="!hasDetails" class="details-block">
+      <div class="section-label">About</div>
+      <p class="bio mb-0">{{ candidate.displayName }} hasn't added any details yet. Say hello to find out more.</p>
+    </div>
+
     <div v-if="candidate.education" class="details-block">
       <div class="section-label">Education</div>
       <div class="edu">
@@ -48,9 +53,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { DiscoveryCandidate } from '../../types';
 
-defineProps<{ candidate: DiscoveryCandidate }>();
+const props = defineProps<{ candidate: DiscoveryCandidate }>();
+
+/** Without any of these the panel would render as an empty glass bar. */
+const hasDetails = computed(() => {
+  const c = props.candidate;
+  return Boolean(c.commonInterestsCount > 0 || c.bio || c.interactionPreferences?.length || c.interests?.length || c.education);
+});
 </script>
 
 <style scoped lang="scss">

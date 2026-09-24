@@ -76,8 +76,8 @@ Unmute
 ## 4. API Design (`/api/v1`)
 
 ### Authentication & Profiles
-* `POST /api/v1/auth/register` — Register user (strictly validates age $\ge$ 18 from DOB)
-* `POST /api/v1/auth/login` — Login with email and password
+* `POST /api/v1/auth/register` — Register with email and password (strictly validates age $\ge$ 18 from DOB). Disabled in production unless `ALLOW_PASSWORD_SIGNUP=true`: it then answers `403 PASSWORD_SIGNUP_DISABLED` for every email, and new members sign up with Google
+* `POST /api/v1/auth/login` — Login with email and password (always available to existing password accounts)
 * `POST /api/v1/auth/google` — Sign in with a Google ID token (verified server-side; new users confirm date of birth)
 * `POST /api/v1/auth/logout` — Revoke the current session and clear the cookie
 * `GET  /api/v1/auth/session` — Restore the session from the cookie (`authenticated: true|false`)
@@ -112,11 +112,38 @@ Unmute
 * `GET  /api/v1/conversations/:id/messages` — Get messages for conversation (auto-marks as read)
 * `POST /api/v1/conversations/:id/messages` — Send message in conversation (broadcasts via Socket.io)
 
+### Push notifications
+* `GET    /api/v1/push/config` — Whether push is available, and the VAPID public key
+* `PUT    /api/v1/push/subscription` — Register this device's browser push subscription (one per signed-in session; replaces the previous one)
+* `DELETE /api/v1/push/subscription` — Stop notifications to this device
+
 ### Safety
 * `POST   /api/v1/safety/block` — Block a user immediately
-* `DELETE /api/v1/safety/block` — Unblock a user
+* `DELETE /api/v1/safety/blocks/:userId` — Unblock a user (the old `DELETE /safety/block` with a JSON body is deprecated)
 * `GET    /api/v1/safety/blocked` — List blocked users
-* `POST   /api/v1/safety/reports` — Report a user with category and details
+* `POST   /api/v1/safety/reports` — Report a user; a snapshot of the reported profile and your latest messages with them is kept as evidence, and repeat reports within 24 hours are folded into the open one
+
+### Account
+* `POST   /api/v1/users/me/photo/upload` — A signed, one-time permission to upload a profile photo directly to Cloudinary
+* `PUT    /api/v1/users/me/photo` — Confirm an upload (`{ publicId, version, signature }` from Cloudinary's response); it becomes the profile photo
+* `DELETE /api/v1/users/me/photo` — Remove the profile photo
+* `GET    /api/v1/users/me/export` — Download everything Unmute stores about you (JSON)
+* `POST   /api/v1/users/me/deactivate` — Hide your account and sign out everywhere; signing in again reactivates it
+* `DELETE /api/v1/users/me` — Permanently delete your account (body `{ "confirm": "DELETE" }`, requires a sign-in within `RECENT_AUTH_MINUTES`); reports stay as moderation records without your account reference
+
+### Moderation (staff only; everyone else gets 404)
+* `GET    /api/v1/moderation/reports?status=pending|reviewed|resolved|rejected` — The report queue
+* `GET    /api/v1/moderation/reports/:id` — A report with its evidence snapshot and the member's moderation history
+* `POST   /api/v1/moderation/reports/:id/decision` — `{ status, note, suspendUser }`
+* `POST   /api/v1/moderation/users/:id/suspend` / `unsuspend` — `{ note }`; every action is recorded in `moderation_actions`
+
+Staff roles are granted only from the command line (there is no API for it):
+
+```bash
+cd backend
+npm run grant-role -- moderator@example.com moderator   # or admin, or member to revoke
+npm run grant-role:prod -- moderator@example.com moderator   # against the compiled build (e.g. a Render shell)
+```
 
 ---
 
@@ -166,7 +193,31 @@ The frontend application opens at `http://localhost:5173`.
 
 The browser only ever passes Google's signed ID token to the backend, which verifies its signature and audience before creating an Unmute session.
 
+**Sign-up is Google-only in production.** Unmute sends no email, so it cannot verify the address of an email-and-password sign-up; Google sign-in comes with a verified one. New accounts are therefore created with Google (plus the 18+ date-of-birth step), while existing password accounts keep signing in with their password (and can link Google by signing in with it). Development keeps the email form for convenience; set `ALLOW_PASSWORD_SIGNUP` to override either way.
+
 **Troubleshooting:** "Google sign-in is not available right now" means `GOOGLE_CLIENT_ID` is not set (or the backend was not restarted). *"The given origin is not allowed for the given client ID"* in the browser console means the page's origin is missing from *Authorized JavaScript origins* (changes can take a few minutes to apply). *"The given client ID is not found"* means the ID is mistyped. A 401 after choosing an account means the backend's `GOOGLE_CLIENT_ID` differs from the one the button used.
+
+### Profile Photos (Cloudinary)
+
+Members upload a profile photo in **Profile → Upload photo**. It is free on Cloudinary's free plan (no card): about 25 GB of storage and delivery combined per month.
+
+1. Create a free account at [cloudinary.com](https://cloudinary.com/users/register_free).
+2. In the Cloudinary console, open **Settings → API Keys** (or the dashboard) and copy the **API environment variable**: `cloudinary://<api key>:<api secret>@<cloud name>`.
+3. Set it as `CLOUDINARY_URL` in `backend/.env` or Render's environment and restart. Without it, uploads are off and members keep their Google photo.
+
+How it works: the browser shrinks the photo and re-encodes it as JPEG (dropping GPS and camera metadata), asks the backend for a signed upload permission, and uploads straight to Cloudinary, so photos never pass through the server. The signature fixes where the photo goes (a new ID in the member's own folder), the allowed formats and an incoming transformation that scales it to at most 1600px and re-encodes it before Cloudinary stores it. The backend then checks Cloudinary's response signature and builds the photo URL itself (a 512px face-centred square), so members can only ever use their own uploads. Replaced or removed photos and those of deleted accounts are deleted from Cloudinary. The CSP allows images and uploads for your Cloudinary account only.
+
+Photos are not moderated automatically; members can report inappropriate photos, and moderators can suspend the account.
+
+### Push Notifications (Web Push)
+
+Members can turn on notifications for new messages and matches in **Settings → Notifications**. They arrive while the app is closed or in the background (not while it is on screen, where the chat updates live). It is free: the browser vendors' push services (Google FCM for Chrome/Edge/Android, Mozilla, Apple, Microsoft) deliver them, and no third-party account is needed.
+
+1. Generate a key pair once: `npx web-push generate-vapid-keys` (from `backend/`).
+2. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (secret) and `VAPID_SUBJECT` (e.g. `mailto:you@example.com`) in `backend/.env` or the platform's environment, and restart. With any of them empty, push is off and the Settings switch says it is unavailable.
+3. Keep the keys: new keys invalidate every existing subscription (members would have to turn notifications on again).
+
+Details: push needs HTTPS (or `localhost`) and the production build (the service worker is not built in development). On iPhone/iPad it only works for the app added to the Home Screen (iOS 16.4+); Settings explains this. Notifications are generic ("You have a new message") and never show names or message text on the lock screen. Each subscription belongs to a session, so signing out stops that device's notifications, and a shared browser never receives the previous member's. The native Capacitor apps do not use Web Push (they would need FCM/APNs).
 
 ### Database Migrations
 
@@ -189,6 +240,13 @@ npm run import:data -- institutions path/to/colleges.csv [--kind college]
 
 Use `npm run import:data:prod -- …` against the compiled build. Header names are matched loosely (e.g. `State Name (In English)` or `statename`); each importer's accepted columns are documented at the top of `backend/src/importers/`. LGD itself has no coordinates, so an imported village borrows its sub-district's or district's where one is known (the sample districts have them); members whose area has no coordinates at all still appear in area, PIN code and college filters, but not in distance filters. The PIN code import averages post-office coordinates per PIN code, so setting your area by PIN code usually gives accurate distances, and "Near me" always does. Sample districts are named, not coded, so an LGD import adopts matching names; a district whose official name differs (e.g. `Mumbai` vs `Mumbai City`) remains alongside the imported one.
 
+**Data sources and licences.** Check each source's current terms before a production import, and keep attribution in the app's About/credits:
+* India Post PIN code directory on data.gov.in is published under the Government Open Data License – India (GODL-India), which permits reuse with attribution.
+* LGD (Ministry of Panchayati Raj) directory downloads are public government data; confirm the licence shown on the portal (data.gov.in mirrors fall under GODL-India).
+* AISHE (Ministry of Education) lists are publicly downloadable, but the portal does not state an open licence explicitly; confirm reuse terms before importing them for a commercial service.
+
+Imports are reproducible: run the same files again (or newer releases) and rows are matched on official codes (LGD code, PIN code, AISHE code), updated in place and never duplicated.
+
 ### Running Automated Tests & Lint
 
 ```bash
@@ -203,22 +261,52 @@ Backend tests run against a separate `unmute_test_db` database (created automati
 
 The web build is an installable PWA: the app shell is cached for offline start, while `/api` and `/socket.io` always go to the network (personal data is never cached), and an offline banner appears when the connection drops.
 
-Android and iOS apps wrap the same build with Capacitor (`frontend/capacitor.config.ts`):
+Android and iOS apps wrap the same Vue build with Capacitor 8 (`frontend/capacitor.config.ts`, native projects in `frontend/android` and `frontend/ios`). Platform-specific code lives only in `frontend/src/platform/`; everything else is shared with the web and PWA.
+
+**How native sign-in works.** Google Identity Services does not run inside native WebViews, so the apps use the device's own Google account picker (`@capgo/capacitor-social-login`: Credential Manager on Android, Google Sign-In on iOS). It returns a Google ID token that goes to the same `POST /auth/google` and is verified by the backend exactly like the web button's. iOS WebViews also block the cross-site session cookie, so requests from the app origins listed in `NATIVE_APP_ORIGINS` additionally receive the session token; the app keeps it in the Keychain / Android Keystore (`capacitor-secure-storage-plugin`) and sends it as `Authorization: Bearer` (and as the Socket.IO `auth.token`). Web pages never receive the token.
+
+One-time setup (the Capacitor 8 CLI needs Node 22+; building needs Android Studio / Xcode):
+
+1. **Backend** (HTTPS): `NATIVE_APP_ORIGINS=https://localhost,capacitor://localhost` (added to CORS automatically). Keep `SESSION_COOKIE_SAMESITE=lax`.
+2. **Google Cloud Console → Credentials** (same project as the web client):
+   * **Android** OAuth client: package `app.unmute.social` + the SHA-1 of your debug and release signing keys. No value goes into the app; the token is issued for the web client ID.
+   * **iOS** OAuth client: bundle ID `app.unmute.social`. Set it as the backend's `GOOGLE_IOS_CLIENT_ID`, and add its *reversed* client ID (`com.googleusercontent.apps.…`) to `ios/App/App/Info.plist` under `CFBundleURLTypes → CFBundleURLSchemes` (Xcode → App target → Info → URL Types).
+3. **Build and open**:
 
 ```bash
 cd frontend
-VITE_API_URL=https://api.example.com/api/v1 npm run cap:sync   # build + copy into native projects
-npx cap add android    # first time only (needs Android Studio); likewise `npx cap add ios` on macOS
-npm run cap:android    # open in Android Studio
+VITE_API_URL=https://your-api.example.com/api/v1 npm run cap:sync   # build + copy into both native projects
+npm run cap:android    # Android Studio
+npm run cap:ios        # Xcode (macOS)
 ```
 
-The native apps run on their own origin, so the backend must be served over HTTPS with `SESSION_COOKIE_SAMESITE=none` and `CORS_ORIGIN` including `https://localhost` (Android) and `capacitor://localhost` (iOS). Google Identity Services does not run inside native WebViews; native Google sign-in needs a Capacitor Google-auth plugin that returns an ID token to `POST /auth/google` (not yet added).
+"Near me" asks for approximate location only (`ACCESS_COARSE_LOCATION`; `NSLocationWhenInUseUsageDescription` on iOS).
 
-### Production Build
+### Production Build & Operations
 
 ```bash
-npm run build
+npm install        # also installs backend/ and frontend/ (root postinstall); Node 20+ (22+ for the Capacitor CLI)
+npm run build      # backend → backend/dist, frontend → frontend/dist
+npm run start      # one process serves the API, Socket.IO and the built web app
 ```
+
+Deployment files: `render.yaml` (Render), `Dockerfile` + `fly.toml` (Fly.io or any container host). Both run the same single process.
+
+* **Required environment**: `NODE_ENV=production`, `DATABASE_URL` (MySQL/MariaDB over TLS), `GOOGLE_CLIENT_ID`, `TRUST_PROXY=1` behind the platform's proxy. Optional: `VAPID_*` for push notifications, `CLOUDINARY_URL` for photo uploads. `CORS_ORIGIN` defaults to Render's external URL; set it to your domain if you use a custom one. Everything else has safe defaults (see `backend/.env.example`). Secrets go in the platform's secret settings, never in the repo.
+* **HTTPS, cookies, headers**: the platform terminates TLS; the session cookie is `__Host-` prefixed, `Secure`, `HttpOnly`, `SameSite=Lax`. Helmet sends HSTS and a Content Security Policy that allows only Google sign-in, Google Fonts and profile photos from `AVATAR_URL_HOSTS`.
+* **Migrations** run automatically on start (with a lock, so concurrent starts are safe), or explicitly with `npm --prefix backend run migrate:prod`.
+* **Health**: `GET /health` (used by Render's health check and the Docker `HEALTHCHECK`).
+* **Graceful shutdown**: on `SIGTERM` (every deploy/restart) the server stops accepting connections, disconnects realtime clients (they reconnect to the new instance and catch up), finishes in-flight requests and closes the database pool, within 10 s.
+* **Logging**: structured prefixes (`[Auth]`, `[Moderation]`, `[Error]`, …) to stdout, collected by the platform. Unexpected errors are logged server-side with details; clients only ever see a generic message in production.
+* **Scaling**: rate limits are in memory, correct for one instance. Before running several instances, plug a shared store into `sharedStore()` in `backend/src/middleware/rateLimiter.ts` and a Socket.IO adapter (e.g. Redis) so realtime events reach every instance.
+
+**Backups.** Confirm your database plan's automatic backup retention (managed providers differ, and free tiers may keep few or none), and take a logical backup before any deploy that adds a migration:
+
+```bash
+mysqldump --single-transaction --routines --set-gtid-purged=OFF -h <host> -P <port> -u <user> -p <database> > unmute-$(date +%F).sql
+```
+
+**Rollback.** Code: redeploy the previous build (Render → Events → *Rollback*; Fly: `fly deploy --image <previous image>`). This is safe when the deploy added no migration. Migrations are forward-only, and older builds are not guaranteed to work against a newer schema (for example, builds before migration 008 write `users.is_active`, which is now generated), so to roll back across a migration, restore the pre-deploy backup together with the previous build.
 
 ---
 

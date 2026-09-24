@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import fs from 'fs';
 import path from 'path';
 import { config } from './config/env';
@@ -8,6 +9,52 @@ import { apiRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 import { requireTrustedOrigin } from './middleware/originCheck';
 import apiRouter from './routes';
+
+/** Profile photo hosts (AVATAR_URL_HOSTS) as CSP sources: '.example.com' allows its subdomains. */
+function avatarImageSources(): string[] {
+  const hosts = config.avatarHosts.map((host) => (host.startsWith('.') ? `https://*${host}` : `https://${host}`));
+  // Uploaded photos: only this app's own Cloudinary account (paths are CSP-matched as prefixes).
+  if (config.cloudinary.cloudName) hosts.push(`https://res.cloudinary.com/${config.cloudinary.cloudName}/`);
+  return hosts;
+}
+
+/** Photo uploads go from the browser straight to Cloudinary, into this app's account only. */
+function uploadTargets(): string[] {
+  return config.cloudinary.cloudName ? [`https://api.cloudinary.com/v1_1/${config.cloudinary.cloudName}/`] : [];
+}
+
+/**
+ * Content Security Policy for the single-origin deployment (API + built frontend). Beyond 'self' it
+ * allows only what the app loads: Google Identity Services (per Google's CSP guidance), Google
+ * Fonts, profile photos from the allowed hosts, and photo uploads to the app's Cloudinary account.
+ */
+const GOOGLE_IDENTITY = 'https://accounts.google.com/gsi/';
+
+function contentSecurityPolicy() {
+  return {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      scriptSrc: ["'self'", `${GOOGLE_IDENTITY}client`],
+      scriptSrcAttr: ["'none'"],
+      // Vue style bindings and the Google button use inline styles.
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', `${GOOGLE_IDENTITY}style`],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:', 'blob:', ...avatarImageSources()],
+      // 'self' covers the API and the same-origin realtime socket (ws/wss). The PWA service worker
+      // fetches (and caches) Google Fonts itself, and its requests fall under connect-src.
+      connectSrc: ["'self'", GOOGLE_IDENTITY, 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', ...uploadTargets()],
+      frameSrc: [GOOGLE_IDENTITY],
+      workerSrc: ["'self'"],
+      manifestSrc: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  };
+}
 
 export function createApp(): Express {
   const app = express();
@@ -17,9 +64,14 @@ export function createApp(): Express {
   // Security Headers
   app.use(
     helmet({
-      contentSecurityPolicy: config.isProduction ? undefined : false,
+      contentSecurityPolicy: config.isProduction ? contentSecurityPolicy() : false,
+      // Google sign-in opens a popup that must be able to report back to this window.
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     })
   );
+
+  // gzip for API JSON and the built web app (the JS/CSS bundles shrink by ~70%).
+  app.use(compression());
 
   // CORS
   app.use(
@@ -32,8 +84,9 @@ export function createApp(): Express {
   );
 
   // Body parsers
-  app.use(express.json({ limit: '1mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // The largest legitimate body is a 2,000-character message or a report; nothing needs more.
+  app.use(express.json({ limit: '100kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   // General rate limiter and CSRF origin check for cookie-authenticated requests
   app.use('/api', apiRateLimiter);

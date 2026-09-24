@@ -25,8 +25,8 @@
 
     <div class="d-flex flex-column align-items-center gap-2 mt-auto">
       <ThemeToggle />
-      <router-link v-if="authStore.isAuthenticated" to="/profile" class="dock-avatar" aria-label="Your profile">
-        <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="sm" />
+      <router-link v-if="authStore.isAuthenticated" to="/profile" class="dock-avatar" aria-label="Profile">
+        <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="sm" aria-hidden="true" />
         <span class="dock-tip" role="presentation">Profile</span>
       </router-link>
     </div>
@@ -40,8 +40,8 @@
     </router-link>
     <div class="d-flex align-items-center gap-2">
       <ThemeToggle />
-      <router-link v-if="authStore.isAuthenticated" to="/profile" class="dock-avatar" aria-label="Your profile">
-        <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="sm" />
+      <router-link v-if="authStore.isAuthenticated" to="/profile" class="dock-avatar" aria-label="Profile">
+        <UAvatar :src="authStore.profile?.avatarUrl" :name="authStore.profile?.displayName || 'You'" size="sm" aria-hidden="true" />
       </router-link>
     </div>
   </header>

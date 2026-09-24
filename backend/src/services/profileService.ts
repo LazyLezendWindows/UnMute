@@ -4,6 +4,8 @@ import { toOwnProfile } from '../mappers/profileMapper';
 import { ProfileRepository } from '../repositories/profileRepository';
 import { InterestRepository } from '../repositories/interestRepository';
 import { UpdateProfileInput } from '../validators/profileValidator';
+import { photoFolder, uploadedPhotoId } from '../utils/avatar';
+import { PhotoService } from './photoService';
 
 export class ProfileService {
   /** The signed-in user's own profile (includes date of birth). */
@@ -19,8 +21,14 @@ export class ProfileService {
   }
 
   static async updateProfile(userId: string, input: UpdateProfileInput) {
-    if (!(await ProfileRepository.findByUserId(userId))) {
+    const current = await ProfileRepository.findByUserId(userId);
+    if (!current) {
       throw new AppError('Profile not found', 404);
+    }
+    // Uploaded photos can only be set through the upload flow, and only the member's own.
+    const uploadedId = uploadedPhotoId(input.avatarUrl);
+    if (uploadedId && !uploadedId.startsWith(`${photoFolder(userId)}/`)) {
+      throw new AppError('You can only use your own photos', 400);
     }
 
     const interestIds = input.interestIds !== undefined ? [...new Set(input.interestIds)] : undefined;
@@ -41,6 +49,10 @@ export class ProfileService {
         await InterestRepository.replaceForUser(tx, userId, interestIds);
       }
     });
+
+    if (input.avatarUrl !== undefined && input.avatarUrl !== current.avatar_url) {
+      void PhotoService.deleteUploaded(current.avatar_url);
+    }
 
     return this.getProfile(userId);
   }

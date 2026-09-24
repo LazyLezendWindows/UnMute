@@ -281,7 +281,7 @@ describe('Locations, education & discovery filters', () => {
 
       ids = { near: near.id, kandi: kandi.id, blr: blr.id, nowhere: nowhere.id };
       // Earlier describe blocks registered other members; keep this block's assertions to its own cast.
-      await getDatabase().run(`UPDATE users SET is_active = 0 WHERE email IN ('lookup@example.com', 'area@example.com', 'student@example.com')`);
+      await getDatabase().run(`UPDATE users SET status = 'deactivated' WHERE email IN ('lookup@example.com', 'area@example.com', 'student@example.com')`);
     });
 
     it('returns everyone without filters, with bucketed distances only', async () => {
@@ -369,6 +369,60 @@ describe('Locations, education & discovery filters', () => {
     it('combines filters with AND', async () => {
       expect(await feedIds({ radiusKm: 50, sameInstitution: 'true' })).toEqual([ids.kandi]);
       expect(await feedIds({ radiusKm: 25, sameInstitution: 'true' })).toEqual([]);
+    });
+
+    describe('interests', () => {
+      // near: A + B, kandi: A, blr: C, nowhere: none
+      const interest: Record<'A' | 'B' | 'C', string> = { A: '', B: '', C: '' };
+      beforeAll(async () => {
+        const all = (await viewer.get('/api/v1/users/interests')).body.data as { id: string }[];
+        [interest.A, interest.B, interest.C] = all.map((i) => i.id);
+        const set = async (email: string, interestIds: string[]) => {
+          const agent = request.agent(app);
+          await agent.post('/api/v1/auth/login').send({ email, password: 'Password123!' });
+          expect((await agent.patch('/api/v1/users/me').send({ interestIds })).status).toBe(200);
+        };
+        await set('near@example.com', [interest.A, interest.B]);
+        await set('kandi@example.com', [interest.A]);
+        await set('blr@example.com', [interest.C]);
+      });
+
+      it('filters by interest on the server, matching members who share any chosen interest', async () => {
+        expect(await feedIds({ interestIds: interest.B })).toEqual([ids.near]);
+        expect(await feedIds({ interestIds: interest.A })).toEqual([ids.near, ids.kandi].sort());
+        expect(await feedIds({ interestIds: [interest.B, interest.C].join(',') })).toEqual([ids.near, ids.blr].sort());
+        // Repeated query parameters work too.
+        const repeated = await viewer.get(`/api/v1/discover?interestIds=${interest.B}&interestIds=${interest.C}`);
+        expect(repeated.body.data.map((c: any) => c.id).sort()).toEqual([ids.near, ids.blr].sort());
+      });
+
+      it('combines interests with distance, college and age filters', async () => {
+        const first = interest.A;
+        expect(await feedIds({ interestIds: first, radiusKm: 25 })).toEqual([ids.near]);
+        expect(await feedIds({ interestIds: first, sameInstitution: 'true' })).toEqual([ids.kandi]);
+        expect(await feedIds({ interestIds: first, minAge: 30 })).toEqual([ids.kandi]);
+        expect(await feedIds({ interestIds: first, radiusKm: 25, sameInstitution: 'true' })).toEqual([]);
+      });
+
+      it('validates interest ids', async () => {
+        expect((await viewer.get('/api/v1/discover').query({ interestIds: 'not-a-uuid' })).status).toBe(400);
+        const eleven = Array.from({ length: 11 }, (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`);
+        expect((await viewer.get('/api/v1/discover').query({ interestIds: eleven.join(',') })).status).toBe(400);
+        expect(await feedIds({ interestIds: '00000000-0000-4000-8000-000000000000' })).toEqual([]);
+      });
+
+      it('never shows suspended or deactivated members, whatever the filter', async () => {
+        await getDatabase().run("UPDATE users SET status = 'suspended' WHERE id = ?", [ids.blr]);
+        await getDatabase().run("UPDATE users SET status = 'deactivated' WHERE id = ?", [ids.near]);
+        try {
+          expect(await feedIds({ interestIds: interest.C })).toEqual([]);
+          expect(await feedIds({ interestIds: interest.A })).toEqual([ids.kandi]);
+          expect(await feedIds()).toEqual([ids.kandi, ids.nowhere].sort());
+          expect(await feedIds({ pincode: '560001' })).toEqual([]);
+        } finally {
+          await getDatabase().run("UPDATE users SET status = 'active' WHERE id IN (?, ?)", [ids.blr, ids.near]);
+        }
+      });
     });
 
     it('still excludes blocked members under every filter', async () => {

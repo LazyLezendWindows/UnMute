@@ -14,12 +14,14 @@ export interface DiscoverFilters {
   institution: Institution | null;
   minAge: number | null;
   maxAge: number | null;
+  /** People who share at least one of these interests. */
+  interestIds: string[];
 }
 
 export const RADIUS_OPTIONS_KM = [5, 10, 25, 50, 100, 200] as const;
 
 export function emptyFilters(): DiscoverFilters {
-  return { radiusKm: null, place: null, sameInstitution: false, institution: null, minAge: null, maxAge: null };
+  return { radiusKm: null, place: null, sameInstitution: false, institution: null, minAge: null, maxAge: null, interestIds: [] };
 }
 
 const STORAGE_PREFIX = 'unmute.discoverFilters.v1:';
@@ -80,9 +82,13 @@ export const useDiscoverStore = defineStore('discover', () => {
 
   const activeFilterCount = computed(() => {
     const f = filters.value;
-    return [f.radiusKm !== null, f.place, f.sameInstitution || f.institution, f.minAge !== null || f.maxAge !== null].filter(
-      Boolean
-    ).length;
+    return [
+      f.radiusKm !== null,
+      f.place,
+      f.sameInstitution || f.institution,
+      f.minAge !== null || f.maxAge !== null,
+      f.interestIds.length > 0,
+    ].filter(Boolean).length;
   });
 
   /**
@@ -99,6 +105,7 @@ export const useDiscoverStore = defineStore('discover', () => {
     else if (f.institution) params.institutionId = f.institution.id;
     if (f.minAge !== null) params.minAge = f.minAge;
     if (f.maxAge !== null) params.maxAge = f.maxAge;
+    if (f.interestIds.length) params.interestIds = f.interestIds.join(',');
     return params;
   }
 

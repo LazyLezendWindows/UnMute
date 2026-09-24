@@ -11,3 +11,8 @@ export function blockedBetween(userColA: string, userColB: string): string {
        OR (b.blocker_id = ${userColB} AND b.blocked_id = ${userColA})
   )`;
 }
+
+/** SQL predicate: the user in this column has an active account (not deactivated, suspended or deleted). */
+export function activeUser(userCol: string): string {
+  return `EXISTS (SELECT 1 FROM users au WHERE au.id = ${userCol} AND au.is_active = 1)`;
+}

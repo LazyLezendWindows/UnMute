@@ -2,12 +2,10 @@
   <div class="profile-page d-flex flex-column w-100">
     <PageHeader title="Profile" subtitle="How you appear to people you meet.">
       <template #actions>
-        <router-link to="/settings" class="text-decoration-none">
-          <UButton variant="glass" size="sm">
-            <i class="ri-settings-3-line me-1" aria-hidden="true"></i>
-            Settings
-          </UButton>
-        </router-link>
+        <UButton variant="glass" size="sm" @click="router.push('/settings')">
+          <i class="ri-settings-3-line me-1" aria-hidden="true"></i>
+          Settings
+        </UButton>
         <UButton variant="ghost" size="sm" @click="handleLogout">Log out</UButton>
       </template>
     </PageHeader>
@@ -75,20 +73,48 @@
               <!-- Avatar Section with UAvatar -->
               <div class="d-flex align-items-center gap-3 p-3 rounded-4 surface-raised border u-border-default">
                 <UAvatar
-                  :src="form.avatarUrl"
+                  :src="authStore.profile?.avatarUrl"
                   :name="form.displayName || 'User'"
                   size="xl"
                   :border="true"
                 />
 
-                <div class="flex-grow-1">
-                  <UInput
-                    v-model="form.avatarUrl"
-                    label="Profile Photo URL"
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
-                    hint="Enter an image URL for your public profile photo"
-                  />
+                <div class="flex-grow-1 d-flex flex-column gap-2 min-w-0">
+                  <span class="small fw-bold u-text-primary">Profile photo</span>
+                  <div class="d-flex flex-wrap gap-2">
+                    <template v-if="photoUploads">
+                      <input
+                        ref="photoInput"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+                        class="visually-hidden"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        @change="onPhotoChosen"
+                      />
+                      <UButton variant="secondary" size="sm" :loading="photoBusy === 'upload'" :disabled="photoBusy !== null" @click="photoInput?.click()">
+                        <i class="ri-upload-2-line me-1" aria-hidden="true"></i>
+                        {{ authStore.profile?.avatarUrl ? 'Change photo' : 'Upload photo' }}
+                      </UButton>
+                    </template>
+                    <UButton
+                      v-if="authStore.profile?.avatarUrl"
+                      variant="ghost"
+                      size="sm"
+                      :loading="photoBusy === 'remove'"
+                      :disabled="photoBusy !== null"
+                      @click="removePhoto"
+                    >
+                      <i class="ri-delete-bin-6-line me-1" aria-hidden="true"></i> Remove photo
+                    </UButton>
+                  </div>
+                  <p class="extra-small mb-0 u-text-muted">
+                    {{
+                      photoUploads
+                        ? 'JPEG, PNG, WebP or HEIC, up to 10 MB. Location and camera details are removed.'
+                        : 'Your Google profile photo is used when you sign in with Google.'
+                    }}
+                  </p>
                 </div>
               </div>
 
@@ -204,6 +230,7 @@ import LocationPicker from '../components/location/LocationPicker.vue';
 import EducationPicker from '../components/education/EducationPicker.vue';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
+import { loadAuthConfig } from '../services/authConfig';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -241,7 +268,6 @@ const availablePreferences = [
 
 const form = reactive({
   displayName: '',
-  avatarUrl: '',
   bio: '',
   interactionPreferences: [] as string[],
   interestIds: [] as string[],
@@ -251,7 +277,6 @@ onMounted(() => {
   const profile = authStore.profile;
   if (profile) {
     form.displayName = profile.displayName || '';
-    form.avatarUrl = profile.avatarUrl || '';
     form.bio = profile.bio || '';
     form.interactionPreferences = [...(profile.interactionPreferences || [])];
     form.interestIds = (profile.interests || []).map((i) => i.id);
@@ -272,7 +297,6 @@ async function saveProfile() {
   try {
     await authStore.updateProfile({
       displayName: form.displayName,
-      avatarUrl: form.avatarUrl,
       bio: form.bio,
       interactionPreferences: form.interactionPreferences,
       interestIds: form.interestIds,
@@ -282,6 +306,47 @@ async function saveProfile() {
     errorMsg.value = err.message || 'Failed to update profile';
   } finally {
     saving.value = false;
+  }
+}
+
+// Photo changes apply immediately (they are not part of the Save button's form).
+const photoUploads = ref(false);
+const photoBusy = ref<'upload' | 'remove' | null>(null);
+const photoInput = ref<HTMLInputElement | null>(null);
+
+onMounted(async () => {
+  try {
+    photoUploads.value = (await loadAuthConfig()).photoUploads;
+  } catch {
+    photoUploads.value = false;
+  }
+});
+
+async function onPhotoChosen(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ''; // choosing the same file again still triggers a change
+  if (!file) return;
+  photoBusy.value = 'upload';
+  try {
+    await authStore.uploadPhoto(file);
+    useToastStore().success('Photo updated.');
+  } catch (err) {
+    useToastStore().error(err instanceof Error && err.message ? err.message : 'The upload failed. Please try again.');
+  } finally {
+    photoBusy.value = null;
+  }
+}
+
+async function removePhoto() {
+  photoBusy.value = 'remove';
+  try {
+    await authStore.removePhoto();
+    useToastStore().success('Photo removed.');
+  } catch (err) {
+    useToastStore().error(err instanceof Error && err.message ? err.message : 'Could not remove the photo.');
+  } finally {
+    photoBusy.value = null;
   }
 }
 

@@ -134,7 +134,7 @@ async function loadBlockedUsers() {
 async function unblock(blockedId: string) {
   const name = blockedList.value.find((u) => u.blockedId === blockedId)?.displayName || 'User';
   try {
-    await api.delete('/safety/block', { data: { targetUserId: blockedId } });
+    await api.delete(`/safety/blocks/${blockedId}`);
     blockedList.value = blockedList.value.filter((u) => u.blockedId !== blockedId);
     toast.success(`${name} has been unblocked.`);
   } catch (err: any) {

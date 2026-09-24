@@ -3,10 +3,13 @@ import { config } from '../config/env';
 
 export class AppError extends Error {
   statusCode: number;
+  /** Optional machine-readable reason the client can act on (e.g. REAUTH_REQUIRED). */
+  code?: string;
 
-  constructor(message: string, statusCode = 400) {
+  constructor(message: string, statusCode = 400, code?: string) {
     super(message);
     this.statusCode = statusCode;
+    this.code = code;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -19,7 +22,7 @@ const BODY_PARSER_ERRORS: Record<string, [number, string]> = {
 
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({ success: false, error: err.message });
+    res.status(err.statusCode).json({ success: false, error: err.message, ...(err.code ? { code: err.code } : {}) });
     return;
   }
 

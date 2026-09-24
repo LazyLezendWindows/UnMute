@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Unmute</string>
+    <string name="title_activity_main">Unmute</string>
+    <string name="package_name">app.unmute.social</string>
+    <string name="custom_url_scheme">app.unmute.social</string>
+</resources>

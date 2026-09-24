@@ -36,6 +36,7 @@ export class DiscoverService {
       placeId: query.placeId,
       pincode: query.pincode,
       institutionId,
+      interestIds: query.interestIds ? [...new Set(query.interestIds)] : undefined,
       // Age a ⇔ born on or before (today − a years); age ≤ b ⇔ born after (today − (b+1) years).
       bornOnOrBefore: query.minAge !== undefined ? yearsAgo(query.minAge) : undefined,
       bornAfter: query.maxAge !== undefined ? yearsAgo(query.maxAge + 1) : undefined,

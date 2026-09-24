@@ -8,6 +8,8 @@ import chatRoutes from './chatRoutes';
 import safetyRoutes from './safetyRoutes';
 import locationRoutes from './locationRoutes';
 import educationRoutes from './educationRoutes';
+import moderationRoutes from './moderationRoutes';
+import pushRoutes from './pushRoutes';
 
 const apiRouter = Router();
 
@@ -20,5 +22,7 @@ apiRouter.use('/conversations', chatRoutes);
 apiRouter.use('/safety', safetyRoutes);
 apiRouter.use('/locations', locationRoutes);
 apiRouter.use('/education', educationRoutes);
+apiRouter.use('/moderation', moderationRoutes);
+apiRouter.use('/push', pushRoutes);
 
 export default apiRouter;

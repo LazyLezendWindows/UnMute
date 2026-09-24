@@ -6,6 +6,7 @@ import { ConversationRepository } from '../repositories/conversationRepository';
 import { MessageRepository } from '../repositories/messageRepository';
 import { ProfileRepository } from '../repositories/profileRepository';
 import { InterestRepository } from '../repositories/interestRepository';
+import { PushService } from './pushService';
 
 export class ChatService {
   static async getConversations(userId: string) {
@@ -49,11 +50,11 @@ export class ChatService {
     return conv;
   }
 
-  static async getMessages(conversationId: string, userId: string, limit = 50, offset = 0) {
+  static async getMessages(conversationId: string, userId: string, limit = 50, before?: string) {
     const conv = await this.requireAccessible(conversationId, userId, 'Access to this conversation is restricted');
 
-    const [rows, profile, interests] = await Promise.all([
-      MessageRepository.page(conversationId, limit, offset),
+    const [{ rows, hasMore }, profile, interests] = await Promise.all([
+      MessageRepository.page(conversationId, limit, before),
       ProfileRepository.findByUserId(conv.other_user_id),
       InterestRepository.forUser(conv.other_user_id),
     ]);
@@ -68,13 +69,17 @@ export class ChatService {
         interests: interests.map((i) => i.name),
       },
       messages: rows.map(toMessage),
+      hasMore,
     };
   }
 
-  static async sendMessage(conversationId: string, senderId: string, content: string) {
+  /** The sender is always the authenticated user; `created` is false for a repeated (retried) send. */
+  static async sendMessage(conversationId: string, senderId: string, content: string, clientMessageId?: string) {
     const conv = await this.requireAccessible(conversationId, senderId, 'You cannot message this user');
 
-    const message = toMessage(await MessageRepository.insert(conversationId, senderId, content));
+    const { row, created } = await MessageRepository.insert(conversationId, senderId, content, clientMessageId);
+    const message = toMessage(row);
+    if (!created) return { message, created };
     await ConversationRepository.touch(conversationId, message.createdAt);
 
     const io = getSocketServer();
@@ -82,7 +87,14 @@ export class ChatService {
       io.to(`conversation:${conversationId}`).emit('new_message', message);
       io.to(`user:${conv.other_user_id}`).emit('message_notification', { conversationId, message });
     }
+    // Deliberately generic: notifications show on lock screens, so they carry no name or message text.
+    void PushService.notifyIfAway(conv.other_user_id, {
+      title: 'Unmute',
+      body: 'You have a new message',
+      url: `/chat/${conversationId}`,
+      tag: `conversation:${conversationId}`,
+    });
 
-    return message;
+    return { message, created };
   }
 }

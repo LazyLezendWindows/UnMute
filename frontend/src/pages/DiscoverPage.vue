@@ -142,7 +142,7 @@ const discoverStore = useDiscoverStore();
 
 const isFiltersOpen = ref(false);
 
-type ChipKey = 'radius' | 'place' | 'college' | 'age';
+type ChipKey = 'radius' | 'place' | 'college' | 'age' | 'interests';
 
 const activeChips = computed(() => {
   const f = discoverStore.filters;
@@ -159,6 +159,9 @@ const activeChips = computed(() => {
           ? `Age ${f.minAge}+`
           : `Age up to ${f.maxAge}`;
     chips.push({ key: 'age', label });
+  }
+  if (f.interestIds.length) {
+    chips.push({ key: 'interests', label: f.interestIds.length === 1 ? '1 interest' : `${f.interestIds.length} interests` });
   }
   return chips;
 });
@@ -184,6 +187,7 @@ function removeFilter(key: ChipKey) {
     next.minAge = null;
     next.maxAge = null;
   }
+  if (key === 'interests') next.interestIds = [];
   discoverStore.setFilters(next);
 }
 

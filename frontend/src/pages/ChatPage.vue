@@ -135,6 +135,12 @@
           </p>
         </div>
 
+        <div v-if="!chatStore.loading && chatStore.hasMoreMessages" class="text-center">
+          <UButton variant="ghost" size="sm" :loading="chatStore.loadingOlder" @click="loadOlder">
+            Load earlier messages
+          </UButton>
+        </div>
+
         <!-- Messages -->
         <div
           v-for="msg in chatStore.activeMessages"
@@ -270,14 +276,23 @@ watch(
   }
 );
 
+// Follow new messages at the bottom; loading older history (prepended) keeps the reader's place.
 watch(
-  () => chatStore.activeMessages.length,
+  () => chatStore.activeMessages.at(-1)?.id,
   () => {
     nextTick(() => {
       scrollToBottom();
     });
   }
 );
+
+async function loadOlder() {
+  const el = messagesContainer.value;
+  const previousHeight = el?.scrollHeight ?? 0;
+  await chatStore.loadOlderMessages();
+  await nextTick();
+  if (el) el.scrollTop += el.scrollHeight - previousHeight;
+}
 
 function selectConversation(id: string) {
   router.push(`/chat/${id}`);

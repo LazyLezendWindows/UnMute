@@ -18,4 +18,19 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
+      # Profile photo uploads (optional; see README → Profile Photos)
+      - key: CLOUDINARY_URL
+        sync: false
+      # Web Push (optional; `npx web-push generate-vapid-keys`, see README → Push notifications)
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      # Optional, only once the native apps ship (see README → PWA & Native Apps):
+      # - key: NATIVE_APP_ORIGINS
+      #   value: https://localhost,capacitor://localhost
+      # - key: GOOGLE_IOS_CLIENT_ID
+      #   sync: false
 

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Unmute - Connect without the pressure. A conversation-first social connection web app + PWA.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",

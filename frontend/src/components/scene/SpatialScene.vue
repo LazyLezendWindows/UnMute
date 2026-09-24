@@ -53,6 +53,11 @@ const updateBattery = () => {
 };
 const onReducedMotion = (e: MediaQueryListEvent) => (prefersReducedMotion.value = e.matches);
 
+function whenIdle(run: () => void) {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2000 });
+  else setTimeout(run, 300);
+}
+
 async function mountScene() {
   if (handle || disposed || !canvas.value) return;
   // Three.js lives in its own chunk so first paint never waits for it.
@@ -92,7 +97,9 @@ onMounted(async () => {
       battery = null;
     }
   }
-  if (enabled.value) mountScene();
+  // The scene fades in once ready, so it can wait until the page is interactive: the 3D engine
+  // never competes with first paint or the first tap.
+  if (enabled.value) whenIdle(() => mountScene());
 });
 
 // The canvas appears/disappears with `enabled`; mount or tear down the scene to match.

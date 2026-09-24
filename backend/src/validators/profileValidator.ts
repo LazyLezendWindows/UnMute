@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema } from './common';
+import { isAllowedAvatarUrl } from '../utils/avatar';
 
 export const updateProfileSchema = z.object({
   displayName: z
@@ -12,12 +13,12 @@ export const updateProfileSchema = z.object({
     .string()
     .max(500, 'Bio cannot exceed 500 characters')
     .optional(),
-  // Only https images: rejects javascript:, data: and plain-http URLs that would be rendered to other users.
+  // Only https images from allowed hosts (see isAllowedAvatarUrl); an empty string removes the photo.
   avatarUrl: z
     .string()
     .max(500)
     .url('Invalid avatar URL')
-    .refine((url) => url.startsWith('https://'), 'Avatar URL must use https')
+    .refine(isAllowedAvatarUrl, 'Upload a photo or use your Google profile photo')
     .or(z.string().length(0))
     .optional(),
   interactionPreferences: z
@@ -30,4 +31,16 @@ export const updateProfileSchema = z.object({
     .optional(),
 });
 
+/** Deleting an account is irreversible, so the client must send an explicit confirmation. */
+export const deleteAccountSchema = z.object({
+  confirm: z.literal('DELETE', { errorMap: () => ({ message: 'Type DELETE to confirm account deletion' }) }),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/** What the browser reports back after uploading a photo to Cloudinary (Cloudinary's own response fields). */
+export const confirmPhotoSchema = z.object({
+  publicId: z.string().max(200).regex(/^[A-Za-z0-9_/-]+$/, 'Invalid photo'),
+  version: z.number().int().positive(),
+  signature: z.string().regex(/^[a-f0-9]{40}$/, 'Invalid photo'),
+});

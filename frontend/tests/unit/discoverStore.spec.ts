@@ -54,4 +54,21 @@ describe('discover store filters', () => {
     expect(blocked.filters).toEqual(emptyFilters());
     vi.restoreAllMocks();
   });
+
+  it('sends interest filters to the server and counts them as one active filter', async () => {
+    signIn();
+    const store = useDiscoverStore();
+    await store.setFilters({ ...emptyFilters(), interestIds: ['i-1', 'i-2'] });
+    expect(get.mock.calls.at(-1)?.[1]).toEqual({ params: { interestIds: 'i-1,i-2' } });
+    expect(store.activeFilterCount).toBe(1);
+  });
+
+  it('upgrades filters saved before interests existed', async () => {
+    localStorage.setItem('unmute.discoverFilters.v1:viewer-1', JSON.stringify({ radiusKm: null, place: null, sameInstitution: false, institution: null, minAge: 21, maxAge: null }));
+    signIn();
+    const store = useDiscoverStore();
+    await store.loadFeed();
+    expect(store.filters.interestIds).toEqual([]);
+    expect(get.mock.calls.at(-1)?.[1]).toEqual({ params: { minAge: 21 } });
+  });
 });

@@ -1,5 +1,5 @@
 # Multi-stage production build for Unmute
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -18,23 +18,23 @@ COPY . .
 RUN npm run build
 
 # Production runtime container
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Copy root manifest
-COPY package*.json ./
 COPY backend/package*.json ./backend/
 
 # Install only production dependencies for backend
 RUN npm --prefix backend ci --omit=dev
 
-# Copy built artifacts
+# Built API and web app, plus the SQL migrations applied on start (backend/migrations)
 COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/backend/data ./backend/data
+COPY --from=builder /app/backend/migrations ./backend/migrations
 COPY --from=builder /app/frontend/dist ./frontend/dist
+
+USER node
 
 # Expose production port
 EXPOSE 5000

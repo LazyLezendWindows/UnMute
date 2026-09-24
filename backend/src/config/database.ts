@@ -26,6 +26,11 @@ function prepareParams(sql: string, params: any[]): { normalizedSql: string; bou
   return { normalizedSql, boundParams };
 }
 
+/** A unique-key violation, e.g. two concurrent requests creating the same account. */
+export function isDuplicateKeyError(err: unknown): boolean {
+  return (err as { code?: string })?.code === 'ER_DUP_ENTRY';
+}
+
 class MariaDatabase implements IDatabase {
   constructor(private readonly executor: Pool | PoolConnection) {}
 

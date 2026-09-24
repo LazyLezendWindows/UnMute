@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { ChatController } from '../controllers/chatController';
 import { requireAuth } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validate';
-import { idParamsSchema, paginationSchema } from '../validators/common';
-import { sendMessageSchema } from '../validators/chatValidator';
+import { idParamsSchema } from '../validators/common';
+import { messagePageSchema, sendMessageSchema } from '../validators/chatValidator';
+import { messageRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -13,9 +14,15 @@ router.get('/', ChatController.getConversations);
 router.get(
   '/:id/messages',
   validateParams(idParamsSchema),
-  validateQuery(paginationSchema(50, 100)),
+  validateQuery(messagePageSchema),
   ChatController.getMessages
 );
-router.post('/:id/messages', validateParams(idParamsSchema), validateBody(sendMessageSchema), ChatController.sendMessage);
+router.post(
+  '/:id/messages',
+  messageRateLimiter,
+  validateParams(idParamsSchema),
+  validateBody(sendMessageSchema),
+  ChatController.sendMessage
+);
 
 export default router;

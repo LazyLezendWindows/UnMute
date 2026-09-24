@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { api, onUnauthorized } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 import { useGoogleIdentity } from '../composables/useGoogleIdentity';
+import { clearNativeSession, isNativeApp, restoreNativeSession, saveNativeSession } from '../platform/nativeSession';
+import { forgetPush } from '../platform/webPush';
 import { User, Profile, LocationPrecision } from '../types';
 
 /**
@@ -36,6 +38,22 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null;
     status.value = 'UNAUTHENTICATED';
     disconnectSocket();
+    void clearNativeSession();
+  }
+
+  /** Native apps receive and keep the session token; on the web the response carries none. */
+  async function startSession(data: { user: User; sessionToken?: string }) {
+    await saveNativeSession(data.sessionToken);
+    setAuthenticated(data.user);
+  }
+
+  /** Signs out of Google on this device too, so the next sign-in can pick a different account. */
+  async function forgetGoogleAccount() {
+    if (isNativeApp) {
+      await (await import('../platform/googleNative')).nativeGoogleSignOut();
+    } else {
+      useGoogleIdentity().disableAutoSelect();
+    }
   }
 
   onUnauthorized(() => {
@@ -49,8 +67,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     if (!sessionCheck) {
       status.value = 'CHECKING_SESSION';
-      sessionCheck = api
-        .get('/auth/session')
+      sessionCheck = restoreNativeSession()
+        .then(() => api.get('/auth/session'))
         .then((res) => {
           const { authenticated, user: sessionUser } = res.data.data;
           if (authenticated) setAuthenticated(sessionUser);
@@ -80,14 +98,14 @@ export const useAuthStore = defineStore('auth', () => {
   function register(data: { email: string; password: string; displayName: string; dateOfBirth: string }) {
     return run(async () => {
       const res = await api.post('/auth/register', data);
-      setAuthenticated(res.data.data.user);
+      await startSession(res.data.data);
     });
   }
 
   function login(credentials: { email: string; password: string }) {
     return run(async () => {
       const res = await api.post('/auth/login', credentials);
-      setAuthenticated(res.data.data.user);
+      await startSession(res.data.data);
     });
   }
 
@@ -99,7 +117,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (result.requiresDob) {
         return { requiresDob: true, profile: result.profile };
       }
-      setAuthenticated(result.user);
+      await startSession(result);
       return { requiresDob: false, isNewUser: result.isNewUser };
     });
   }
@@ -118,6 +136,19 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.data.data;
     });
+  }
+
+  /** Replaces the profile photo with an uploaded one (see platform/photoUpload). */
+  async function uploadPhoto(file: File): Promise<Profile> {
+    const { preparePhoto, uploadToCloudinary } = await import('../platform/photoUpload');
+    const photo = await preparePhoto(file);
+    const signed = await api.post('/users/me/photo/upload');
+    const uploaded = await uploadToCloudinary(signed.data.data, photo);
+    return applyProfile(api.put('/users/me/photo', uploaded));
+  }
+
+  function removePhoto(): Promise<Profile> {
+    return applyProfile(api.delete('/users/me/photo'));
   }
 
   /** Location and education endpoints respond with the updated own profile. */
@@ -154,11 +185,36 @@ export const useAuthStore = defineStore('auth', () => {
     return applyProfile(api.delete('/users/me/education'));
   }
 
+  /** Downloads everything Unmute stores about the member as a JSON file. */
+  async function exportData(): Promise<void> {
+    const res = await api.get('/users/me/export');
+    const blob = new Blob([JSON.stringify(res.data.data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'unmute-data-export.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /** Deactivation and deletion end every session server-side; the local state follows. */
+  async function deactivateAccount(): Promise<void> {
+    await api.post('/users/me/deactivate');
+    await Promise.all([forgetGoogleAccount(), forgetPush()]);
+    setUnauthenticated();
+  }
+
+  async function deleteAccount(): Promise<void> {
+    await api.delete('/users/me', { data: { confirm: 'DELETE' } });
+    await Promise.all([forgetGoogleAccount(), forgetPush()]);
+    setUnauthenticated();
+  }
+
   async function logout() {
     try {
       await api.post('/auth/logout');
     } finally {
-      useGoogleIdentity().disableAutoSelect();
+      await Promise.all([forgetGoogleAccount(), forgetPush()]);
       setUnauthenticated();
     }
   }
@@ -176,11 +232,16 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithGoogle,
     fetchMe,
     updateProfile,
+    uploadPhoto,
+    removePhoto,
     setLocation,
     setLocationPrecision,
     clearLocation,
     setEducation,
     clearEducation,
+    exportData,
+    deactivateAccount,
+    deleteAccount,
     logout,
   };
 });

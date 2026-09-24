@@ -2,11 +2,15 @@ import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { parse as parseCookies } from 'cookie';
 import { SessionRepository } from '../repositories/sessionRepository';
+import { UserRole } from '../repositories/userRepository';
 import { config } from '../config/env';
 
 export interface ResolvedSession {
   sessionId: string;
   userId: string;
+  /** Seconds since the member signed in with this session (for recent-authentication checks). */
+  ageSeconds: number;
+  role: UserRole;
 }
 
 function hashToken(token: string): string {
@@ -34,7 +38,7 @@ export class SessionService {
     const row = await SessionRepository.findLiveByTokenHash(hashToken(token));
     if (!row) return null;
     await SessionRepository.touch(row.id);
-    return { sessionId: row.id, userId: row.user_id };
+    return { sessionId: row.id, userId: row.user_id, ageSeconds: Number(row.age_seconds), role: row.role };
   }
 
   static async revoke(token: string | undefined): Promise<string | null> {
@@ -46,8 +50,23 @@ export class SessionService {
     return parseCookies(cookieHeader)[config.session.cookieName];
   }
 
+  /**
+   * The session token of a request: the HttpOnly cookie (web), or `Authorization: Bearer` (native
+   * apps). A bearer token is never sent automatically by a browser, so it carries no CSRF risk.
+   */
   static tokenFromRequest(req: Request): string | undefined {
-    return this.readToken(req.headers.cookie);
+    return this.readToken(req.headers.cookie) ?? this.bearerToken(req.headers.authorization);
+  }
+
+  static bearerToken(header: string | undefined): string | undefined {
+    const match = /^Bearer ([A-Za-z0-9_-]{20,128})$/.exec(header || '');
+    return match?.[1];
+  }
+
+  /** True when the request comes from one of the configured native app origins. */
+  static isNativeAppRequest(req: Request): boolean {
+    const origin = req.headers.origin;
+    return Boolean(origin && config.nativeAppOrigins.includes(origin));
   }
 
   static setCookie(res: Response, token: string, expiresAt: Date): void {

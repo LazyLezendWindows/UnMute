@@ -3,6 +3,19 @@
     <p v-if="state === 'unavailable'" class="google-unavailable small text-center mb-0 w-100 py-2 px-3 rounded-3">
       Google sign-in is not available right now.
     </p>
+    <!-- Native apps: the system Google account picker instead of the web button. -->
+    <UButton
+      v-else-if="isNativeApp"
+      variant="secondary"
+      size="lg"
+      class="w-100"
+      :loading="busy"
+      :disabled="state !== 'ready'"
+      @click="signInNatively"
+    >
+      <i class="ri-google-fill me-2" aria-hidden="true"></i>
+      {{ nativeLabel }}
+    </UButton>
     <div
       v-else
       ref="buttonSlot"
@@ -45,19 +58,24 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import UModal from '../ui/UModal.vue';
 import UInput from '../ui/UInput.vue';
 import UButton from '../ui/UButton.vue';
 import { useAuthStore } from '../../stores/auth';
 import { useGoogleIdentity, GoogleButtonText } from '../../composables/useGoogleIdentity';
 import { ApiError } from '../../services/api';
+import { isNativeApp } from '../../platform/nativeSession';
 
 const props = withDefaults(defineProps<{ text?: GoogleButtonText }>(), { text: 'continue_with' });
 const emit = defineEmits<{ (e: 'authenticated', isNewUser: boolean): void }>();
 
 const authStore = useAuthStore();
-const { resolveClientId, renderButton } = useGoogleIdentity();
+const { resolveClientId, iosClientId, renderButton } = useGoogleIdentity();
+
+const nativeLabel = computed(() =>
+  props.text === 'signup_with' ? 'Sign up with Google' : props.text === 'signin_with' ? 'Sign in with Google' : 'Continue with Google'
+);
 // 'loading' keeps the button slot in place (no layout jump) while the client ID is resolved.
 const state = ref<'loading' | 'ready' | 'unavailable'>('loading');
 
@@ -84,6 +102,7 @@ onMounted(async () => {
     return;
   }
   state.value = 'ready';
+  if (isNativeApp) return;
   await nextTick();
   if (!buttonSlot.value) return;
   try {
@@ -92,6 +111,21 @@ onMounted(async () => {
     error.value = err.message;
   }
 });
+
+/** Native: the ID token comes from the device's Google account picker, then follows the web path. */
+async function signInNatively() {
+  busy.value = true;
+  error.value = null;
+  try {
+    const { nativeGoogleIdToken } = await import('../../platform/googleNative');
+    const credential = await nativeGoogleIdToken(await resolveClientId(), iosClientId.value);
+    if (credential) await handleCredential(credential);
+  } catch (err: any) {
+    error.value = err.message || 'Google sign-in failed. Please try again.';
+  } finally {
+    busy.value = false;
+  }
+}
 
 async function handleCredential(credential: string) {
   busy.value = true;

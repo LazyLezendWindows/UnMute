@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { nativeSessionToken } from '../platform/nativeSession';
 
 /** API error carrying the HTTP status so callers can distinguish auth failures from other errors. */
 export class ApiError extends Error {
-  constructor(message: string, readonly status?: number) {
+  /** `code` is the backend's machine-readable reason, when it sends one (e.g. REAUTH_REQUIRED). */
+  constructor(message: string, readonly status?: number, readonly code?: string) {
     super(message);
   }
 }
@@ -24,6 +26,13 @@ export const api = axios.create({
   },
 });
 
+// Native apps authenticate with their stored session token (web requests use the cookie).
+api.interceptors.request.use((request) => {
+  const token = nativeSessionToken();
+  if (token) request.headers.set('Authorization', `Bearer ${token}`);
+  return request;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -39,6 +48,6 @@ api.interceptors.response.use(
       unauthorizedHandler?.();
     }
 
-    return Promise.reject(new ApiError(message, status));
+    return Promise.reject(new ApiError(message, status, error.response?.data?.code));
   }
 );

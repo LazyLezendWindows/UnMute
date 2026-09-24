@@ -14,13 +14,16 @@ export default defineConfig({
       registerType: 'autoUpdate',
       // Registered from main.ts, and only on the web: native builds already ship their assets.
       injectRegister: null,
-      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
       manifest: {
         name: 'Unmute - Connect without the pressure',
         short_name: 'Unmute',
         description: 'A conversation-first social connection platform based on shared interests and intentions.',
         theme_color: '#e8ecf4',
         background_color: '#e8ecf4',
+        id: '/',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -35,7 +38,9 @@ export default defineConfig({
             type: 'image/png',
           },
           {
-            src: '/pwa-512x512.png',
+            // Full-bleed background with the mark inside the 80% safe zone, so Android's circle and
+            // squircle masks never crop it or show the rounded corners of the regular icon.
+            src: '/pwa-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
@@ -49,6 +54,8 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//, /^\/health$/],
         cleanupOutdatedCaches: true,
+        // Push notification handlers (Web Push), added to the generated service worker.
+        importScripts: ['/push-sw.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

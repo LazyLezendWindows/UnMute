@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { api } from '../services/api';
+import { loadAuthConfig } from '../services/authConfig';
 
 /**
  * Google Identity Services (GIS) integration. GIS only yields a signed ID token ("credential");
@@ -36,14 +36,18 @@ const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
  * GOOGLE_CLIENT_ID from /auth/config, so a deployment only has to configure it in one place.
  */
 const clientId = ref<string>(import.meta.env.VITE_GOOGLE_CLIENT_ID || '');
+/** The iOS app's own OAuth client ID (backend GOOGLE_IOS_CLIENT_ID), for native sign-in on iOS. */
+const iosClientId = ref<string | null>(null);
 let clientIdLoader: Promise<string> | null = null;
 
 function resolveClientId(): Promise<string> {
-  if (clientId.value) return Promise.resolve(clientId.value);
+  if (clientId.value && iosClientId.value !== null) return Promise.resolve(clientId.value);
   if (!clientIdLoader) {
-    clientIdLoader = api
-      .get('/auth/config')
-      .then((res) => (clientId.value = res.data.data?.googleClientId || ''))
+    clientIdLoader = loadAuthConfig()
+      .then((authConfig) => {
+        iosClientId.value = authConfig.googleIosClientId;
+        return (clientId.value = clientId.value || authConfig.googleClientId);
+      })
       .catch(() => {
         clientIdLoader = null; // try again next time a sign-in button mounts
         return '';
@@ -106,5 +110,5 @@ export function useGoogleIdentity() {
     window.google?.accounts?.id?.disableAutoSelect();
   }
 
-  return { clientId, resolveClientId, renderButton, disableAutoSelect };
+  return { clientId, iosClientId, resolveClientId, renderButton, disableAutoSelect };
 }

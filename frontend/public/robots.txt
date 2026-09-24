@@ -1,0 +1,8 @@
+# The app itself lives behind sign-in; only the public entry pages are worth indexing.
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /register
+Disallow: /api/
+Disallow: /socket.io/
+Disallow: /

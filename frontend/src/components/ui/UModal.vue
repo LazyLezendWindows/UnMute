@@ -118,6 +118,23 @@ const maxWidthClass = computed(() => {
   -webkit-backdrop-filter: blur(36px) saturate(150%);
   box-shadow: var(--unmute-glass-edge), var(--unmute-shadow-3d);
   overflow: hidden;
+  // Never taller than the screen: the header and actions stay visible and the body scrolls.
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+.u-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.u-modal-header,
+.u-modal-footer {
+  flex-shrink: 0;
 }
 
 .modal-max-sm { max-width: 384px; }

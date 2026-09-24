@@ -22,12 +22,20 @@ export function initSocketServer(server: HttpServer): SocketIOServer {
       if (origin && !config.corsOrigins.includes(origin)) {
         return next(new Error('Origin not allowed'));
       }
-      const session = await SessionService.resolve(SessionService.readToken(socket.handshake.headers.cookie));
+      // Web: the session cookie. Native apps: the bearer token passed as `auth.token`.
+      const handshakeAuth = socket.handshake.auth as { token?: unknown; visible?: unknown } | undefined;
+      const authToken = handshakeAuth?.token;
+      const token =
+        SessionService.readToken(socket.handshake.headers.cookie) ??
+        SessionService.bearerToken(typeof authToken === 'string' ? `Bearer ${authToken}` : undefined);
+      const session = await SessionService.resolve(token);
       if (!session) {
         return next(new Error('Authentication required'));
       }
       socket.data.userId = session.userId;
       socket.data.sessionId = session.sessionId;
+      // Whether the app is on screen (clients that do not say are treated as on screen).
+      socket.data.visible = handshakeAuth?.visible !== false;
       next();
     } catch (err) {
       next(err as Error);
@@ -40,15 +48,27 @@ export function initSocketServer(server: HttpServer): SocketIOServer {
     // Lets logout disconnect exactly the sockets opened with the revoked session.
     socket.join(`session:${socket.data.sessionId}`);
 
-    socket.on('join_conversation', async (conversationId: unknown) => {
-      if (typeof conversationId !== 'string' || conversationId.length > 64) return;
+    // The optional acknowledgement fires once the socket is really in the room, so the client can
+    // fetch anything sent before that point without a gap (live events only flow after joining).
+    socket.on('join_conversation', async (conversationId: unknown, ack?: unknown) => {
+      const reply = (joined: boolean) => {
+        if (typeof ack === 'function') ack({ joined });
+      };
+      if (typeof conversationId !== 'string' || conversationId.length > 64) return reply(false);
       try {
-        if (await ChatService.canAccessConversation(conversationId, userId)) {
-          socket.join(`conversation:${conversationId}`);
-        }
+        const allowed = await ChatService.canAccessConversation(conversationId, userId);
+        if (allowed) socket.join(`conversation:${conversationId}`);
+        reply(allowed);
       } catch (err) {
         console.error('[Socket] join_conversation failed:', err);
+        reply(false);
       }
+    });
+
+    // The page was hidden (app backgrounded, screen locked, tab switched) or shown again.
+    socket.on('presence', (state: unknown) => {
+      const visible = (state as { visible?: unknown } | null)?.visible;
+      if (typeof visible === 'boolean') socket.data.visible = visible;
     });
 
     socket.on('leave_conversation', (conversationId: unknown) => {

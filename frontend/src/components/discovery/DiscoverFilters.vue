@@ -45,6 +45,13 @@
         />
       </fieldset>
 
+      <!-- Interests -->
+      <fieldset class="d-flex flex-column gap-2">
+        <legend class="small fw-semibold mb-0 u-text-secondary">Shared interests</legend>
+        <p class="filter-hint mb-0 u-text-muted">Show people who share at least one of these.</p>
+        <InterestSelector v-model="draft.interestIds" />
+      </fieldset>
+
       <!-- Age -->
       <fieldset class="d-flex flex-column gap-2">
         <legend class="small fw-semibold mb-0 u-text-secondary">Age</legend>
@@ -74,6 +81,7 @@ import { computed, ref, watch } from 'vue';
 import UModal from '../ui/UModal.vue';
 import UButton from '../ui/UButton.vue';
 import UInput from '../ui/UInput.vue';
+import InterestSelector from '../profile/InterestSelector.vue';
 import UChipGroup from '../ui/UChipGroup.vue';
 import UTypeahead from '../ui/UTypeahead.vue';
 import { DiscoverFilters, RADIUS_OPTIONS_KM, emptyFilters } from '../../stores/discover';
@@ -98,7 +106,7 @@ const minAge = ref('');
 const maxAge = ref('');
 
 function loadDraft(from: DiscoverFilters) {
-  draft.value = { ...from };
+  draft.value = { ...from, interestIds: [...from.interestIds] };
   collegeMode.value = from.sameInstitution ? 'mine' : from.institution ? 'specific' : 'any';
   minAge.value = from.minAge !== null ? String(from.minAge) : '';
   maxAge.value = from.maxAge !== null ? String(from.maxAge) : '';

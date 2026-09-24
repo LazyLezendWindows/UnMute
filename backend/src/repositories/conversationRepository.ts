@@ -1,5 +1,6 @@
 import { getDatabase } from '../config/database';
-import { blockedBetween } from './sql';
+import { activeUser, blockedBetween } from './sql';
+import { isoToDbTimestamp } from '../utils/time';
 
 export interface ConversationSummaryRow {
   id: string;
@@ -10,7 +11,10 @@ export interface ConversationSummaryRow {
 }
 
 export class ConversationRepository {
-  /** The conversation if `userId` is a participant, with the other participant's id. */
+  /**
+   * The conversation if `userId` is a participant and the other participant's account is active
+   * (a deactivated or suspended member's chats are hidden until they return).
+   */
   static findForParticipant(
     conversationId: string,
     userId: string
@@ -20,12 +24,13 @@ export class ConversationRepository {
               IF(c.user_a_id = $2, c.user_b_id, c.user_a_id) AS other_user_id,
               ${blockedBetween('c.user_a_id', 'c.user_b_id')} AS blocked
        FROM conversations c
-       WHERE c.id = $1 AND (c.user_a_id = $2 OR c.user_b_id = $2)`,
+       WHERE c.id = $1 AND (c.user_a_id = $2 OR c.user_b_id = $2)
+         AND ${activeUser('IF(c.user_a_id = $2, c.user_b_id, c.user_a_id)')}`,
       [conversationId, userId]
     );
   }
 
-  /** Conversations of `userId`, excluding any with a block between the participants, newest activity first. */
+  /** Conversations of `userId` with active members and no block between them, newest activity first. */
   static listForUser(userId: string): Promise<ConversationSummaryRow[]> {
     return getDatabase().query(
       `SELECT c.id, c.match_id, c.last_message_at, c.created_at,
@@ -33,6 +38,7 @@ export class ConversationRepository {
        FROM conversations c
        WHERE (c.user_a_id = $1 OR c.user_b_id = $1)
          AND NOT ${blockedBetween('c.user_a_id', 'c.user_b_id')}
+         AND ${activeUser('IF(c.user_a_id = $1, c.user_b_id, c.user_a_id)')}
        ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`,
       [userId]
     );
@@ -48,6 +54,6 @@ export class ConversationRepository {
   }
 
   static async touch(conversationId: string, at: string): Promise<void> {
-    await getDatabase().run('UPDATE conversations SET last_message_at = ? WHERE id = ?', [at, conversationId]);
+    await getDatabase().run('UPDATE conversations SET last_message_at = ? WHERE id = ?', [isoToDbTimestamp(at), conversationId]);
   }
 }

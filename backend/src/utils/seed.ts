@@ -7,6 +7,7 @@ import { PincodeRepository } from '../repositories/pincodeRepository';
 import { InstitutionRepository } from '../repositories/institutionRepository';
 import { SAMPLE_STATES, SAMPLE_SETTLEMENTS, SAMPLE_PINCODES } from './indianLocations';
 import { SAMPLE_INSTITUTIONS } from './indianInstitutions';
+import { dbTimestamp } from './time';
 
 export const DEFAULT_INTERESTS = [
   { name: 'Reading & Books', category: 'Culture', icon: 'BookOpen' },
@@ -142,7 +143,7 @@ export async function seedDemoUsersIfEmpty() {
   console.log('[Seed] Seeding demo connection-first profiles...');
 
   const demoPasswordHash = await bcrypt.hash('UnmutePassword123!', 10);
-  const now = new Date().toISOString();
+  const now = dbTimestamp();
 
   const demoUsers = [
     {
@@ -201,7 +202,7 @@ export async function seedDemoUsersIfEmpty() {
     const userId = crypto.randomUUID();
     const profileId = crypto.randomUUID();
 
-    await db.run('INSERT INTO users (id, email, is_active, created_at) VALUES ($1, $2, 1, $3)', [userId, demo.email, now]);
+    await db.run("INSERT INTO users (id, email, status, created_at) VALUES ($1, $2, 'active', $3)", [userId, demo.email, now]);
     await AuthAccountRepository.insert(db, { userId, provider: 'password', passwordHash: demoPasswordHash });
 
     await db.run(

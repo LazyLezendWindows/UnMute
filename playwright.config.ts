@@ -31,7 +31,8 @@ export default defineConfig({
         NODE_ENV: 'test',
         PORT: String(API_PORT),
         MARIADB_DATABASE: 'unmute_e2e_db',
-        CORS_ORIGIN: `http://localhost:${WEB_PORT}`,
+        // 127.0.0.1 too: the realtime client only reacts to the browser going offline off localhost.
+        CORS_ORIGIN: `http://localhost:${WEB_PORT},http://127.0.0.1:${WEB_PORT}`,
         SEED_DEMO_USERS: 'false',
       },
     },

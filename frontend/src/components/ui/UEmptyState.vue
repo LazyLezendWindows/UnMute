@@ -10,9 +10,9 @@
     </div>
 
     <!-- Title & Description -->
-    <h3 class="fs-5 fw-bold mb-2 font-display u-text-primary">
+    <h2 class="fs-5 fw-bold mb-2 font-display u-text-primary">
       {{ title }}
-    </h3>
+    </h2>
     <p class="fs-6 max-w-xs mx-auto mb-4 u-text-muted">
       {{ description }}
     </p>

@@ -18,7 +18,7 @@ export class SafetyController {
 
   static async unblockUser(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { targetUserId } = req.body;
+      const targetUserId: string = req.params.userId ?? req.body.targetUserId;
       const result = await SafetyService.unblockUser(req.user!.userId, targetUserId);
       res.status(200).json({
         success: true,

@@ -12,10 +12,21 @@ const rawCors =
   process.env.APP_URL ||
   (isProduction ? '' : 'http://localhost:5173');
 
-const corsOrigins = rawCors
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
+const splitList = (raw: string) =>
+  raw
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+/**
+ * Origins of the Capacitor apps (https://localhost on Android, capacitor://localhost on iOS).
+ * Requests from these origins receive the session token in the response body so the app can keep
+ * it in the device's secure storage and send it as a bearer token: iOS WebViews block the
+ * cross-site session cookie. Empty (the default) disables native sessions entirely.
+ */
+const nativeAppOrigins = splitList(process.env.NATIVE_APP_ORIGINS || '');
+
+const corsOrigins = [...new Set([...splitList(rawCors), ...nativeAppOrigins])];
 
 if (isProduction && corsOrigins.length === 0) {
   // If no external URL configured yet, allow same-origin requests
@@ -32,6 +43,17 @@ if (cookieSameSite !== 'lax' && cookieSameSite !== 'none') {
   throw new Error('SESSION_COOKIE_SAMESITE must be "lax" or "none"');
 }
 
+/**
+ * Cloudinary (profile photo uploads): the CLOUDINARY_URL from the Cloudinary dashboard,
+ * `cloudinary://<api key>:<api secret>@<cloud name>`. Empty disables uploads.
+ */
+function parseCloudinaryUrl(raw: string) {
+  if (!raw) return { cloudName: '', apiKey: '', apiSecret: '' };
+  const match = /^cloudinary:\/\/([^:@]+):([^@]+)@([a-z0-9_-]+)$/i.exec(raw.trim());
+  if (!match) throw new Error('CLOUDINARY_URL must look like cloudinary://<api key>:<api secret>@<cloud name>');
+  return { apiKey: decodeURIComponent(match[1]), apiSecret: decodeURIComponent(match[2]), cloudName: match[3] };
+}
+
 export const config = {
   env,
   isProduction,
@@ -40,8 +62,53 @@ export const config = {
   trustProxy: parseInt(process.env.TRUST_PROXY || '0', 10),
   /** Browser origins allowed to call the API with credentials (comma-separated CORS_ORIGIN). */
   corsOrigins,
+  nativeAppOrigins,
   minAge: parseInt(process.env.MIN_AGE || '18', 10),
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  /**
+   * Whether new accounts may be created with an email and password. Off by default in production:
+   * Unmute cannot verify those email addresses (it sends no email), while Google sign-in comes with
+   * a verified one. Existing password accounts can always sign in. ALLOW_PASSWORD_SIGNUP overrides.
+   */
+  passwordSignup: process.env.ALLOW_PASSWORD_SIGNUP ? process.env.ALLOW_PASSWORD_SIGNUP === 'true' : !isProduction,
+  /**
+   * The iOS OAuth client ID, for the native app. Google may issue the iOS app's ID tokens for this
+   * client instead of the web one, so it is also an accepted audience. Optional.
+   */
+  googleIosClientId: process.env.GOOGLE_IOS_CLIENT_ID || '',
+  /**
+   * Hosts profile photos may be loaded from (comma-separated; a leading dot also allows subdomains).
+   * Any other URL would let a member log the IP address of everyone who views their profile.
+   * Defaults to Google profile photos, which Google sign-in provides.
+   */
+  avatarHosts: (process.env.AVATAR_URL_HOSTS || '.googleusercontent.com')
+    .split(',')
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean),
+  /**
+   * Web Push (notifications while the app is closed). Generate the key pair once with
+   * `npx web-push generate-vapid-keys`; the subject is a contact URL or mailto: for push services.
+   * Leaving the keys empty disables push notifications.
+   */
+  webPush: {
+    publicKey: process.env.VAPID_PUBLIC_KEY || '',
+    privateKey: process.env.VAPID_PRIVATE_KEY || '',
+    subject: process.env.VAPID_SUBJECT || '',
+    /**
+     * Push services a subscription endpoint may point at. The server POSTs to the endpoint, so an
+     * open list would let anyone make it send requests to arbitrary hosts (SSRF).
+     */
+    endpointHosts: (
+      process.env.PUSH_ENDPOINT_HOSTS ||
+      'fcm.googleapis.com,.push.services.mozilla.com,.push.apple.com,.notify.windows.com'
+    )
+      .split(',')
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
+  },
+  cloudinary: parseCloudinaryUrl(process.env.CLOUDINARY_URL || ''),
+  /** Sensitive account actions (deletion) need a session created at most this long ago. */
+  recentAuthMinutes: parseInt(process.env.RECENT_AUTH_MINUTES || '15', 10),
   session: {
     // The __Host- prefix makes browsers require Secure, Path=/ and no Domain for the cookie.
     cookieName: isProduction ? '__Host-unmute_session' : 'unmute_session',

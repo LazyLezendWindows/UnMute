@@ -15,5 +15,7 @@ export const reportUserSchema = z.object({
   details: z.string().max(1000, 'Details cannot exceed 1000 characters').optional(),
 });
 
+export const blockedUserParamsSchema = z.object({ userId: idSchema });
+
 export type BlockUserInput = z.infer<typeof blockUserSchema>;
 export type ReportUserInput = z.infer<typeof reportUserSchema>;

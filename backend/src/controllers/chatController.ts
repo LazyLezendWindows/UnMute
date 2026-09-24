@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { ChatService } from '../services/chatService';
 import { AuthRequest } from '../middleware/auth';
-import { Pagination } from '../validators/common';
+import { MessagePageQuery } from '../validators/chatValidator';
 
 export class ChatController {
   static async getConversations(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
@@ -19,8 +19,8 @@ export class ChatController {
   static async getMessages(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const { limit, offset } = req.query as unknown as Pagination;
-      const data = await ChatService.getMessages(id, req.user!.userId, limit, offset);
+      const { limit, before } = req.query as unknown as MessagePageQuery;
+      const data = await ChatService.getMessages(id, req.user!.userId, limit, before);
       res.status(200).json({
         success: true,
         data,
@@ -33,9 +33,9 @@ export class ChatController {
   static async sendMessage(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const { content } = req.body;
-      const message = await ChatService.sendMessage(id, req.user!.userId, content);
-      res.status(201).json({
+      const { content, clientMessageId } = req.body;
+      const { message, created } = await ChatService.sendMessage(id, req.user!.userId, content, clientMessageId);
+      res.status(created ? 201 : 200).json({
         success: true,
         data: message,
       });

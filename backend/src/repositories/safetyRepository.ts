@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { getDatabase } from '../config/database';
 import { ProfileRow } from '../mappers/profileMapper';
+import { dbTimestamp } from '../utils/time';
 
 export class SafetyRepository {
   static async isBlockedBetween(userX: string, userY: string): Promise<boolean> {
@@ -17,7 +18,7 @@ export class SafetyRepository {
     await getDatabase().run(
       `INSERT INTO blocks (id, blocker_id, blocked_id, reason, created_at) VALUES (?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE id = id`,
-      [crypto.randomUUID(), blockerId, blockedId, reason, new Date().toISOString()]
+      [crypto.randomUUID(), blockerId, blockedId, reason, dbTimestamp()]
     );
   }
 
@@ -38,12 +39,29 @@ export class SafetyRepository {
     );
   }
 
-  static async insertReport(report: { reporterId: string; reportedId: string; category: string; details: string }): Promise<string> {
+  /** An open (pending) report by the same member about the same member, filed recently. */
+  static findRecentPendingReport(reporterId: string, reportedId: string, since: string): Promise<{ id: string } | null> {
+    return getDatabase().get(
+      `SELECT id FROM reports
+       WHERE reporter_id = ? AND reported_id = ? AND status = 'pending' AND created_at >= ?
+       ORDER BY created_at DESC LIMIT 1`,
+      [reporterId, reportedId, since]
+    );
+  }
+
+  static async insertReport(report: {
+    reporterId: string;
+    reportedId: string;
+    category: string;
+    details: string;
+    conversationId: string | null;
+    evidence: string;
+  }): Promise<string> {
     const id = crypto.randomUUID();
     await getDatabase().run(
-      `INSERT INTO reports (id, reporter_id, reported_id, reason_category, details, status, created_at)
-       VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
-      [id, report.reporterId, report.reportedId, report.category, report.details, new Date().toISOString()]
+      `INSERT INTO reports (id, reporter_id, reported_id, reason_category, details, status, conversation_id, evidence, created_at)
+       VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+      [id, report.reporterId, report.reportedId, report.category, report.details, report.conversationId, report.evidence, dbTimestamp()]
     );
     return id;
   }

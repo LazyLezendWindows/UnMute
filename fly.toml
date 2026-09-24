@@ -5,6 +5,13 @@ primary_region = "bom" # Mumbai, India (or "sin" for Singapore)
 [build]
   dockerfile = "Dockerfile"
 
+[env]
+  NODE_ENV = "production"
+  PORT = "5000"
+  TRUST_PROXY = "1"
+  SESSION_COOKIE_SAMESITE = "lax"
+  # Secrets (never in this file): fly secrets set DATABASE_URL=... GOOGLE_CLIENT_ID=...
+
 [http_service]
   internal_port = 5000
   force_https = true

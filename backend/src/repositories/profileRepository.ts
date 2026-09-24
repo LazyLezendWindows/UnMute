@@ -3,6 +3,7 @@ import { getDatabase, IDatabase } from '../config/database';
 import { ProfileRow } from '../mappers/profileMapper';
 import { placeholders, blockedBetween } from './sql';
 import { Coordinates, boundingBox, haversineParams, haversineSql } from '../services/location/distance.service';
+import { dbTimestamp } from '../utils/time';
 
 const PROFILE_COLUMNS = `p.user_id, p.id, p.display_name, p.date_of_birth, p.bio, p.approximate_location,
   p.avatar_url, p.interaction_preferences, p.is_verified,
@@ -29,6 +30,8 @@ export interface DiscoverFilters {
   placeId?: string;
   pincode?: string;
   institutionId?: string;
+  /** Members who list at least one of these interests. */
+  interestIds?: string[];
   /** ISO dates derived from an age range: `date_of_birth <= bornOnOrBefore` and `> bornAfter`. */
   bornOnOrBefore?: string;
   bornAfter?: string;
@@ -65,7 +68,7 @@ export class ProfileRepository {
     tx: IDatabase,
     profile: { userId: string; displayName: string; dateOfBirth: string; avatarUrl?: string }
   ): Promise<void> {
-    const now = new Date().toISOString();
+    const now = dbTimestamp();
     await tx.run(
       `INSERT INTO profiles (
          id, user_id, display_name, date_of_birth, bio, approximate_location,
@@ -80,7 +83,7 @@ export class ProfileRepository {
     const entries = Object.entries(changes).filter(([, value]) => value !== undefined);
     const assignments = ['updated_at = ?', ...entries.map(([column]) => `${column} = ?`)];
     await tx.run(`UPDATE profiles SET ${assignments.join(', ')} WHERE user_id = ?`, [
-      new Date().toISOString(),
+      dbTimestamp(),
       ...entries.map(([, value]) => value),
       userId,
     ]);
@@ -119,6 +122,12 @@ export class ProfileRepository {
     }
     if (filters.pincode) where('ul.pincode = ?', filters.pincode);
     if (filters.institutionId) where('ue.institution_id = ?', filters.institutionId);
+    if (filters.interestIds?.length) {
+      where(
+        `EXISTS (SELECT 1 FROM user_interests fi WHERE fi.user_id = u.id AND fi.interest_id IN (${placeholders(filters.interestIds.length)}))`,
+        ...filters.interestIds
+      );
+    }
     if (filters.bornOnOrBefore) where('p.date_of_birth <= ?', filters.bornOnOrBefore);
     if (filters.bornAfter) where('p.date_of_birth > ?', filters.bornAfter);
 

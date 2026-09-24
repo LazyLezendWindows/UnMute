@@ -9,63 +9,70 @@
 
       <GoogleSignIn text="signup_with" @authenticated="onGoogleAuthenticated" />
 
-      <!-- Divider -->
-      <div class="d-flex align-items-center gap-3">
-        <hr class="flex-grow-1 my-0 opacity-25" />
-        <span class="extra-small text-uppercase tracking-widest fw-semibold u-text-dim">
-          or register with email
-        </span>
-        <hr class="flex-grow-1 my-0 opacity-25" />
-      </div>
+      <!-- Production: accounts are created with Google, whose email addresses are verified. -->
+      <p v-if="passwordSignup === false" class="small text-center lh-base mb-0 u-text-secondary">
+        Unmute accounts are created with Google, so your email is already verified. You'll confirm your date of birth next.
+      </p>
 
-      <!-- Registration Form -->
-      <form @submit.prevent="handleRegister" class="d-flex flex-column gap-3">
-        <UInput
-          v-model="displayName"
-          label="Preferred Name"
-          type="text"
-          required
-          placeholder="e.g. Julian"
-        />
-
-        <UInput
-          v-model="email"
-          label="Email address"
-          type="email"
-          required
-          placeholder="you@domain.com"
-        />
-
-        <UInput
-          v-model="dateOfBirth"
-          label="Date of Birth"
-          type="date"
-          required
-          :max="maxDateFor18"
-          hint="Only your age is visible to peers (Strict 18+ policy)"
-        />
-
-        <UInput
-          v-model="password"
-          label="Password (min 8 characters)"
-          type="password"
-          required
-          :minlength="8"
-          placeholder="••••••••"
-        />
-
-        <div class="pt-2">
-          <UButton
-            type="submit"
-            variant="primary"
-            size="lg"
-            block
-            :loading="loading"
-          >
-            Create Account
-          </UButton>
+      <template v-if="passwordSignup">
+        <!-- Divider -->
+        <div class="d-flex align-items-center gap-3">
+          <hr class="flex-grow-1 my-0 opacity-25" />
+          <span class="extra-small text-uppercase tracking-widest fw-semibold u-text-dim">
+            or register with email
+          </span>
+          <hr class="flex-grow-1 my-0 opacity-25" />
         </div>
-      </form>
+
+        <!-- Registration Form -->
+        <form @submit.prevent="handleRegister" class="d-flex flex-column gap-3">
+          <UInput
+            v-model="displayName"
+            label="Preferred Name"
+            type="text"
+            required
+            placeholder="e.g. Julian"
+          />
+
+          <UInput
+            v-model="email"
+            label="Email address"
+            type="email"
+            required
+            placeholder="you@domain.com"
+          />
+
+          <UInput
+            v-model="dateOfBirth"
+            label="Date of Birth"
+            type="date"
+            required
+            :max="maxDateFor18"
+            hint="Only your age is visible to peers (Strict 18+ policy)"
+          />
+
+          <UInput
+            v-model="password"
+            label="Password (min 8 characters)"
+            type="password"
+            required
+            :minlength="8"
+            placeholder="••••••••"
+          />
+
+          <div class="pt-2">
+            <UButton
+              type="submit"
+              variant="primary"
+              size="lg"
+              block
+              :loading="loading"
+            >
+              Create Account
+            </UButton>
+          </div>
+        </form>
+      </template>
 
       <!-- Safe Community Pledge -->
       <p class="extra-small text-center lh-base mb-0 u-text-muted">
@@ -84,13 +91,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import UInput from '../components/ui/UInput.vue';
 import AuthStage from '../components/auth/AuthStage.vue';
 import UButton from '../components/ui/UButton.vue';
 import GoogleSignIn from '../components/auth/GoogleSignIn.vue';
 import { useAuthStore } from '../stores/auth';
+import { loadAuthConfig } from '../services/authConfig';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -101,6 +109,16 @@ const dateOfBirth = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
+/** null until known: neither variant is shown before the server says which applies. */
+const passwordSignup = ref<boolean | null>(null);
+
+onMounted(async () => {
+  try {
+    passwordSignup.value = (await loadAuthConfig()).passwordSignup;
+  } catch {
+    passwordSignup.value = false; // server unreachable: Google sign-up shows its own error
+  }
+});
 
 // Calculate max date eligible for 18 years old
 const maxDateFor18 = computed(() => {

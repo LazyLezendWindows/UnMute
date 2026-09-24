@@ -1,4 +1,5 @@
 import { calculateAge } from '../utils/age';
+import { safeAvatarUrl } from '../utils/avatar';
 import { LabelPrecision, PlaceKind, locationLabel } from './locationMapper';
 
 export interface ProfileRow {
@@ -101,7 +102,7 @@ export function toOwnProfile(row: ProfileRow, interests: Interest[]) {
     approximateLocation: publicArea(row),
     location: ownLocation(row),
     education: ownEducation(row),
-    avatarUrl: row.avatar_url || '',
+    avatarUrl: safeAvatarUrl(row.avatar_url),
     interactionPreferences: parsePreferences(row.interaction_preferences),
     interests,
     isVerified: Boolean(row.is_verified),
@@ -116,7 +117,7 @@ export function toPublicProfile(userId: string, row: ProfileRow | undefined | nu
     age: row ? calculateAge(row.date_of_birth) : 18,
     bio: row?.bio || '',
     approximateLocation: row ? publicArea(row) : '',
-    avatarUrl: row?.avatar_url || '',
+    avatarUrl: safeAvatarUrl(row?.avatar_url),
     isVerified: Boolean(row?.is_verified),
     education: publicEducation(row),
   };

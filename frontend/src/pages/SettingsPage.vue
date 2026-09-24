@@ -107,6 +107,38 @@
       </div>
     </UCard>
 
+    <!-- Notifications: Web Push on this device -->
+    <UCard v-if="pushStatus !== 'unsupported' || showInstallHint" variant="elevated" padding="lg">
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <i class="ri-notification-3-line fs-5 u-text-accent" aria-hidden="true"></i>
+          <h2 class="font-display fw-bold fs-6 mb-0 u-text-primary">Notifications</h2>
+        </div>
+
+        <p v-if="showInstallHint" class="small mb-0 u-text-secondary">
+          On iPhone and iPad, add Unmute to your Home Screen (Share → Add to Home Screen) and open it from there to turn on notifications.
+        </p>
+        <template v-else>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="pushStatus === 'on'"
+            class="account-action d-flex align-items-center justify-content-between gap-3 p-3 surface-raised rounded-4 border text-start transition-all u-border-glass"
+            :disabled="pushBusy || pushStatus === 'unavailable' || pushStatus === 'denied' || pushStatus === 'loading'"
+            @click="togglePush"
+          >
+            <div>
+              <h3 class="small fw-bold mb-0 u-text-primary">New messages and matches</h3>
+              <p class="extra-small mb-0 u-text-muted">{{ pushDescription }}</p>
+            </div>
+            <span class="push-switch" :class="{ 'is-on': pushStatus === 'on' }" aria-hidden="true">
+              <span class="push-switch-knob"></span>
+            </span>
+          </button>
+        </template>
+      </div>
+    </UCard>
+
     <!-- Privacy & Safety Shortcuts -->
     <UCard variant="default" padding="lg">
       <div class="d-flex flex-column gap-3">
@@ -123,9 +155,9 @@
               <i class="ri-shield-check-fill fs-5"></i>
             </div>
             <div>
-              <h4 class="small fw-bold mb-0 u-text-primary">
+              <h3 class="small fw-bold mb-0 u-text-primary">
                 Safety & Blocked Users
-              </h4>
+              </h3>
               <p class="extra-small mb-0 u-text-muted">
                 Manage blocked connections and safety commitments
               </p>
@@ -143,9 +175,9 @@
               <i class="ri-user-3-fill fs-5"></i>
             </div>
             <div>
-              <h4 class="small fw-bold mb-0 u-text-primary">
+              <h3 class="small fw-bold mb-0 u-text-primary">
                 Edit Public Profile
-              </h4>
+              </h3>
               <p class="extra-small mb-0 u-text-muted">
                 Update your bio, approximate location, and hobbies
               </p>
@@ -153,12 +185,110 @@
           </div>
           <i class="ri-arrow-right-s-line fs-5 u-text-muted"></i>
         </router-link>
+
+        <button
+          type="button"
+          class="account-action d-flex align-items-center justify-content-between p-3 surface-raised rounded-4 border text-start transition-all u-border-glass"
+          :disabled="exporting"
+          @click="handleExport"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 surface-glass text-info">
+              <i class="ri-download-2-line fs-5"></i>
+            </div>
+            <div>
+              <h3 class="small fw-bold mb-0 u-text-primary">
+                {{ exporting ? 'Preparing your data…' : 'Download my data' }}
+              </h3>
+              <p class="extra-small mb-0 u-text-muted">
+                A copy of your profile, matches, messages you sent and account activity
+              </p>
+            </div>
+          </div>
+          <i class="ri-arrow-right-s-line fs-5 u-text-muted"></i>
+        </button>
+
+        <button
+          type="button"
+          class="account-action d-flex align-items-center justify-content-between p-3 surface-raised rounded-4 border text-start transition-all u-border-glass"
+          @click="deactivateOpen = true"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 surface-glass text-warning">
+              <i class="ri-pause-circle-line fs-5"></i>
+            </div>
+            <div>
+              <h3 class="small fw-bold mb-0 u-text-primary">
+                Deactivate account
+              </h3>
+              <p class="extra-small mb-0 u-text-muted">
+                Hide your profile and chats until you sign in again
+              </p>
+            </div>
+          </div>
+          <i class="ri-arrow-right-s-line fs-5 u-text-muted"></i>
+        </button>
+
+        <button
+          type="button"
+          class="account-action d-flex align-items-center justify-content-between p-3 surface-raised rounded-4 border text-start transition-all u-border-glass"
+          @click="openDelete"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-2 rounded-3 surface-glass text-danger">
+              <i class="ri-delete-bin-6-line fs-5"></i>
+            </div>
+            <div>
+              <h3 class="small fw-bold mb-0 text-danger">
+                Delete account
+              </h3>
+              <p class="extra-small mb-0 u-text-muted">
+                Permanently remove your account, profile, matches and messages
+              </p>
+            </div>
+          </div>
+          <i class="ri-arrow-right-s-line fs-5 u-text-muted"></i>
+        </button>
       </div>
     </UCard>
 
+    <UModal :isOpen="deactivateOpen" title="Deactivate your account?" maxWidth="sm" @close="deactivateOpen = false">
+      <p class="small mb-0 lh-base">
+        Your profile, matches and chats will be hidden from everyone and you will be signed out on every device.
+        Sign in again any time to reactivate your account.
+      </p>
+      <template #footer>
+        <UButton variant="secondary" size="md" @click="deactivateOpen = false">Cancel</UButton>
+        <UButton variant="danger" size="md" :loading="accountBusy" @click="handleDeactivate">Deactivate</UButton>
+      </template>
+    </UModal>
+
+    <UModal :isOpen="deleteOpen" title="Delete your account permanently?" maxWidth="sm" :closeOnBackdrop="false" @close="deleteOpen = false">
+      <form id="delete-account-form" class="d-flex flex-column gap-3" @submit.prevent="handleDelete">
+        <p class="small mb-0 lh-base">
+          This removes your account, profile, photo, interests, matches and conversations. It cannot be undone.
+          Reports made for safety reasons are kept, without your account details, as moderation records.
+        </p>
+        <UInput v-model="deleteConfirmation" label="Type DELETE to confirm" autocomplete="off" :error="deleteError" />
+      </form>
+      <template #footer>
+        <UButton variant="secondary" size="md" @click="deleteOpen = false">Cancel</UButton>
+        <UButton
+          type="submit"
+          form="delete-account-form"
+          variant="danger"
+          size="md"
+          :loading="accountBusy"
+          :disabled="deleteConfirmation !== 'DELETE'"
+        >
+          Delete account
+        </UButton>
+      </template>
+    </UModal>
+
     <!-- App Info & Log out -->
     <div class="pt-2 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 small u-text-muted">
-      <span>Unmute v1.0.0 — Connect without the pressure</span>
+      <span class="u-text-secondary">Unmute v1.0.0 — Connect without the pressure</span>
       <UButton
         variant="ghost"
         size="sm"
@@ -177,8 +307,14 @@ import PageHeader from '../components/layout/PageHeader.vue';
 import { useRouter } from 'vue-router';
 import UCard from '../components/ui/UCard.vue';
 import UButton from '../components/ui/UButton.vue';
+import UModal from '../components/ui/UModal.vue';
+import UInput from '../components/ui/UInput.vue';
+import { computed, onMounted, ref } from 'vue';
+import { ApiError } from '../services/api';
+import { useToastStore } from '../stores/toast';
 import { useThemeStore, ThemeMode } from '../stores/theme';
 import { useAuthStore } from '../stores/auth';
+import { disablePush, enablePush, needsHomeScreenInstall, pushState, type PushState } from '../platform/webPush';
 
 const router = useRouter();
 const themeStore = useThemeStore();
@@ -200,9 +336,116 @@ function presetVars(preset: { primary: string; bevel: string; gradient: string; 
   };
 }
 
+const pushStatus = ref<PushState | 'loading'>('loading');
+const pushBusy = ref(false);
+const showInstallHint = needsHomeScreenInstall();
+
+const pushDescription = computed(() => {
+  switch (pushStatus.value) {
+    case 'on':
+      return 'On for this device. Notifications never show names or message text.';
+    case 'denied':
+      return 'Blocked in your browser settings. Allow notifications for this site to turn them on.';
+    case 'unavailable':
+      return 'Notifications are not available right now.';
+    case 'loading':
+      return 'Checking…';
+    default:
+      return 'Get notified on this device when the app is closed.';
+  }
+});
+
+onMounted(async () => {
+  const userId = authStore.user?.id;
+  if (!userId) return;
+  try {
+    pushStatus.value = await pushState(userId);
+  } catch {
+    pushStatus.value = 'unavailable';
+  }
+});
+
+async function togglePush() {
+  const userId = authStore.user?.id;
+  if (!userId || pushBusy.value) return;
+  pushBusy.value = true;
+  try {
+    pushStatus.value = pushStatus.value === 'on' ? await disablePush() : await enablePush(userId);
+    if (pushStatus.value === 'denied') toast.error('Notifications are blocked in your browser settings.');
+  } catch (err) {
+    toast.error(err instanceof ApiError ? err.message : 'Could not change notifications. Please try again.');
+  } finally {
+    pushBusy.value = false;
+  }
+}
+
 async function handleLogout() {
   await authStore.logout();
   router.push('/login');
+}
+
+const toast = useToastStore();
+const exporting = ref(false);
+const accountBusy = ref(false);
+const deactivateOpen = ref(false);
+const deleteOpen = ref(false);
+const deleteConfirmation = ref('');
+const deleteError = ref<string | null>(null);
+
+async function handleExport() {
+  exporting.value = true;
+  try {
+    await authStore.exportData();
+    toast.show('Your data export has been downloaded.', 'success');
+  } catch (err) {
+    toast.show((err as Error).message, 'error');
+  } finally {
+    exporting.value = false;
+  }
+}
+
+async function handleDeactivate() {
+  accountBusy.value = true;
+  try {
+    await authStore.deactivateAccount();
+    deactivateOpen.value = false;
+    toast.show('Your account is deactivated. Sign in again any time to come back.', 'info');
+    router.push('/login');
+  } catch (err) {
+    toast.show((err as Error).message, 'error');
+  } finally {
+    accountBusy.value = false;
+  }
+}
+
+function openDelete() {
+  deleteConfirmation.value = '';
+  deleteError.value = null;
+  deleteOpen.value = true;
+}
+
+async function handleDelete() {
+  if (deleteConfirmation.value !== 'DELETE') return;
+  accountBusy.value = true;
+  deleteError.value = null;
+  try {
+    await authStore.deleteAccount();
+    deleteOpen.value = false;
+    toast.show('Your account has been permanently deleted.', 'success');
+    router.push('/login');
+  } catch (err) {
+    if (err instanceof ApiError && err.code === 'REAUTH_REQUIRED') {
+      // Deletion needs a fresh sign-in; come straight back here afterwards.
+      deleteOpen.value = false;
+      toast.show(err.message, 'info');
+      await authStore.logout();
+      router.push({ path: '/login', query: { redirect: '/settings' } });
+      return;
+    }
+    deleteError.value = (err as Error).message;
+  } finally {
+    accountBusy.value = false;
+  }
 }
 
 const motionOptions: { value: MotionPreference; label: string }[] = [
@@ -270,6 +513,55 @@ const motionDescriptions: Record<MotionPreference, string> = {
 
   .preset-active & {
     color: var(--unmute-text-primary);
+  }
+}
+
+.account-action {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: progress;
+  }
+}
+
+.push-switch {
+  flex-shrink: 0;
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--unmute-glass-border);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: background 0.2s ease;
+
+  .push-switch-knob {
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
+  }
+
+  &.is-on {
+    background: var(--unmute-primary);
+
+    .push-switch-knob {
+      transform: translateX(1.25rem);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .push-switch,
+  .push-switch-knob {
+    transition: none;
   }
 }
 

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { getDatabase } from '../config/database';
-import { blockedBetween } from './sql';
+import { activeUser, blockedBetween } from './sql';
+import { dbTimestamp } from '../utils/time';
 
 export interface MatchSummaryRow {
   match_id: string;
@@ -18,7 +19,7 @@ export class MatchRepository {
    */
   static ensure(userX: string, userY: string): Promise<string> {
     const [userA, userB] = userX < userY ? [userX, userY] : [userY, userX];
-    const now = new Date().toISOString();
+    const now = dbTimestamp();
 
     return getDatabase().transaction(async (tx) => {
       await tx.run(
@@ -52,6 +53,7 @@ export class MatchRepository {
        JOIN conversations c ON c.match_id = m.id
        WHERE (m.user_a_id = $1 OR m.user_b_id = $1)
          AND NOT ${blockedBetween('m.user_a_id', 'm.user_b_id')}
+         AND ${activeUser('IF(m.user_a_id = $1, m.user_b_id, m.user_a_id)')}
        ORDER BY COALESCE(c.last_message_at, m.created_at) DESC`,
       [userId]
     );

@@ -8,6 +8,7 @@ import { MessageRepository } from '../repositories/messageRepository';
 import { ProfileRepository } from '../repositories/profileRepository';
 import { InterestRepository } from '../repositories/interestRepository';
 import { assertInteractable } from './userGuards';
+import { PushService } from './pushService';
 
 export class MatchingService {
   static async recordLike(likerId: string, likeeId: string) {
@@ -33,6 +34,12 @@ export class MatchingService {
         conversationId,
         matchedUser: { id: liker.id, displayName: liker.displayName, age: liker.age, avatarUrl: liker.avatarUrl },
       });
+    void PushService.notifyIfAway(likeeId, {
+      title: 'Unmute',
+      body: 'You have a new match. Say hello!',
+      url: `/chat/${conversationId}`,
+      tag: `match:${conversationId}`,
+    });
 
     const { isVerified: _isVerified, ...matchedUser } = toPublicProfile(likeeId, profiles.get(likeeId));
     return { matched: true, conversationId, matchedUser };

@@ -1,20 +1,22 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { getDatabase } from '../src/config/database';
 import { AppError } from '../src/middleware/errorHandler';
+import { authRateLimiter } from '../src/middleware/rateLimiter';
 import { fakeGoogleCredential, resetTestDatabase } from './helpers';
 
 // Google's signature verification needs Google-issued tokens, so only the verifier is replaced.
-vi.mock('../src/services/auth/googleIdentity', () => ({
-  verifyGoogleCredential: vi.fn(async (credential: string) => {
-    const [prefix, subject, email, flag] = credential.split(':');
-    if (prefix !== 'google-test-credential' || !subject || !email) {
-      throw new AppError('Google sign-in could not be verified. Please try again.', 401);
-    }
-    return { subject, email, emailVerified: flag !== 'unverified', name: 'Google Member', picture: '' };
-  }),
-}));
+vi.mock('../src/services/auth/googleIdentity', async () => {
+  const { parseFakeGoogleCredential } = await import('./helpers');
+  return {
+    verifyGoogleCredential: vi.fn(async (credential: string) => {
+      const identity = parseFakeGoogleCredential(credential);
+      if (!identity) throw new AppError('Google sign-in could not be verified. Please try again.', 401);
+      return identity;
+    }),
+  };
+});
 
 const app = createApp();
 const COOKIE = 'unmute_session';
@@ -37,6 +39,19 @@ describe('Unmute API', () => {
     await resetTestDatabase();
   });
 
+  // Every test request comes from one IP; the auth limit itself is covered by its own test.
+  beforeEach(() => {
+    for (const ip of ['::ffff:127.0.0.1', '127.0.0.1', '::1']) authRateLimiter.resetKey(ip);
+  });
+
+  it('throttles repeated authentication attempts from one client', async () => {
+    let last = 0;
+    for (let i = 0; i < 51; i++) {
+      last = (await request(app).post('/api/v1/auth/login').send({ email: 'nobody@example.com', password: 'wrong-password' })).status;
+    }
+    expect(last).toBe(429);
+  }, 60_000); // every attempt runs a deliberately slow bcrypt comparison
+
   describe('Email registration, login and sessions', () => {
     it('rejects registration under 18', async () => {
       const res = await request(app).post('/api/v1/auth/register').send({
@@ -47,6 +62,38 @@ describe('Unmute API', () => {
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/18 years of age/);
+    });
+
+    it.each([
+      ['2000-02-31', 'impossible day'],
+      ['2001-02-29', '29 February in a non-leap year'],
+      ['1999-13-01', 'month 13'],
+      ['1999-00-10', 'month 0'],
+      ['1999-04-31', '31 April'],
+      ['2000-2-3', 'malformed'],
+      ['03/10/1997', 'wrong format'],
+      ['2999-01-01', 'future date'],
+      ['1850-01-01', 'implausibly old'],
+    ])('rejects date of birth %s (%s)', async (dateOfBirth) => {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: `dob-${dateOfBirth.replace(/\W/g, '')}@example.com`,
+        password: 'Password123!',
+        displayName: 'Date Tester',
+        dateOfBirth,
+      });
+      expect(res.status).toBe(400);
+      expect(sessionCookie(res)).toBeUndefined();
+    });
+
+    it('accepts a real leap-day birth date', async () => {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: 'leapling@example.com',
+        password: 'Password123!',
+        displayName: 'Leapling',
+        dateOfBirth: '2000-02-29',
+      });
+      expect(res.status).toBe(201);
+      expect(res.body.data.user.profile.dateOfBirth).toBe('2000-02-29');
     });
 
     it('registers an 18+ user with an HttpOnly session cookie and no token in the body', async () => {
@@ -132,10 +179,15 @@ describe('Unmute API', () => {
   });
 
   describe('Google sign-in', () => {
-    it('publishes the Google client ID (and nothing else) for the sign-in button', async () => {
+    it('publishes only public client settings (client IDs, password sign-up, photo uploads)', async () => {
       const res = await request(app).get('/api/v1/auth/config');
       expect(res.status).toBe(200);
-      expect(res.body.data).toEqual({ googleClientId: 'test-client-id.apps.googleusercontent.com' });
+      expect(res.body.data).toEqual({
+        googleClientId: 'test-client-id.apps.googleusercontent.com',
+        googleIosClientId: null,
+        passwordSignup: true,
+        photoUploads: false,
+      });
     });
 
     it('rejects client-asserted identity without a verified credential', async () => {
@@ -201,20 +253,99 @@ describe('Unmute API', () => {
       expect(sessionCookie(res)).toBeDefined();
     });
 
-    it('links a verified Google email to the existing account with that email', async () => {
-      const alice = await getDatabase().get('SELECT id FROM users WHERE email = ?', ['alice@example.com']);
-      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-alice', 'alice@example.com') });
+    it('matches returning users by Google subject, never by the email in the token', async () => {
+      const before = await getDatabase().get('SELECT COUNT(*) AS n FROM users');
+      const res = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-new', 'renamed@gmail.com'), dateOfBirth: '1996-04-12' });
       expect(res.status).toBe(200);
       expect(res.body.data.isNewUser).toBe(false);
-      expect(res.body.data.user.id).toBe(alice.id);
+      expect(res.body.data.user.email).toBe('new@gmail.com');
+      const after = await getDatabase().get('SELECT COUNT(*) AS n FROM users');
+      expect(Number(after.n)).toBe(Number(before.n));
+    });
+
+    it('does not link a Google account to an existing account through an address Google does not own', async () => {
+      // alice@example.com is "verified" in the Google account, but Google is not that domain's
+      // authority, so this proves nothing about who controls the Unmute account.
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-alice', 'alice@example.com') });
+      expect(res.status).toBe(409);
+      expect(sessionCookie(res)).toBeUndefined();
+
+      const link = await getDatabase().get("SELECT id FROM auth_accounts WHERE provider = 'google' AND provider_account_id = ?", ['sub-alice']);
+      expect(link).toBeNull();
+      const login = await request(app).post('/api/v1/auth/login').send({ email: 'alice@example.com', password: 'Password123!' });
+      expect(login.status).toBe(200);
     });
 
     it('refuses email-based linking or signup when Google has not verified the email', async () => {
+      const link = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-unverified', 'alice@example.com', 'unverified'), dateOfBirth: '1990-01-01' });
+      expect(link.status).toBe(403);
+      expect(sessionCookie(link)).toBeUndefined();
+
+      const signup = await request(app)
+        .post('/api/v1/auth/google')
+        .send({ credential: fakeGoogleCredential('sub-unverified-2', 'fresh@gmail.com', 'unverified'), dateOfBirth: '1990-01-01' });
+      expect(signup.status).toBe(403);
+      expect(await getDatabase().get('SELECT id FROM users WHERE email = ?', ['fresh@gmail.com'])).toBeNull();
+    });
+
+    it('lets the proven owner of a Gmail address take back an account pre-registered by someone else', async () => {
+      // The attacker registers the victim's Gmail address with a password they know...
+      const { agent: attacker, id: accountId } = await registerAgent('victim@gmail.com', 'Squatter');
+      expect((await attacker.get('/api/v1/auth/me')).status).toBe(200);
+
+      // ...then the real owner signs in with Google.
+      const owner = request.agent(app);
+      const res = await owner.post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-victim', 'victim@gmail.com') });
+      expect(res.status).toBe(200);
+      expect(res.body.data.user.id).toBe(accountId);
+      expect((await owner.get('/api/v1/auth/me')).status).toBe(200);
+
+      // The attacker's session and password no longer grant access.
+      expect((await attacker.get('/api/v1/auth/me')).status).toBe(401);
+      const relogin = await request(app).post('/api/v1/auth/login').send({ email: 'victim@gmail.com', password: 'Password123!' });
+      expect(relogin.status).not.toBe(200);
+      expect(sessionCookie(relogin)).toBeUndefined();
+    });
+
+    it('links a Google Workspace address (hd claim) to the existing account', async () => {
+      const { id } = await registerAgent('dev@company.test', 'Workspace Dev');
+      const res = await request(app).post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-dev', 'dev@company.test', 'workspace') });
+      expect(res.status).toBe(200);
+      expect(res.body.data.user.id).toBe(id);
+    });
+
+    it('creates exactly one account when the same new Google identity signs up concurrently', async () => {
+      const credential = fakeGoogleCredential('sub-race', 'race@gmail.com');
+      const results = await Promise.all(
+        Array.from({ length: 4 }, () => request(app).post('/api/v1/auth/google').send({ credential, dateOfBirth: '1995-01-01' }))
+      );
+      for (const r of results) expect(r.status).toBe(200);
+      expect(new Set(results.map((r) => r.body.data.user.id)).size).toBe(1);
+
+      const accounts = await getDatabase().query("SELECT id FROM auth_accounts WHERE provider = 'google' AND provider_account_id = 'sub-race'");
+      expect(accounts).toHaveLength(1);
+      const users = await getDatabase().query('SELECT id FROM users WHERE email = ?', ['race@gmail.com']);
+      expect(users).toHaveLength(1);
+    });
+
+    it('rejects an impossible date of birth for a new Google user', async () => {
       const res = await request(app)
         .post('/api/v1/auth/google')
-        .send({ credential: fakeGoogleCredential('sub-unverified', 'alice@example.com', false), dateOfBirth: '1990-01-01' });
-      expect(res.status).toBe(403);
-      expect(sessionCookie(res)).toBeUndefined();
+        .send({ credential: fakeGoogleCredential('sub-baddob', 'baddob@gmail.com'), dateOfBirth: '2000-02-31' });
+      expect(res.status).toBe(400);
+      expect(await getDatabase().get('SELECT id FROM users WHERE email = ?', ['baddob@gmail.com'])).toBeNull();
+    });
+
+    it('ends the session on logout', async () => {
+      const agent = request.agent(app);
+      await agent.post('/api/v1/auth/google').send({ credential: fakeGoogleCredential('sub-new', 'new@gmail.com') });
+      expect((await agent.get('/api/v1/auth/me')).status).toBe(200);
+      expect((await agent.post('/api/v1/auth/logout')).status).toBe(200);
+      expect((await agent.get('/api/v1/auth/me')).status).toBe(401);
     });
   });
 
@@ -358,8 +489,14 @@ describe('Unmute API', () => {
       }
       const page = await b.agent.get(`/api/v1/conversations/${conversationId}/messages?limit=2`);
       expect(page.body.data.messages.map((m: any) => m.content)).toEqual(['third', 'fourth']);
-      const older = await b.agent.get(`/api/v1/conversations/${conversationId}/messages?limit=2&offset=2`);
+      expect(page.body.data.hasMore).toBe(true);
+
+      // A message arriving between page loads must not shift the next page (cursor, not offset).
+      await a.agent.post(`/api/v1/conversations/${conversationId}/messages`).send({ content: 'fifth' });
+      const oldestLoaded = page.body.data.messages[0].id;
+      const older = await b.agent.get(`/api/v1/conversations/${conversationId}/messages?limit=2&before=${oldestLoaded}`);
       expect(older.body.data.messages.map((m: any) => m.content)).toEqual(['Hello User B!', 'second']);
+      expect(older.body.data.hasMore).toBe(false);
     });
 
     it('never exposes a conversation to a non-participant (IDOR)', async () => {
@@ -487,11 +624,20 @@ describe('Unmute API', () => {
       expect(report.status).toBe(404);
     });
 
-    it('rejects avatar URLs that are not https', async () => {
-      for (const avatarUrl of ['javascript:alert(1)', 'http://example.com/a.png', 'data:image/png;base64,AAAA']) {
+    it('rejects avatar URLs that are not https or not from an allowed photo host', async () => {
+      for (const avatarUrl of [
+        'javascript:alert(1)',
+        'http://lh3.googleusercontent.com/a/photo',
+        'data:image/png;base64,AAAA',
+        // Any other host would learn the IP address of every member who views the profile.
+        'https://example.com/a.png',
+        'https://googleusercontent.com.evil.example/a.png',
+        'https://evilgoogleusercontent.com/a.png',
+        'https://user:pass@lh3.googleusercontent.com/a/photo',
+      ]) {
         expect((await user.agent.patch('/api/v1/users/me').send({ avatarUrl })).status).toBe(400);
       }
-      expect((await user.agent.patch('/api/v1/users/me').send({ avatarUrl: 'https://example.com/a.png' })).status).toBe(200);
+      expect((await user.agent.patch('/api/v1/users/me').send({ avatarUrl: 'https://lh3.googleusercontent.com/a/photo' })).status).toBe(200);
     });
 
     it('answers malformed JSON with a 400 that leaks no internals', async () => {

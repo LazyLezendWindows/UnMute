@@ -1,0 +1,13 @@
+# Keep the build context (and so the image) free of local state and secrets.
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+backend/data
+**/*.log
+.git
+test-results
+playwright-report
+frontend/android
+frontend/ios

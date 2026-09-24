@@ -19,15 +19,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import SpatialScene from '../components/scene/SpatialScene.vue';
 import SpatialDock from '../components/layout/SpatialDock.vue';
 import MatchModal from '../components/matching/MatchModal.vue';
 import { useDiscoverStore } from '../stores/discover';
+import { useChatStore } from '../stores/chat';
+import { useAuthStore } from '../stores/auth';
+import { resyncPush } from '../platform/webPush';
 
 const route = useRoute();
 const discoverStore = useDiscoverStore();
+const chatStore = useChatStore();
+const authStore = useAuthStore();
+
+// Realtime chat events and the unread badge work on every signed-in page, not just in Chat.
+// Re-run on every sign-in: each session gets a new socket.
+watch(
+  () => authStore.isAuthenticated,
+  (signedIn) => {
+    if (!signedIn) return;
+    chatStore.initSocketHandlers();
+    chatStore.loadConversations();
+    if (authStore.user) resyncPush(authStore.user.id);
+  },
+  { immediate: true }
+);
 
 // Inside an open conversation the message composer owns the bottom of the screen.
 const showMobileDock = computed(() => !(route.name === 'chat' && route.params.id));
